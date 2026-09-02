@@ -1,0 +1,437 @@
+<title>Feature Engineering</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 14 &middot; Classical ML, Extended</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">14.1</span>
+    <h1>Feature Engineering</h1>
+    <p class="lede">The craft that quietly decides whether a model works. This page covers turning raw data into features a model
+can learn from &mdash; encoding, scaling, handling missing values, creating and selecting features &mdash; why
+it still matters in the deep-learning era, and the leakage traps that make good offline numbers lie.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#transforms">The core transformations</a></li><li><a href="#creating">Creating and selecting features</a></li><li><a href="#deep-learning">Does it still matter with deep learning?</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>Classical ML (Topic 2.3) and Pandas (Topic 2.2). Feature engineering sits between raw data and a model.</p>
+</div>
+
+<p>A model does not learn from raw data &mdash; it learns from <strong>features</strong>, the numeric inputs you derive from raw data. Turning "a customer's messy transaction history" into "average spend, days since last purchase, weekend-shopper flag" is feature engineering, and on tabular problems it is often the difference between a mediocre model and a great one.</p>
+
+<div class="note key">
+  <span class="tag">The saying that holds up</span>
+  <p>Practitioners repeat it because it keeps being true: <strong>"garbage in, garbage out"</strong>, and its sharper cousin, <em>better features usually beat a better model</em>. On tabular data, a strong feature set with a simple model routinely outperforms a fancy model on raw inputs. The model can only learn from what you give it; feature engineering is deciding what to give it. It is where domain knowledge enters machine learning, and it is often where the real work is.</p>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Feature</dt><dd>One input column a model learns from.</dd>
+    <dt>Encoding</dt><dd>Turning categories (text labels) into numbers.</dd>
+    <dt>Scaling</dt><dd>Putting numeric features on a comparable range.</dd>
+    <dt>Imputation</dt><dd>Filling in missing values.</dd>
+    <dt>Feature selection</dt><dd>Keeping the useful features, dropping the rest.</dd>
+    <dt>Leakage</dt><dd>A feature that secretly contains the answer &mdash; the cardinal sin (Topic 2.3).</dd>
+  </dl>
+</div>
+
+<h2 id="transforms"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>The core transformations</h2>
+
+<div class="tbl">
+  <table>
+    <caption>The everyday feature transformations</caption>
+    <thead><tr><th>Problem</th><th>Technique</th><th>When</th></tr></thead>
+    <tbody>
+      <tr><td>Categories &rarr; numbers</td><td>One-hot encoding</td><td>Few, unordered categories</td></tr>
+      <tr><td>Many categories</td><td>Target / frequency encoding</td><td>High cardinality (careful &mdash; leakage risk)</td></tr>
+      <tr><td>Ordered categories</td><td>Ordinal encoding</td><td>Order is meaningful (small&lt;medium&lt;large)</td></tr>
+      <tr><td>Different scales</td><td>Standardise or normalise</td><td>Distance-based models, neural nets (Topic 2.3)</td></tr>
+      <tr><td>Skewed numbers</td><td>Log / power transform</td><td>Long-tailed data (income, counts)</td></tr>
+      <tr><td>Missing values</td><td>Impute + a "was missing" flag</td><td>Almost always &mdash; missingness is informative</td></tr>
+      <tr><td>Dates</td><td>Extract day-of-week, month, is-holiday</td><td>Any temporal data (Topic 14.5)</td></tr>
+      <tr><td>Text</td><td>TF-IDF or embeddings (Topics 13.1, 4.2)</td><td>Free-text fields</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Feature engineering, done inside a pipeline</span></div>
+<pre><code>from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
+
+<span class="cm"># Deriving new features from raw columns (domain knowledge here).</span>
+df["days_since_purchase"] = (today - df["last_purchase"]).dt.days
+df["is_weekend"] = df["order_time"].dt.dayofweek &gt;= 5
+df["spend_per_visit"] = df["total_spend"] / df["visit_count"].clip(lower=1)
+
+<span class="cm"># Encode/scale/impute INSIDE a pipeline so it is fitted per fold --</span>
+<span class="cm"># this is what prevents leakage (Section 04, Topic 2.3).</span>
+pre = ColumnTransformer([
+    ("num", Pipeline([("impute", SimpleImputer(strategy="median")),
+                      ("scale",  StandardScaler())]), numeric_cols),
+    ("cat", OneHotEncoder(handle_unknown="ignore"), categorical_cols),
+])
+model = Pipeline([("features", pre), ("clf", classifier)])</code></pre>
+</div>
+
+<h2 id="creating"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>Creating and selecting features</h2>
+
+<p>Beyond transforming existing columns, the real leverage is <em>creating</em> features that capture something the model cannot see in the raw data &mdash; and then keeping only the ones that help.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Ways to create features</caption>
+    <thead><tr><th>Kind</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td>Domain-derived</td><td>BMI from height &amp; weight; margin from price &amp; cost</td></tr>
+      <tr><td>Interactions</td><td>price &times; quantity; age &times; income</td></tr>
+      <tr><td>Aggregations</td><td>Average order value per customer; count in last 30 days</td></tr>
+      <tr><td>Temporal</td><td>Rolling means, lags, time-since-event (Topic 14.5)</td></tr>
+      <tr><td>Ratios</td><td>Clicks per impression; debt-to-income</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note">
+  <p><strong>Then select.</strong> More features is not better &mdash; irrelevant ones add noise and overfitting risk. Feature selection keeps the useful subset: drop near-constant and highly-correlated columns, use model-based importance (a tree's feature importances, or Lasso's zeroed coefficients from Topic 2.3), or measure each feature's relationship to the target. A tighter, meaningful feature set trains faster, generalises better, and is easier to explain (Topic 16.3).</p>
+</div>
+
+<h2 id="deep-learning"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>Does it still matter with deep learning?</h2>
+
+<p>Deep learning learns its own features (Topic 12.1) &mdash; a CNN discovers edge detectors, an LLM learns representations of language. So is manual feature engineering obsolete? The honest answer is <em>it depends on the data</em>.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Where feature engineering matters, by data type</caption>
+    <thead><tr><th>Data</th><th>Feature engineering&hellip;</th></tr></thead>
+    <tbody>
+      <tr><td>Tabular (rows &amp; columns)</td><td><strong>Still crucial</strong> &mdash; and gradient boosting on good features often beats deep learning</td></tr>
+      <tr><td>Images, audio, text</td><td>Mostly automatic &mdash; the network learns features from raw input</td></tr>
+      <tr><td>Time series</td><td>Both &mdash; engineered lags/windows plus learned features</td></tr>
+      <tr><td>Mixed / structured + text</td><td>Engineer the structured part; embed the text (Topic 4.2)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">The tabular reality</span>
+  <p>For the tabular data that dominates business problems &mdash; customers, transactions, sensors, logs &mdash; <strong>feature engineering plus gradient boosting (Topic 2.3) is still frequently the state of the art</strong>, beating deep learning. Deep learning's "it learns its own features" advantage is real for images, audio and text, where raw inputs have rich structure a network can exploit; it is much weaker on tabular data, where hand-crafted features carrying domain knowledge remain decisive. So the skill is far from dead &mdash; it is exactly where a lot of applied ML value still lives, and where an engineer who understands the data outperforms one who just throws a big model at it.</p>
+</div>
+
+<div class="note trap">
+  <span class="tag">The leakage trap, again</span>
+  <p>The most dangerous feature-engineering mistake is <strong>leakage</strong> (Topic 2.3): creating a feature that encodes the answer, or fitting a transformation on the whole dataset before splitting. A feature like <code>days_until_cancellation</code> is null exactly for customers who did not cancel &mdash; it leaks the target. Target encoding computed over all rows leaks label information into training. The symptom is always the same: brilliant offline numbers, useless in production. Do every transformation <em>inside a pipeline fitted per fold</em> (Section 02), and interrogate any feature that seems too predictive.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly a weekend</div>
+  <ol>
+    <li>Take a raw tabular dataset. Improve a baseline model purely by engineering better features, without changing the model.</li>
+    <li>Compare one-hot, ordinal and target encoding on a high-cardinality column. Note the accuracy and the leakage risk of target encoding.</li>
+    <li>Add a "was missing" indicator alongside imputation. Check whether missingness itself is predictive.</li>
+    <li>Create interaction and ratio features from domain knowledge. Measure their importance in a tree model.</li>
+    <li>On a Kaggle tabular dataset, compare gradient boosting on good features against a neural network on raw features. Reproduce the Section 04 result.</li>
+    <li>Deliberately introduce a leaky feature. Watch cross-validation soar, then fix it and see the honest score.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Course</span><span class="body"><a href="https://www.kaggle.com/learn/feature-engineering">Kaggle &mdash; Feature Engineering</a><span class="why">Free, hands-on, exactly this page's material with real datasets.</span></span></li>
+    <li><span class="kind">Book</span><span class="body"><a href="https://www.feat.engineering/">Feature Engineering and Selection</a><span class="why">A free, thorough book on the craft &mdash; the reference for Section 03.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://scikit-learn.org/stable/modules/preprocessing.html">scikit-learn &mdash; Preprocessing</a><span class="why">Every encoder, scaler and imputer, with the pipeline usage from Section 02.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2207.08815">Why do tree-based models still outperform deep learning on tabular data?</a><span class="why">The evidence behind the Section 04 tabular claim.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://scikit-learn.org/stable/common_pitfalls.html">scikit-learn &mdash; Common pitfalls</a><span class="why">The leakage traps of Section 04, precisely described.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 14.1 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

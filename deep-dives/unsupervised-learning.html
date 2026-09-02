@@ -1,0 +1,436 @@
+<title>Unsupervised Learning & Clustering</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 14 &middot; Classical ML, Extended</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">14.3</span>
+    <h1>Unsupervised Learning &amp; Clustering</h1>
+    <p class="lede">Finding structure in unlabelled data. This page covers clustering (k-means, DBSCAN, hierarchical) and
+dimensionality reduction (PCA, t-SNE, UMAP), how to tell whether a clustering is any good without labels, and
+where these methods quietly power your RAG pipeline &mdash; from vector indexes to deduplication to embedding
+visualisation.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#clustering">The clustering algorithms</a></li><li><a href="#reduction">Dimensionality reduction</a></li><li><a href="#evaluation">How do you know a clustering is good?</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>Classical ML (Topic 2.3) &mdash; especially k-means &mdash; and vectors (Topic 1.1). This page deepens the unsupervised side.</p>
+</div>
+
+<p>Supervised learning needs labelled examples. But most data has no labels &mdash; you have a pile of customers, documents or transactions and no "answer" attached. <strong>Unsupervised learning</strong> finds structure in that raw data: groups that belong together, and the few dimensions that actually matter.</p>
+
+<div class="tbl">
+  <table>
+    <caption>The two main unsupervised jobs</caption>
+    <thead><tr><th>Job</th><th>Question</th><th>Methods</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Clustering</strong></td><td>Which things belong together?</td><td>k-means, DBSCAN, hierarchical</td></tr>
+      <tr><td><strong>Dimensionality reduction</strong></td><td>What are the few dimensions that matter?</td><td>PCA, t-SNE, UMAP</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">Why this matters for you specifically</span>
+  <p>Unsupervised learning is not a side topic for an AI engineer &mdash; it is <em>inside your RAG pipeline</em>. k-means is the algorithm behind IVF vector indexes (Topic 4.3). Clustering deduplicates near-identical chunks (Topic 4.5) and groups documents for routing. Dimensionality reduction visualises embedding spaces to debug them (Topic 4.2), and is the theory behind Matryoshka embeddings. These "classical" methods are load-bearing in modern LLM systems &mdash; you use them constantly, often without noticing.</p>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Cluster</dt><dd>A group of data points that are similar to each other.</dd>
+    <dt>Centroid</dt><dd>The centre of a cluster &mdash; the average of its members.</dd>
+    <dt>Dimensionality reduction</dt><dd>Compressing many features into a few, keeping what matters.</dd>
+    <dt>Density</dt><dd>How tightly packed points are &mdash; the basis of DBSCAN.</dd>
+    <dt>Silhouette score</dt><dd>A label-free measure of how good a clustering is.</dd>
+    <dt>Embedding projection</dt><dd>Squashing high-dim vectors to 2D so you can see them.</dd>
+  </dl>
+</div>
+
+<h2 id="clustering"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>The clustering algorithms</h2>
+
+<div class="tbl">
+  <table>
+    <caption>When to use which clustering method</caption>
+    <thead><tr><th>Method</th><th>How</th><th>Strength</th><th>Weakness</th></tr></thead>
+    <tbody>
+      <tr><td><strong>k-means</strong></td><td>Partition into <i>k</i> round clusters</td><td>Fast, simple, scalable (Topic 2.3)</td><td>You must pick <i>k</i>; assumes round clusters</td></tr>
+      <tr><td><strong>DBSCAN</strong></td><td>Group dense regions; mark sparse points as noise</td><td>Finds any shape; no <i>k</i>; flags outliers</td><td>Struggles with varying density</td></tr>
+      <tr><td>Hierarchical</td><td>Build a tree of nested clusters</td><td>No <i>k</i> up front; the dendrogram is informative</td><td>Slow on large data</td></tr>
+      <tr><td>Gaussian Mixture</td><td>Soft, probabilistic assignment</td><td>A point can partly belong to several clusters</td><td>Assumes Gaussian blobs</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note">
+  <p><strong>DBSCAN's superpower is noise.</strong> Unlike k-means, which forces every point into a cluster, DBSCAN labels sparse, isolated points as <em>noise</em> &mdash; which makes it a natural outlier detector (Topic 14.7) and a good deduplicator (dense clumps of near-identical items become one cluster). It also finds clusters of any shape, where k-means only finds round ones. The trade-off: it assumes clusters have similar density, and picking its distance threshold takes care. A useful rule: <strong>k-means when you know roughly how many groups and they are blob-like; DBSCAN when you do not know the count, the shapes are irregular, or outliers matter.</strong></p>
+</div>
+
+<h2 id="reduction"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>Dimensionality reduction</h2>
+
+<p>High-dimensional data &mdash; a 1536-dim embedding, hundreds of features &mdash; is hard to visualise, sometimes noisy, and expensive to store. Reduction compresses it to a few meaningful dimensions.</p>
+
+<div class="tbl">
+  <table>
+    <caption>The reduction methods, and a critical distinction</caption>
+    <thead><tr><th>Method</th><th>Preserves</th><th>Use for</th></tr></thead>
+    <tbody>
+      <tr><td><strong>PCA</strong></td><td>Global variance; linear</td><td>Compression, denoising, speed (Topic 1.1)</td></tr>
+      <tr><td><strong>t-SNE</strong></td><td>Local neighbourhoods; non-linear</td><td><em>Visualising</em> clusters in 2D</td></tr>
+      <tr><td><strong>UMAP</strong></td><td>Local + some global; fast</td><td><em>Visualising</em>, and preprocessing</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note trap">
+  <span class="tag">Never cluster on t-SNE or UMAP output</span>
+  <p>t-SNE and UMAP are for <em>looking</em>, not for computing. They deliberately distort distances to make clusters visually separable in 2D &mdash; the gaps and cluster sizes in a t-SNE plot are <strong>not</strong> meaningful, and points far apart in the plot may be close in reality. Use them to <em>eyeball</em> an embedding space (Topic 4.2) and spot structure, then cluster and measure distances on the <em>original</em> vectors (or a PCA reduction, which does preserve distances). Treating a t-SNE layout as real geometry is a common and misleading mistake.</p>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Visualising an embedding space</span></div>
+<pre><code>import umap
+from sklearn.cluster import KMeans
+
+<span class="cm"># You have 5,000 document embeddings (1536-dim) from Topic 4.2.</span>
+<span class="cm"># Cluster on the FULL vectors -- distances are real there.</span>
+labels = KMeans(n_clusters=8).fit_predict(embeddings)
+
+<span class="cm"># Project to 2D ONLY to look at it. Do not cluster on this.</span>
+coords = umap.UMAP(n_neighbors=15).fit_transform(embeddings)
+<span class="cm"># scatter(coords, color=labels) -- see whether topics separate,</span>
+<span class="cm"># spot outliers, sanity-check your embedding model.</span></code></pre>
+</div>
+
+<h2 id="evaluation"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>How do you know a clustering is good?</h2>
+
+<p>Without labels, "correct" has no fixed meaning &mdash; which makes evaluation genuinely hard. You have two kinds of check.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Judging a clustering</caption>
+    <thead><tr><th>Approach</th><th>How</th></tr></thead>
+    <tbody>
+      <tr><td>Internal metrics</td><td>Silhouette score, Davies-Bouldin &mdash; measure how tight and separated clusters are, no labels needed</td></tr>
+      <tr><td>Choosing <i>k</i></td><td>Elbow plot (inertia vs <i>k</i>) or silhouette across <i>k</i></td></tr>
+      <tr><td>Stability</td><td>Do clusters persist across re-runs and subsamples?</td></tr>
+      <tr><td><strong>Human judgement</strong></td><td>Do the clusters mean something to a domain expert?</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">The honest truth about clustering</span>
+  <p>Internal metrics help, but the decisive test is usually <strong>"are these clusters useful and interpretable to someone who knows the domain?"</strong> A clustering with a great silhouette score that carves customers into groups nobody can act on is worthless; one with a mediocre score that reveals "these are your at-risk customers" is gold. Unsupervised results are a starting point for human insight, not a final answer. Always look at what is <em>in</em> each cluster &mdash; sample its members &mdash; before trusting it. This is different from supervised learning, where a held-out metric is more nearly the final word.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly a weekend</div>
+  <ol>
+    <li>Cluster a dataset with k-means, DBSCAN and hierarchical. Compare what each finds, especially on non-round shapes.</li>
+    <li>Use an elbow plot and silhouette score to choose <i>k</i> for k-means. Do they agree?</li>
+    <li>Take document embeddings (Topic 4.2), cluster on the full vectors, then visualise with UMAP coloured by cluster. Confirm topics separate.</li>
+    <li>Demonstrate the t-SNE trap: cluster on t-SNE output vs the original vectors and show the results differ misleadingly.</li>
+    <li>Use DBSCAN to deduplicate near-identical items and to flag outliers in one pass.</li>
+    <li>Sample the members of each cluster and write a one-line label for each. Judge whether the clustering is actually useful.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://scikit-learn.org/stable/modules/clustering.html">scikit-learn &mdash; Clustering</a><span class="why">Every algorithm with a visual comparison chart. The reference for Section 02.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://distill.pub/2016/misread-tsne/">How to Use t-SNE Effectively &mdash; Distill</a><span class="why">Interactive proof of the Section 03 trap. Essential before trusting any t-SNE plot.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://umap-learn.readthedocs.io/">UMAP documentation</a><span class="why">The fast projection method, with honest guidance on what it does and does not preserve.</span></span></li>
+    <li><span class="kind">Video</span><span class="body"><a href="https://www.youtube.com/watch?v=_aWzGGNrcic">StatQuest &mdash; PCA clearly explained</a><span class="why">The clearest explanation of PCA (also Topic 1.1).</span></span></li>
+    <li><span class="kind">Course</span><span class="body"><a href="https://www.kaggle.com/learn/clustering-with-k-means">Kaggle &mdash; Clustering</a><span class="why">Hands-on clustering, including using clusters as features.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 14.3 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

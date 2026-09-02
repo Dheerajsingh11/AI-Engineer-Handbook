@@ -1,0 +1,627 @@
+<title>NumPy & Pandas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 02 &middot; Python &amp; Data</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">2.2</span>
+    <h1>NumPy &amp; Pandas</h1>
+    <p class="lede">The two libraries every AI codebase is built on. This page explains what an ndarray really is at the memory
+level, derives the broadcasting rules, shows why strides make transposes free, and builds a complete
+evaluation-analysis pipeline in Pandas &mdash; with the SQL you already know as the bridge.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#memory">What an ndarray actually is</a></li><li><a href="#broadcasting">Broadcasting, derived</a></li><li><a href="#numpy-toolkit">The NumPy operations worth knowing by heart</a></li><li><a href="#pandas">Pandas as SQL you can hold</a></li><li><a href="#scratch">Build an evaluation analysis pipeline</a></li><li><a href="#performance">Performance and scale</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>Basic Python (Topic 2.1) and, for Section 06 onwards, familiarity with SQL. No mathematics beyond arithmetic is required.</p>
+</div>
+
+<p>Two libraries, two jobs. <strong>NumPy</strong> handles grids of numbers &mdash; fast. <strong>Pandas</strong> handles tables with named, mixed-type columns &mdash; conveniently. Almost every Python data or AI library is built on one or both, so learning them is not optional overhead; it is the vocabulary.</p>
+
+<h3>Why not just use lists?</h3>
+
+<p>A Python list of a million numbers is a million separate objects scattered across memory, each carrying a type tag and a reference count. Adding two such lists means a million interpreter loop iterations, each dispatching on type.</p>
+
+<p>A NumPy array of a million numbers is one contiguous block of raw bytes, all the same type. Adding two of them is a single call into optimised C that uses the CPU's vector instructions.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>The difference, measured</span></div>
+<pre><code>import numpy as np, time
+
+n = 5_000_000
+py_a, py_b = list(range(n)), list(range(n))
+np_a, np_b = np.arange(n), np.arange(n)
+
+t = time.perf_counter()
+py_c = [x + y for x, y in zip(py_a, py_b)]
+print(f"python list : {time.perf_counter() - t:.3f}s")
+
+t = time.perf_counter()
+np_c = np_a + np_b
+print(f"numpy array : {time.perf_counter() - t:.3f}s")
+
+<span class="cm"># python list : 0.412s</span>
+<span class="cm"># numpy array : 0.011s     ~40x, and the gap widens with more work per element</span>
+
+print(np_a.nbytes / 1e6, "MB")      <span class="cm"># 40.0 MB -- exactly 8 bytes x 5M</span>
+<span class="cm"># The list needs roughly 200 MB for the same numbers.</span></code></pre>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>ndarray</dt>
+    <dd>NumPy's array. Fixed size, one single type throughout, laid out contiguously in memory.</dd>
+
+    <dt>dtype</dt>
+    <dd>The type of every element: <code>float32</code>, <code>int64</code>, <code>bool</code>. Choosing it is a real decision &mdash; <code>float32</code> halves your memory versus <code>float64</code>.</dd>
+
+    <dt>Shape</dt>
+    <dd>A tuple giving the size along each axis. <code>(1000, 768)</code> is a thousand 768-dimensional vectors.</dd>
+
+    <dt>Axis</dt>
+    <dd>Which direction an operation runs. <code>axis=0</code> collapses rows (down the columns); <code>axis=1</code> collapses columns (across the rows).</dd>
+
+    <dt>Vectorisation</dt>
+    <dd>Expressing a whole-array operation instead of a loop. The core skill of this page.</dd>
+
+    <dt>Broadcasting</dt>
+    <dd>NumPy automatically stretching a smaller array to match a bigger one, without copying it.</dd>
+
+    <dt>DataFrame</dt>
+    <dd>Pandas' table: named columns, each with its own type, sharing a row index. Effectively an in-memory result set.</dd>
+
+    <dt>Series</dt>
+    <dd>A single column of a DataFrame. A one-dimensional labelled array.</dd>
+  </dl>
+</div>
+
+<h2 id="memory"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>What an ndarray actually is</h2>
+
+<p>An <code>ndarray</code> is a thin descriptor over a flat buffer. Understanding the descriptor explains several behaviours that otherwise look arbitrary.</p>
+
+<div class="kv">
+  <div><dt>data</dt><dd>Pointer to one flat block of bytes</dd></div>
+  <div><dt>dtype</dt><dd>How to interpret each element</dd></div>
+  <div><dt>shape</dt><dd>Logical dimensions</dd></div>
+  <div><dt>strides</dt><dd>Bytes to step to advance one along each axis</dd></div>
+</div>
+
+<p><strong>Strides</strong> are the interesting one. For a <code>(3, 4)</code> array of <code>float64</code>, strides are <code>(32, 8)</code>: move 32 bytes to go down a row, 8 bytes to move along one. Now consider a transpose &mdash; NumPy just swaps the strides to <code>(8, 32)</code>. <em>No data moves at all.</em> Transposing a gigabyte array is instantaneous.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Views, copies, and the bug this causes</span></div>
+<pre><code>import numpy as np
+
+a = np.arange(12).reshape(3, 4)
+print(a.strides)          <span class="cm"># (32, 8)</span>
+print(a.T.strides)        <span class="cm"># (8, 32)  -- same buffer, swapped strides</span>
+print(a.T.base is a)      <span class="cm"># True     -- a VIEW, not a copy</span>
+
+<span class="cm"># Slicing returns a view. Writing to it mutates the original.</span>
+row = a[1]
+row[0] = 999
+print(a[1, 0])            <span class="cm"># 999   -- surprising if you expect a copy</span>
+
+<span class="cm"># Fancy indexing returns a COPY.</span>
+picked = a[[0, 2]]
+picked[0, 0] = -1
+print(a[0, 0])            <span class="cm"># 0     -- original untouched</span>
+
+<span class="cm"># The rule: basic slicing -> view; boolean or integer-array</span>
+<span class="cm"># indexing -> copy. Use .copy() whenever you mean it.</span>
+
+<span class="cm"># Contiguity matters for speed:</span>
+print(a.flags["C_CONTIGUOUS"])    <span class="cm"># True</span>
+print(a.T.flags["C_CONTIGUOUS"])  <span class="cm"># False -- some ops will copy internally</span>
+b = np.ascontiguousarray(a.T)     <span class="cm"># force a contiguous copy if it matters</span></code></pre>
+</div>
+
+<h2 id="broadcasting"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>Broadcasting, derived</h2>
+
+<p>Broadcasting is what lets you write <code>matrix / vector</code> and have it mean something sensible. The rules are short, mechanical, and worth memorising because they explain most shape errors.</p>
+
+<ol class="steps">
+  <li><strong>Align the shapes from the right.</strong> Pad the shorter shape with 1s on the <em>left</em>. <code>(1000, 768)</code> and <code>(768,)</code> become <code>(1000, 768)</code> and <code>(1, 768)</code>.</li>
+  <li><strong>Compare each axis.</strong> They are compatible if they are equal, or if one of them is 1.</li>
+  <li><strong>Stretch the 1s.</strong> An axis of size 1 is repeated to match. No memory is allocated &mdash; NumPy sets that axis's stride to 0 so the same element is read repeatedly.</li>
+  <li><strong>Otherwise, error.</strong> If any axis pair is neither equal nor contains a 1, the operation fails.</li>
+</ol>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Broadcasting in the operations you will actually write</span></div>
+<pre><code>import numpy as np
+
+store = np.random.randn(100_000, 768)     <span class="cm"># 100k embeddings</span>
+
+<span class="cm"># Normalise every row. norms is (100000, 1); it broadcasts across</span>
+<span class="cm"># all 768 columns. keepdims=True is what preserves that trailing 1.</span>
+norms = np.linalg.norm(store, axis=1, keepdims=True)   <span class="cm"># (100000, 1)</span>
+store = store / norms                                  <span class="cm"># (100000, 768)</span>
+
+<span class="cm"># WITHOUT keepdims you get (100000,), which right-aligns against</span>
+<span class="cm"># the 768 axis and raises: operands could not be broadcast</span>
+<span class="cm"># together with shapes (100000,768) (100000,)</span>
+
+query = np.random.randn(768)
+query /= np.linalg.norm(query)
+
+scores = store @ query                    <span class="cm"># (100000,768)@(768,) -&gt; (100000,)</span>
+top5 = np.argpartition(-scores, 5)[:5]    <span class="cm"># O(n), unlike a full argsort</span>
+top5 = top5[np.argsort(-scores[top5])]
+
+<span class="cm"># Pairwise distances between two sets, no loop:</span>
+A = np.random.randn(500, 64)
+B = np.random.randn(300, 64)
+<span class="cm"># (500,1,64) - (1,300,64) -&gt; (500,300,64), then reduce the last axis</span>
+d = np.linalg.norm(A[:, None, :] - B[None, :, :], axis=-1)   <span class="cm"># (500, 300)</span>
+
+<span class="cm"># That allocates 500*300*64 floats = 76 MB. For large sets use the</span>
+<span class="cm"># expansion ||a-b||^2 = ||a||^2 + ||b||^2 - 2a.b instead:</span>
+d2 = (A**2).sum(1)[:, None] + (B**2).sum(1)[None, :] - 2 * A @ B.T
+print(np.allclose(d, np.sqrt(np.maximum(d2, 0)), atol=1e-5))   <span class="cm"># True</span></code></pre>
+</div>
+
+<div class="note key">
+  <span class="tag">The debugging habit that saves hours</span>
+  <p>When a NumPy expression misbehaves, <strong>print every <code>.shape</code> in the chain</strong> before anything else. Broadcasting almost never errors when you have made a conceptual mistake &mdash; it does something reasonable that you did not intend, and returns an array of the wrong shape that flows onward silently. Adding <code>assert x.shape == (n, d)</code> at function boundaries is the Python equivalent of a type signature, and worth the two lines.</p>
+</div>
+
+<h2 id="numpy-toolkit"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>The NumPy operations worth knowing by heart</h2>
+
+<div class="tbl">
+  <table>
+    <caption>The working set</caption>
+    <thead><tr><th>Operation</th><th>Does</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td><code>reshape(-1, d)</code></td><td>Change shape; <code>-1</code> is inferred</td><td>Free if contiguous</td></tr>
+      <tr><td><code>arr[None, :]</code> / <code>[:, None]</code></td><td>Insert a length-1 axis</td><td>The broadcasting workhorse</td></tr>
+      <tr><td><code>concatenate</code> / <code>stack</code></td><td>Join along an existing / new axis</td><td>Building one big array beats appending</td></tr>
+      <tr><td><code>where(cond, a, b)</code></td><td>Element-wise ternary</td><td>Replaces if/else in a loop</td></tr>
+      <tr><td><code>argsort</code> / <code>argpartition</code></td><td>Indices that sort / partially sort</td><td><code>argpartition</code> is O(n) for top-k &mdash; use it</td></tr>
+      <tr><td><code>einsum</code></td><td>Arbitrary index contractions</td><td><code>einsum("ij,jk-&gt;ik", A, B)</code> is matmul; invaluable for attention</td></tr>
+      <tr><td><code>clip</code></td><td>Bound values</td><td>Numerical safety before <code>log</code> or division</td></tr>
+      <tr><td><code>isnan</code> / <code>isfinite</code></td><td>Detect bad values</td><td>Assert on these before storing embeddings</td></tr>
+      <tr><td><code>np.random.default_rng(seed)</code></td><td>Modern RNG</td><td>Use this, not the legacy <code>np.random.seed</code></td></tr>
+      <tr><td><code>save</code> / <code>load</code> / <code>memmap</code></td><td>Persist arrays</td><td><code>memmap</code> reads slices of a huge file without loading it</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="pandas"><span class="kicker">Section 05 <span class="lvl lvl-i">Intermediate</span></span>Pandas as SQL you can hold</h2>
+
+<p>A DataFrame is a result set that lives in memory and can be transformed step by step. Your SQL transfers almost completely; the main new idea is the <strong>index</strong>, a labelled row identifier that operations align on automatically.</p>
+
+<div class="tbl">
+  <table>
+    <caption>SQL to Pandas, completely</caption>
+    <thead><tr><th>SQL</th><th>Pandas</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td><code>SELECT a, b</code></td><td><code>df[["a","b"]]</code></td><td>A list inside the brackets</td></tr>
+      <tr><td><code>WHERE x &gt; 5 AND y = 'a'</code></td><td><code>df[(df.x &gt; 5) &amp; (df.y == "a")]</code></td><td><strong>Parentheses are required</strong> &mdash; <code>&amp;</code> binds tighter than <code>&gt;</code></td></tr>
+      <tr><td><code>WHERE x IN (...)</code></td><td><code>df[df.x.isin([...])]</code></td><td></td></tr>
+      <tr><td><code>ORDER BY x DESC</code></td><td><code>df.sort_values("x", ascending=False)</code></td><td>Returns a new frame</td></tr>
+      <tr><td><code>GROUP BY x</code></td><td><code>df.groupby("x").agg(...)</code></td><td>Split&ndash;apply&ndash;combine</td></tr>
+      <tr><td><code>JOIN ... ON id</code></td><td><code>df.merge(other, on="id", how="left")</code></td><td><code>how</code>: inner, left, right, outer, cross</td></tr>
+      <tr><td><code>UNION ALL</code></td><td><code>pd.concat([a, b])</code></td><td></td></tr>
+      <tr><td><code>COUNT(DISTINCT x)</code></td><td><code>df.x.nunique()</code></td><td></td></tr>
+      <tr><td><code>CASE WHEN</code></td><td><code>np.select</code> / <code>df.x.map(...)</code></td><td></td></tr>
+      <tr><td><code>ROW_NUMBER() OVER</code></td><td><code>df.groupby("g").cumcount()</code></td><td>Window functions have equivalents</td></tr>
+      <tr><td><code>LAG(x) OVER</code></td><td><code>df.groupby("g").x.shift(1)</code></td><td></td></tr>
+      <tr><td><code>PIVOT</code></td><td><code>df.pivot_table(...)</code></td><td><code>melt</code> is the inverse</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note trap">
+  <span class="tag">.loc, .iloc, and chained assignment</span>
+  <p><code>.loc</code> selects by <em>label</em> and its slices are inclusive of the endpoint; <code>.iloc</code> selects by <em>position</em> and is exclusive, like Python slicing. Mixing them up is the most common Pandas error.</p>
+  <p>Worse is <strong>chained assignment</strong>: <code>df[df.x &gt; 5]["y"] = 0</code> may write to a temporary copy and silently do nothing. Always assign through a single <code>.loc</code>: <code>df.loc[df.x &gt; 5, "y"] = 0</code>. Pandas 3 makes this an error by default; until then it is a warning that is easy to ignore and expensive to miss.</p>
+</div>
+
+<h2 id="scratch"><span class="kicker">Section 06 <span class="lvl lvl-a">Advanced</span></span>Build an evaluation analysis pipeline</h2>
+
+<p>A realistic task you will do repeatedly: you have run an eval suite across several prompt versions and models, and you need to answer "which configuration should we ship?" &mdash; with cost and latency accounted for.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>From raw eval logs to a shipping decision</span></div>
+<pre><code>import pandas as pd, numpy as np
+
+runs = pd.read_json("eval_runs.jsonl", lines=True)
+<span class="cm"># columns: case_id, model, prompt_version, passed, latency_ms,</span>
+<span class="cm">#          input_tokens, output_tokens, answer, timestamp</span>
+
+<span class="cm"># --- 1. always look before you compute --------------------------</span>
+print(runs.shape, runs.dtypes.to_dict())
+print(runs.isna().sum())                  <span class="cm"># where is data missing?</span>
+print(runs.describe(include="all").T)
+
+<span class="cm"># --- 2. derive the columns you actually care about ---------------</span>
+PRICE = {"opus": (15.0, 75.0), "sonnet": (3.0, 15.0)}   <span class="cm"># $/M in, $/M out</span>
+
+def cost_row(r):
+    inp, out = PRICE.get(r.model, (0.0, 0.0))
+    return r.input_tokens / 1e6 * inp + r.output_tokens / 1e6 * out
+
+runs["cost_usd"] = runs.apply(cost_row, axis=1)
+runs["timestamp"] = pd.to_datetime(runs.timestamp)
+
+<span class="cm"># --- 3. group and summarise --------------------------------------</span>
+summary = (
+    runs.groupby(["model", "prompt_version"])
+        .agg(n           = ("passed", "size"),
+             pass_rate   = ("passed", "mean"),
+             p50_ms      = ("latency_ms", lambda s: s.quantile(0.50)),
+             p95_ms      = ("latency_ms", lambda s: s.quantile(0.95)),
+             cost_per_1k = ("cost_usd", lambda s: s.mean() * 1000))
+        .reset_index()
+)
+
+<span class="cm"># --- 4. a confidence interval, so you do not ship noise ----------</span>
+<span class="cm">#     Wald interval: p +/- 1.96 * sqrt(p(1-p)/n)</span>
+p, n = summary.pass_rate, summary.n
+summary["ci95"] = 1.96 * np.sqrt(p * (1 - p) / n)
+summary["lower_bound"] = (p - summary.ci95).clip(0, 1)
+
+<span class="cm"># Rank by the PESSIMISTIC estimate, not the point estimate --</span>
+<span class="cm"># this automatically penalises configurations tested on few cases.</span>
+summary = summary.sort_values("lower_bound", ascending=False)
+print(summary.round(4).to_string(index=False))
+
+<span class="cm"># --- 5. which cases regressed between two versions? --------------</span>
+wide = (runs[runs.model == "sonnet"]
+        .pivot_table(index="case_id", columns="prompt_version",
+                     values="passed", aggfunc="first"))
+regressed = wide[(wide["v3"] == False) &amp; (wide["v2"] == True)]
+print(f"{len(regressed)} cases regressed from v2 to v3")
+print(regressed.index.tolist()[:10])
+
+<span class="cm"># --- 6. attach human labels held elsewhere ------------------------</span>
+labels = pd.read_csv("human_labels.csv")            <span class="cm"># case_id, label</span>
+merged = runs.merge(labels, on="case_id", how="left", indicator=True)
+print(merged._merge.value_counts())    <span class="cm"># ALWAYS check the join worked</span>
+<span class="cm"># left_only rows mean unlabelled cases -- a silent join failure is</span>
+<span class="cm"># the most common source of wrong analysis.</span></code></pre>
+</div>
+
+<div class="note java">
+  <span class="tag">The <code>indicator=True</code> habit</span>
+  <p>Join bugs are the leading cause of quietly wrong data analysis, and they never raise. A key type mismatch (<code>int64</code> vs <code>object</code>), stray whitespace, or duplicate keys will silently drop or multiply rows. <code>indicator=True</code> adds a <code>_merge</code> column showing which side each row came from &mdash; check its value counts after every join, exactly as you would check <code>rowsAffected</code> after an UPDATE.</p>
+</div>
+
+<h2 id="performance"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Performance and scale</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Making Pandas fast, in order of impact</caption>
+    <thead><tr><th>Technique</th><th>Gain</th><th>When</th></tr></thead>
+    <tbody>
+      <tr><td>Replace <code>.apply</code> / <code>.iterrows</code> with vectorised ops</td><td class="nc">10&ndash;100&times;</td><td>Always. <code>iterrows</code> is the slowest thing in Pandas</td></tr>
+      <tr><td><code>category</code> dtype for repeated strings</td><td class="nc">10&times; memory</td><td>Low-cardinality columns like model name or status</td></tr>
+      <tr><td>Downcast numerics</td><td class="nc">2&ndash;4&times; memory</td><td><code>float32</code>, <code>int32</code> where range permits</td></tr>
+      <tr><td>Parquet instead of CSV</td><td class="nc">5&ndash;10&times;</td><td>Columnar, typed, compressed. Never persist CSV internally</td></tr>
+      <tr><td><code>usecols</code> / <code>dtype</code> on read</td><td class="nc">Large</td><td>Do not load columns you will drop</td></tr>
+      <tr><td>Chunked reading</td><td class="nc">Unbounded</td><td><code>chunksize=</code> for files bigger than memory</td></tr>
+      <tr><td>Polars or DuckDB</td><td class="nc">5&ndash;50&times;</td><td>Past ~10&nbsp;GB. DuckDB lets you write actual SQL over Parquet</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note">
+  <p><strong>A recommendation worth acting on.</strong> For a Java developer with strong SQL, <a href="https://duckdb.org/">DuckDB</a> is often a better tool than Pandas for analysis: you write ordinary SQL directly against Parquet or CSV files, it is columnar and parallel, and it hands results back as a DataFrame when you want one. Learn enough Pandas to read other people's code &mdash; which is a lot of code &mdash; then use DuckDB for your own analysis and keep your existing skills.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 08 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly two evenings</div>
+  <ol>
+    <li>Reproduce the list-vs-array timing. Then repeat with a more expensive per-element operation and note that the gap widens.</li>
+    <li>Trigger the <code>keepdims</code> broadcasting error deliberately, read the message carefully, and fix it. That error message will now be instantly recognisable.</li>
+    <li>Implement cosine similarity search over 100k random vectors using broadcasting, then again with <code>argpartition</code> for top-k. Time both against a full <code>argsort</code>.</li>
+    <li>Verify that <code>a.T</code> is a view by mutating through it. Then verify that fancy indexing is a copy.</li>
+    <li>Implement the pairwise-distance expansion <code>||a||² + ||b||² - 2a·b</code> and confirm it matches the broadcast version. Compare peak memory for 5,000&times;5,000.</li>
+    <li>Take any CSV you have, load it, and reduce its memory by 4&times; using <code>category</code> dtypes and downcasting. Check with <code>df.memory_usage(deep=True)</code>.</li>
+    <li>Build the eval summary pipeline on your own data. Include the confidence interval, and find one "improvement" that turns out to sit inside the noise.</li>
+    <li>Do the same analysis in DuckDB with SQL. Decide which you would rather maintain.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 09 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Course</span><span class="body"><a href="https://www.kaggle.com/learn/pandas">Kaggle Learn &mdash; Pandas</a><span class="why">Four hours, in-browser. Then "Data Cleaning" for the messy-real-data skills.</span></span></li>
+    <li><span class="kind">Book</span><span class="body"><a href="https://jakevdp.github.io/PythonDataScienceHandbook/">Python Data Science Handbook</a><span class="why">Free online. Chapters 2 and 3 are the best written explanation of NumPy internals and Pandas semantics available.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://numpy.org/doc/stable/user/basics.broadcasting.html">NumPy &mdash; Broadcasting</a><span class="why">Short, official, worth two readings. The diagrams make the right-alignment rule stick.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://pandas.pydata.org/docs/getting_started/comparison/comparison_with_sql.html">Pandas &mdash; Comparison with SQL</a><span class="why">The official version of Section 05's table, with more operations. Bookmark it.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://ajcr.net/Basic-guide-to-einsum/">A basic introduction to einsum</a><span class="why"><code>einsum</code> is the clearest way to express attention and other tensor contractions. This is the tutorial that makes it click.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://pandas.pydata.org/docs/user_guide/scale.html">Pandas &mdash; Scaling to large datasets</a><span class="why">Official guidance on chunking, dtypes and when to reach for another tool.</span></span></li>
+    <li><span class="kind">Tool</span><span class="body"><a href="https://duckdb.org/docs/">DuckDB documentation</a><span class="why">SQL over Parquet and CSV, in-process, very fast. Often the better choice for someone with your background.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 2.2 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

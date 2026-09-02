@@ -1,0 +1,655 @@
+<title>Event-Driven AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 05 &middot; Agents &amp; Ops</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">5.4</span>
+    <h1>Event-Driven AI</h1>
+    <p class="lede">The page where your existing experience is worth the most. AI calls are slow, unreliable, expensive and
+non-deterministic &mdash; the exact profile message-driven architecture was built for. This page maps every
+Kafka pattern you know onto AI workloads, with the Java to implement each.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#patterns">Your patterns, applied</a></li><li><a href="#pipeline">An event-driven ingestion pipeline</a></li><li><a href="#agents">Long-running agents as workflows</a></li><li><a href="#cost">Cost control as an architectural concern</a></li><li><a href="#observability">Tracing across the pipeline</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>Kafka or any message broker, and Spring Boot. No new AI concepts are introduced &mdash; this page is about applying what you already know.</p>
+</div>
+
+<p>Most AI tutorials show a synchronous request: user asks, service calls model, service returns answer. That works for a chat box and fails for almost everything else, because of four properties of model calls.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Why AI workloads want a queue</caption>
+    <thead><tr><th>Property</th><th>Typical value</th><th>Consequence</th></tr></thead>
+    <tbody>
+      <tr><td>Latency</td><td>1&ndash;60 seconds; minutes for agents</td><td>Holding an HTTP thread is wasteful and fragile</td></tr>
+      <tr><td>Reliability</td><td>Rate limits, overload, timeouts are routine</td><td>Needs retries with backoff, not a 500 to the user</td></tr>
+      <tr><td>Cost</td><td>Per token, and it adds up fast</td><td>Batching and deduplication have real financial value</td></tr>
+      <tr><td>Determinism</td><td>None &mdash; same input, different output</td><td>Retries can produce different results; idempotency matters</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">The reframing that makes this straightforward</span>
+  <p>An LLM provider is <strong>a slow, flaky, expensive, non-deterministic third-party API</strong>. You have integrated dozens of those. Every pattern you already reach for &mdash; async request/reply, retry with jitter, circuit breakers, dead-letter queues, idempotency keys, the outbox pattern, bulkheads, backpressure &mdash; applies unchanged.</p>
+  <p>There is very little new engineering here. That is the point of this page, and it is why a backend engineer moving into AI is more valuable than the job title suggests.</p>
+</div>
+
+<h2 id="patterns"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>Your patterns, applied</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Direct translations</caption>
+    <thead><tr><th>Pattern</th><th>Applied to AI</th></tr></thead>
+    <tbody>
+      <tr><td>Async request/reply</td><td>Accept the job, return <code>202</code> with a job id, publish the result or stream it over SSE</td></tr>
+      <tr><td>Consumer groups</td><td>Scale enrichment workers independently of the API tier</td></tr>
+      <tr><td>Partitioning</td><td>Partition by tenant so one heavy customer cannot starve the rest</td></tr>
+      <tr><td>Idempotency keys</td><td>The same event must not issue two refunds when a retry fires</td></tr>
+      <tr><td>Dead-letter queue</td><td>Inputs the model repeatedly fails on &mdash; and a goldmine for your eval set</td></tr>
+      <tr><td>Retry with backoff + jitter</td><td>Providers rate-limit hard; respect <code>Retry-After</code> and never retry in lockstep</td></tr>
+      <tr><td>Circuit breaker</td><td>Fail fast to a cheaper model or a canned response when a provider degrades</td></tr>
+      <tr><td>Bulkhead</td><td>Separate pools per provider so one slow vendor cannot exhaust your threads</td></tr>
+      <tr><td>Outbox</td><td>Persist "answer generated" atomically with the domain write, then publish</td></tr>
+      <tr><td>Saga</td><td>Multi-step agent actions across services, with compensating transactions</td></tr>
+      <tr><td>Backpressure</td><td>Queue depth is your admission-control signal; shed or defer low-priority work</td></tr>
+      <tr><td>Claim check</td><td>Large documents go to object storage; the message carries a reference</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="pipeline"><span class="kicker">Section 03 <span class="lvl lvl-a">Advanced</span></span>An event-driven ingestion pipeline</h2>
+
+<p>The ingestion pipeline from &sect;4.5 is embarrassingly parallel, latency-tolerant and failure-prone. It is the natural first thing to make event-driven.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Java</span><span>Staged consumers, with batching where it pays</span></div>
+<pre><code>@Component
+class DocumentParsedConsumer {
+
+    private final KafkaTemplate&lt;String, ChunkEvent&gt; kafka;
+
+    @KafkaListener(topics = "documents.uploaded", groupId = "parser",
+                   concurrency = "4")
+    public void parse(DocumentUploadedEvent event, Acknowledgment ack) {
+        try {
+            <span class="cm">// Claim check: the message carries a reference, not the bytes.</span>
+            var resource = objectStore.get(event.storageKey());
+            var text = parser.extract(resource);
+
+            if (text.strip().length() &lt; 100) {
+                <span class="cm">// Probably a scan. Route to OCR instead of silently</span>
+                <span class="cm">// indexing an empty document (Topic 4.5).</span>
+                kafka.send("documents.needs-ocr", event.documentId(), event);
+                ack.acknowledge();
+                return;
+            }
+
+            int index = 0;
+            for (String chunk : chunker.split(text)) {
+                kafka.send("chunks.parsed", event.documentId(),
+                        new ChunkEvent(event.documentId(), index++, chunk,
+                                       event.tenantId(), event.contentHash()));
+            }
+            ack.acknowledge();
+
+        } catch (UnparseableDocumentException e) {
+            <span class="cm">// Permanent failure: do not retry, send straight to DLQ.</span>
+            kafka.send("documents.dlq", event.documentId(), event);
+            ack.acknowledge();
+        }
+    }
+}
+
+@Component
+class EmbeddingConsumer {
+
+    private final EmbeddingModel embeddings;
+    private final VectorStore vectorStore;
+
+    <span class="cm">// BATCHING IS THE POINT. One call with 64 texts costs a fraction</span>
+    <span class="cm">// of 64 calls, and avoids per-request rate limits entirely.</span>
+    @KafkaListener(topics = "chunks.parsed", groupId = "embedder",
+                   batch = "true", containerFactory = "batchFactory")
+    public void embed(List&lt;ChunkEvent&gt; batch, Acknowledgment ack) {
+
+        <span class="cm">// Deduplicate within the batch -- re-ingestion often replays</span>
+        <span class="cm">// identical chunks, and embedding them twice is pure waste.</span>
+        var unique = batch.stream()
+                .collect(toMap(ChunkEvent::contentHash, identity(), (a, b) -&gt; a))
+                .values().stream().toList();
+
+        var texts = unique.stream().map(ChunkEvent::text).toList();
+        var vectors = embeddings.embed(texts);      <span class="cm">// ONE provider call</span>
+
+        var documents = IntStream.range(0, unique.size())
+                .mapToObj(i -&gt; toDocument(unique.get(i), vectors.get(i)))
+                .toList();
+
+        vectorStore.add(documents);
+        ack.acknowledge();
+    }
+}</code></pre>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">YAML</span><span>Consumer configuration that matters for AI workloads</span></div>
+<pre><code>spring:
+  kafka:
+    consumer:
+      max-poll-records: 64             <span class="cm"># matches the embedding batch size</span>
+      enable-auto-commit: false        <span class="cm"># manual ack: never lose work</span>
+      properties:
+        <span class="cm"># A batch of 64 embeddings can take a while. Too low and the</span>
+        <span class="cm"># broker evicts the consumer mid-batch, and the whole batch</span>
+        <span class="cm"># is reprocessed -- paying for the same embeddings twice.</span>
+        max.poll.interval.ms: 600000   <span class="cm"># 10 minutes</span>
+        session.timeout.ms: 45000
+    listener:
+      ack-mode: manual
+      concurrency: 4
+
+resilience4j:
+  ratelimiter:
+    instances:
+      embedding-api:
+        limit-for-period: 100          <span class="cm"># stay under the provider's ceiling</span>
+        limit-refresh-period: 1s
+  circuitbreaker:
+    instances:
+      llm-provider:
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        sliding-window-size: 20</code></pre>
+</div>
+
+<div class="note trap">
+  <span class="tag">The rebalance loop that costs real money</span>
+  <p>Default <code>max.poll.interval.ms</code> is five minutes. An embedding batch that occasionally takes six minutes causes the broker to consider the consumer dead, trigger a rebalance, and hand the batch to another consumer &mdash; which also takes six minutes, and so on. You get a rebalance storm, no forward progress, and a provider bill for the same work repeated indefinitely.</p>
+  <p>Raise the poll interval to comfortably exceed your worst-case batch time, keep batches bounded, and alert on rebalance frequency. This failure is expensive precisely because the system looks busy rather than broken.</p>
+</div>
+
+<h2 id="agents"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>Long-running agents as workflows</h2>
+
+<p>An agent that runs for two minutes across eight tool calls should not live inside an HTTP request. Model it as a durable workflow with persisted state, so a pod restart does not lose the run.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Java</span><span>Async job with SSE result delivery</span></div>
+<pre><code>@RestController
+class AgentJobController {
+
+    @PostMapping("/agent/jobs")
+    ResponseEntity&lt;JobAccepted&gt; submit(@RequestBody AgentRequest request,
+                                      @AuthenticationPrincipal User user) {
+
+        <span class="cm">// Idempotency: the same client key returns the same job rather</span>
+        <span class="cm">// than starting a second expensive run.</span>
+        var job = jobs.createOrGet(request.idempotencyKey(), user.getId(), request);
+
+        if (job.isNew()) {
+            kafka.send("agent.jobs", job.id(),
+                       new AgentJobEvent(job.id(), user.getId(), request));
+        }
+        return ResponseEntity.accepted()
+                .body(new JobAccepted(job.id(), "/agent/jobs/" + job.id() + "/stream"));
+    }
+
+    <span class="cm">// The client subscribes and receives progress as it happens.</span>
+    @GetMapping(value = "/agent/jobs/{id}/stream",
+                produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    Flux&lt;ServerSentEvent&lt;AgentProgress&gt;&gt; stream(@PathVariable String id,
+                                               @AuthenticationPrincipal User user) {
+        jobs.assertOwnedBy(id, user.getId());       <span class="cm">// authorise the stream too</span>
+        return progressBroker.subscribe(id)
+                .map(p -&gt; ServerSentEvent.builder(p).event(p.type()).build())
+                .timeout(Duration.ofMinutes(15))
+                .doOnCancel(() -&gt; progressBroker.unsubscribe(id));
+    }
+}
+
+@Component
+class AgentJobConsumer {
+
+    @KafkaListener(topics = "agent.jobs", groupId = "agent-workers",
+                   concurrency = "8")
+    public void run(AgentJobEvent event, Acknowledgment ack) {
+
+        var state = jobs.load(event.jobId());
+        if (state.isTerminal()) {                   <span class="cm">// already done: replay-safe</span>
+            ack.acknowledge();
+            return;
+        }
+
+        try {
+            agentLoop.run(event.request(), state, progress -&gt; {
+                <span class="cm">// Persist each step BEFORE publishing. If the pod dies</span>
+                <span class="cm">// mid-run, a replay resumes rather than restarting --</span>
+                <span class="cm">// which matters when each step costs money.</span>
+                jobs.appendStep(event.jobId(), progress);
+                progressBroker.publish(event.jobId(), progress);
+            });
+            jobs.complete(event.jobId());
+
+        } catch (AgentBudgetExceededException e) {
+            jobs.fail(event.jobId(), "budget exceeded");   <span class="cm">// do NOT retry</span>
+        } catch (TransientProviderException e) {
+            throw e;                                <span class="cm">// let Kafka retry with backoff</span>
+        } finally {
+            ack.acknowledge();
+        }
+    }
+}</code></pre>
+</div>
+
+<div class="note java">
+  <span class="tag">Retry semantics need thought here</span>
+  <p>Not every failure should be retried, and getting this wrong is expensive in a way ordinary services are not.</p>
+  <ul>
+    <li><strong>Retry:</strong> 429, 5xx, timeouts, connection resets &mdash; transient provider problems.</li>
+    <li><strong>Do not retry:</strong> budget exceeded, step limit, content policy refusal, malformed input, authorisation denied. These will fail identically and each attempt costs money.</li>
+    <li><strong>Retry carefully:</strong> a partially completed agent run. Resume from persisted state rather than restarting, or you pay twice and may repeat side effects.</li>
+  </ul>
+  <p>Encode this as an exception hierarchy so the classification is structural rather than a set of <code>instanceof</code> checks scattered through consumers.</p>
+</div>
+
+<h2 id="cost"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>Cost control as an architectural concern</h2>
+
+<p>In a conventional service, a runaway consumer wastes CPU you have already paid for. Here it produces an invoice. That changes what belongs in the architecture.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Java</span><span>Semantic caching and budget enforcement</span></div>
+<pre><code>@Service
+class SemanticCache {
+
+    private final VectorStore cache;
+    private final EmbeddingModel embeddings;
+
+    <span class="cm">// Exact-match caching helps little -- users phrase things</span>
+    <span class="cm">// differently every time. Semantic caching answers "has anyone</span>
+    <span class="cm">// asked something equivalent?" and can remove a large share of</span>
+    <span class="cm">// spend on repetitive workloads such as support desks.</span>
+    public Optional&lt;String&gt; lookup(String question, long tenantId) {
+        var hits = cache.similaritySearch(SearchRequest.builder()
+                .query(question)
+                .topK(1)
+                .similarityThreshold(0.97)      <span class="cm">// high: near-paraphrase only</span>
+                .filterExpression("tenant_id == " + tenantId)
+                .build());
+
+        return hits.stream().findFirst()
+                .filter(this::notStale)
+                .map(d -&gt; d.getMetadata().get("answer").toString());
+    }
+}
+
+@Component
+class BudgetGuard {
+
+    @Scheduled(fixedRate = 60_000)
+    public void enforce() {
+        for (var tenant : tenants.active()) {
+            var spend = costs.spendToday(tenant.id());
+
+            if (spend &gt; tenant.dailyLimit()) {
+                <span class="cm">// Pause consumption rather than failing requests: work</span>
+                <span class="cm">// queues up and resumes rather than being lost.</span>
+                consumers.pause("agent.jobs", tenant.id());
+                alerts.notify(tenant, "daily AI budget reached");
+            } else if (spend &gt; tenant.dailyLimit() * 0.8) {
+                <span class="cm">// Degrade before denying: route to a cheaper model.</span>
+                routing.downgrade(tenant.id());
+                alerts.warn(tenant, "80% of daily AI budget used");
+            }
+        }
+    }
+}</code></pre>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>Where cost control belongs</caption>
+    <thead><tr><th>Control</th><th>Placement</th><th>Saves</th></tr></thead>
+    <tbody>
+      <tr><td>Batching</td><td>Consumer</td><td>Large on embeddings; avoids per-request limits</td></tr>
+      <tr><td>Deduplication</td><td>Before the provider call</td><td>Removes repeated work on replay</td></tr>
+      <tr><td>Semantic caching</td><td>Before the provider call</td><td>Substantial on repetitive traffic</td></tr>
+      <tr><td>Model routing</td><td>Request entry</td><td>Often the single largest saving available</td></tr>
+      <tr><td>Prompt caching</td><td>Prompt construction</td><td>Large where a long prefix is stable</td></tr>
+      <tr><td>Budget circuit breaker</td><td>Consumer control plane</td><td>Bounds the worst case</td></tr>
+      <tr><td>Output length caps</td><td>Request options</td><td>Output tokens are the expensive kind</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="observability"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Tracing across the pipeline</h2>
+
+<div class="note java">
+  <span class="tag">Propagate trace context through the broker</span>
+  <p>The whole value of tracing here is answering "this answer was wrong &mdash; what produced it?". That requires one trace spanning upload, parse, chunk, embed, store, retrieve and generate, across four consumers and two days.</p>
+  <p>Spring Kafka propagates W3C trace context in message headers automatically when Micrometer Tracing is on the classpath. Add the GenAI attributes &mdash; model, tokens in/out, cost, cached &mdash; and your AI pipeline appears in the same Grafana or Jaeger view as everything else. Carry a <code>document_id</code> and <code>tenant_id</code> as baggage so you can filter a trace search by business identity rather than by span id.</p>
+</div>
+
+<div class="kv">
+  <div><dt>Queue depth</dt><dd>Backlog per stage &mdash; your admission-control signal</dd></div>
+  <div><dt>Consumer lag</dt><dd>Falling behind before users notice</dd></div>
+  <div><dt>Provider error rate</dt><dd>By provider and status code</dd></div>
+  <div><dt>Rate-limit hits</dt><dd>Rising means you need more batching</dd></div>
+  <div><dt>Cost per event</dt><dd>By stage and tenant</dd></div>
+  <div><dt>DLQ rate</dt><dd>Each entry is a future eval case</dd></div>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly a weekend</div>
+  <ol>
+    <li>Build the four-stage ingestion pipeline in Kafka. Feed 1,000 documents through it and measure throughput per stage.</li>
+    <li>Compare embedding one chunk per message against batches of 64. Record the cost and wall-clock difference.</li>
+    <li>Set <code>max.poll.interval.ms</code> deliberately too low and reproduce the rebalance storm. Watch the same work being paid for repeatedly.</li>
+    <li>Add retry with exponential backoff and jitter. Then remove the jitter and observe synchronised retries re-triggering the rate limit.</li>
+    <li>Implement the async agent job with SSE progress. Kill the worker mid-run and confirm it resumes from persisted state rather than restarting.</li>
+    <li>Build an exception hierarchy separating retryable from permanent failures. Verify permanent failures reach the DLQ without retrying.</li>
+    <li>Implement semantic caching at 0.97 similarity. Measure the hit rate on real traffic, then try 0.90 and inspect the false matches.</li>
+    <li>Wire distributed tracing end to end and view one document's full journey as a single trace.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 08 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.spring.io/spring-kafka/reference/">Spring for Apache Kafka</a><span class="why">Batch listeners, manual acknowledgment, error handlers and retry topics &mdash; the mechanics used throughout this page.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://resilience4j.readme.io/docs">Resilience4j</a><span class="why">Circuit breakers, rate limiters, bulkheads and retries with jitter, all Spring Boot integrated.</span></span></li>
+    <li><span class="kind">Book</span><span class="body"><a href="https://microservices.io/patterns/">Microservices Patterns &mdash; Chris Richardson</a><span class="why">Free pattern catalogue. Saga, outbox, transactional messaging and CQRS all apply directly to agent workflows.</span></span></li>
+    <li><span class="kind">Standard</span><span class="body"><a href="https://opentelemetry.io/docs/specs/semconv/gen-ai/">OpenTelemetry GenAI semantic conventions</a><span class="why">The attribute names for model, tokens and cost so your AI spans match everyone else's tooling.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.spring.io/spring-boot/reference/actuator/tracing.html">Spring Boot &mdash; Tracing</a><span class="why">Micrometer Tracing setup, including automatic context propagation through Kafka headers.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://www.confluent.io/blog/">Confluent blog</a><span class="why">Practical Kafka operations: consumer tuning, rebalancing and exactly-once semantics.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 5.4 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

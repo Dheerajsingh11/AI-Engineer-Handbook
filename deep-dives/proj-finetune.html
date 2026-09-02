@@ -1,0 +1,687 @@
+<title>Project 4 &mdash; Fine-Tune &amp; Self-Host</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 21 &middot; Interview &amp; Portfolio</span>
+    <span class="sep">/</span>
+    <span>Project 4</span>
+  </div>
+
+  <header class="head">
+    <span class="num">21.5</span>
+    <h1>Project 4 &mdash; Fine-Tune &amp; Self-Host</h1>
+    <p class="lede">Take one narrow task out of the agent &mdash; classifying a raw finding into a CWE category with a severity rating &mdash; and find out whether a fine-tuned 8B model can replace the frontier API call. The deliverable is not the model. It is the decision document, with numbers, and it is allowed to conclude that the API won.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">Build order &middot; three weeks, under $50 of GPU time</div>
+    <ol>
+      <li><span class="lvl lvl-b">Stage 0</span><b>Attention from scratch</b><span class="who">One weekend. Makes the fundamentals round free.</span></li>
+      <li><span class="lvl lvl-i">Stage 1</span><b>Data &amp; baseline</b><span class="who">Build the set, then measure what you must beat.</span></li>
+      <li><span class="lvl lvl-a">Stage 2</span><b>LoRA &amp; quantise</b><span class="who">Train, sweep, compress, measure the loss at each step.</span></li>
+      <li><span class="lvl lvl-p">Stage 3</span><b>Serve &amp; decide</b><span class="who">vLLM throughput, then the cost model.</span></li>
+    </ol>
+  </div>
+
+  <div class="note key">
+    <span class="tag">The result you are actually after</span>
+    <p>Most fine-tuning projects never establish what they had to beat, so they cannot tell whether they beat it. Yours will. If the honest conclusion is <em>&ldquo;few-shot on the frontier model was more accurate and cheaper at our volume, so we did not ship the fine-tune&rdquo;</em>, that is a <strong>strong</strong> interview answer &mdash; it demonstrates measurement, cost reasoning and the willingness to kill your own work. Say it plainly.</p>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol>
+      <li><a href="#skills">What it teaches &amp; what you need</a></li>
+      <li><a href="#scratch">Stage 0 &mdash; attention from scratch</a></li>
+      <li><a href="#data">Building the dataset</a></li>
+      <li><a href="#baseline">The honest baseline</a></li>
+      <li><a href="#lora">The LoRA fine-tune</a></li>
+      <li><a href="#quant">Quantisation, and what it costs</a></li>
+      <li><a href="#serve">Serving and throughput</a></li>
+      <li><a href="#decide">The decision document</a></li>
+    </ol>
+  </nav>
+
+<h2 id="skills"><span class="kicker">Step 01</span>What it teaches &amp; what you need</h2>
+
+<div class="tbl">
+<table>
+  <caption>Skill &rarr; where it is tested</caption>
+  <thead><tr><th>Skill</th><th>Interview payoff</th></tr></thead>
+  <tbody>
+    <tr><td>Transformer internals, felt rather than read</td><td>Makes every mechanics question in round 2 straightforward.</td></tr>
+    <tr><td>Dataset construction, splits, leakage</td><td>&ldquo;How did you build your training data?&rdquo; &mdash; where most candidates go vague.</td></tr>
+    <tr><td>LoRA: rank, alpha, target modules, learning rate</td><td>&ldquo;LoRA vs. full fine-tuning?&rdquo; answered from having tuned it.</td></tr>
+    <tr><td>Reading a loss curve and spotting overfitting</td><td>The practical half nobody demonstrates.</td></tr>
+    <tr><td>Quantisation and its measurable quality cost</td><td>&ldquo;What does 4-bit actually cost you?&rdquo; &mdash; with a number.</td></tr>
+    <tr><td>Throughput, batching, TTFT on real serving</td><td>The self-hosting half of the migration question.</td></tr>
+    <tr><td>Total cost of ownership vs. API pricing</td><td>The build-vs-buy conversation, with arithmetic.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="tbl">
+<table>
+  <caption>Toolchain</caption>
+  <thead><tr><th>Tool</th><th>Role</th><th>Note</th></tr></thead>
+  <tbody>
+    <tr><td><code>numpy</code></td><td>Stage 0 only</td><td>No framework. That is the point of stage 0.</td></tr>
+    <tr><td><code>transformers</code>, <code>peft</code>, <code>trl</code></td><td>Fine-tuning</td><td>The standard stack. <code>peft</code> is LoRA; <code>trl</code> is the trainer.</td></tr>
+    <tr><td><code>unsloth</code> <em>or</em> <code>axolotl</code></td><td>Faster / config-driven training</td><td>Optional. Do one run the manual way first so you know what they hide.</td></tr>
+    <tr><td><code>bitsandbytes</code></td><td>4-bit base for QLoRA</td><td>Lets an 8B model train on a single 24&nbsp;GB card.</td></tr>
+    <tr><td><code>llama.cpp</code></td><td>GGUF quantisation, CPU inference</td><td>The quantisation ladder Q8 &rarr; Q5_K_M &rarr; Q4_K_M &rarr; Q3.</td></tr>
+    <tr><td><code>vllm</code></td><td>Production serving</td><td>Continuous batching and paged attention &mdash; where throughput comes from.</td></tr>
+    <tr><td>Rented GPU</td><td>A100 40&nbsp;GB or RTX 4090</td><td>Roughly $1&ndash;2/hour on RunPod or Vast.ai. The whole project fits under $50.</td></tr>
+    <tr><td><code>wandb</code> or TensorBoard</td><td>Loss curves</td><td>You need to <em>see</em> overfitting, not infer it.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="scratch"><span class="kicker">Step 02</span>Stage 0 &mdash; attention from scratch</h2>
+
+<p>One weekend, no framework. After this the entire fundamentals round costs you nothing, because you will be describing something you have debugged rather than something you have read about.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>scratch/attention.py &mdash; multi-head attention in numpy</span></div>
+  <pre><code>import numpy as np
+
+def softmax(x, axis=-1):
+    <span class="cm"># Subtract the max before exponentiating. Without this, a logit of</span>
+    <span class="cm"># 800 overflows to inf and the whole row becomes NaN -- the single</span>
+    <span class="cm"># most common bug when writing this by hand.</span>
+    x = x - x.max(axis=axis, keepdims=True)
+    e = np.exp(x)
+    return e / e.sum(axis=axis, keepdims=True)
+
+
+def attention(Q, K, V, mask=None):
+    """Q,K,V: (heads, seq, d_head). Returns (heads, seq, d_head)."""
+    d_head = Q.shape[-1]
+
+    <span class="cm"># The n x n score matrix -- this is the O(n^2) everyone asks about.</span>
+    scores = Q @ K.transpose(0, 2, 1)
+
+    <span class="cm"># Scale by sqrt(d_head). Dot products of d-dimensional vectors have</span>
+    <span class="cm"># variance proportional to d; unscaled, softmax saturates and the</span>
+    <span class="cm"># gradients vanish. This is why the sqrt is in the paper.</span>
+    scores = scores / np.sqrt(d_head)
+
+    if mask is not None:
+        <span class="cm"># Causal mask: -inf BEFORE softmax, so those positions get exactly</span>
+        <span class="cm"># zero weight. Zeroing after softmax would leave rows unnormalised.</span>
+        scores = np.where(mask, scores, -np.inf)
+
+    return softmax(scores) @ V
+
+
+def multi_head(x, Wq, Wk, Wv, Wo, n_heads):
+    """x: (seq, d_model). Heads split the SAME d_model, they do not add
+    width -- each head gets d_model/n_heads dimensions to specialise in."""
+    seq, d_model = x.shape
+    d_head = d_model // n_heads
+
+    def split(W):
+        return (x @ W).reshape(seq, n_heads, d_head).transpose(1, 0, 2)
+
+    mask = np.tril(np.ones((seq, seq), dtype=bool))
+    out = attention(split(Wq), split(Wk), split(Wv), mask)
+
+    <span class="cm"># Concatenate the heads back and mix them with the output projection.</span>
+    <span class="cm"># Without Wo the heads never interact -- that projection is what makes</span>
+    <span class="cm"># multi-head attention more than n independent attentions.</span>
+    return out.transpose(1, 0, 2).reshape(seq, d_model) @ Wo</code></pre>
+</div>
+
+<div class="ex">
+  <div class="ex-top">Stage 0 exercises</div>
+  <ol>
+    <li>Stack two of these with a feed-forward block, residuals and layer norm. Train it on a few thousand characters of text until it produces something word-shaped.</li>
+    <li>Remove the <code>sqrt(d_head)</code> scaling and watch training fail. Now you can explain the term rather than recite it.</li>
+    <li>Add a KV-cache to the generation loop and measure the speed-up. This is the concrete version of the most common mechanics question.</li>
+  </ol>
+</div>
+
+<h2 id="data"><span class="kicker">Step 03</span>Building the dataset</h2>
+
+<p>Target 2000&ndash;5000 labelled examples. Generate candidates with a strong model through your Project&nbsp;1 gateway, then validate. The Batch API is the right tool here &mdash; it is asynchronous and roughly half price, and nothing about dataset generation is latency-sensitive.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>data/generate.py</span></div>
+  <pre><code>import anthropic
+from anthropic.types.message_create_params import MessageCreateParamsNonStreaming
+from anthropic.types.messages.batch_create_params import Request
+
+client = anthropic.Anthropic()
+
+batch = client.messages.batches.create(requests=[
+    Request(
+        custom_id=f"finding-{f['id']}",          <span class="cm"># results come back UNORDERED</span>
+        params=MessageCreateParamsNonStreaming(
+            model="claude-opus-5",
+            max_tokens=1024,
+            system=LABELLING_INSTRUCTIONS,
+            messages=[{"role": "user", "content": f["text"]}],
+        ),
+    )
+    for f in raw_findings
+])
+
+<span class="cm"># Poll until processing_status == "ended", then stream results and key</span>
+<span class="cm"># them by custom_id -- never by position, which is not guaranteed.</span>
+labels = {}
+for result in client.messages.batches.results(batch.id):
+    if result.result.type == "succeeded":
+        labels[result.custom_id] = parse(result.result.message.content)</code></pre>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>data/split.py &mdash; where fine-tuning projects quietly break</span></div>
+  <pre><code>import hashlib, re
+
+def normalise(text: str) -&gt; str:
+    <span class="cm"># Near-duplicates are the leak. Two reports of the same bug differing</span>
+    <span class="cm"># only in a hostname will land in train AND test, and your accuracy</span>
+    <span class="cm"># will look wonderful and mean nothing.</span>
+    t = text.lower()
+    t = re.sub(r"https?://\S+", "&lt;url&gt;", t)
+    t = re.sub(r"\b\d+\.\d+\.\d+\.\d+\b", "&lt;ip&gt;", t)
+    t = re.sub(r"\s+", " ", t)
+    return t
+
+def split(examples, test_frac=0.15, val_frac=0.10):
+    seen, unique = set(), []
+    for ex in examples:
+        h = hashlib.sha256(normalise(ex["text"]).encode()).hexdigest()
+        if h not in seen:
+            seen.add(h); unique.append(ex)
+
+    <span class="cm"># Hash-based assignment, not random.shuffle: the split is then stable</span>
+    <span class="cm"># across runs and machines, so a later accuracy comparison is real.</span>
+    def bucket(ex):
+        v = int(hashlib.sha256(ex["id"].encode()).hexdigest()[:8], 16) / 0xFFFFFFFF
+        return "test" if v &lt; test_frac else "val" if v &lt; test_frac + val_frac else "train"
+
+    out = {"train": [], "val": [], "test": []}
+    for ex in unique:
+        out[bucket(ex)].append(ex)
+    return out</code></pre>
+</div>
+
+<div class="note trap">
+  <span class="tag">Hold the test set back, genuinely</span>
+  <p>Look at the test set once, at the end. Every time you tune a hyperparameter against it you leak information, and after a dozen sweeps your reported accuracy is optimistic by several points. Sweep against validation; touch test once. Interviewers ask about this specifically because it is the discipline that separates people who have trained models from people who have run training scripts.</p>
+</div>
+
+<h2 id="baseline"><span class="kicker">Step 04</span>The honest baseline</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>eval/baseline.py &mdash; run this BEFORE any training</span></div>
+  <pre><code>async def baseline(test_set, model="claude-sonnet-5", shots=8):
+    """Few-shot on a frontier model. This is the number the fine-tune must
+    beat -- on accuracy, on cost, or on latency. If it beats none of the
+    three, the fine-tune should not ship, and saying so is the result."""
+    examples = format_shots(train_set[:shots])
+    correct = 0
+    for row in test_set:
+        pred = await gateway.complete(
+            model=model,
+            system=f"{TASK_INSTRUCTIONS}\n\nExamples:\n{examples}",
+            messages=[{"role": "user", "content": row["text"]}],
+            <span class="cm"># Constrain the output so parsing cannot be the failure mode --</span>
+            <span class="cm"># you are measuring classification, not JSON compliance.</span>
+            output_config={"format": CWE_SCHEMA},
+        )
+        correct += (pred["cwe"] == row["cwe"])
+    return {"accuracy": correct / len(test_set), "model": model, "shots": shots}</code></pre>
+</div>
+
+<h2 id="lora"><span class="kicker">Step 05</span>The LoRA fine-tune</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>train/sft.py</span></div>
+  <pre><code>from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+from peft import LoraConfig, get_peft_model
+from trl import SFTTrainer, SFTConfig
+import torch
+
+<span class="cm"># QLoRA: load the base in 4-bit, train adapters in higher precision.</span>
+<span class="cm"># This is what puts an 8B fine-tune on a single 24 GB card.</span>
+bnb = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_quant_type="nf4",              <span class="cm"># normal-float 4, better than plain int4</span>
+    bnb_4bit_compute_dtype=torch.bfloat16,  <span class="cm"># compute in bf16, store in 4-bit</span>
+    bnb_4bit_use_double_quant=True,
+)
+
+model = AutoModelForCausalLM.from_pretrained(
+    BASE_MODEL, quantization_config=bnb, device_map="auto")
+
+lora = LoraConfig(
+    r=16,                 <span class="cm"># rank: capacity of the update. 8-16 for narrow tasks,</span>
+                          <span class="cm"># 32-64 when the task is further from the base's training.</span>
+    lora_alpha=32,        <span class="cm"># scaling; the update is multiplied by alpha/r, so alpha=2r</span>
+                          <span class="cm"># is the common convention -- change r and alpha together.</span>
+    lora_dropout=0.05,
+    target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
+                    "gate_proj", "up_proj", "down_proj"],
+                          <span class="cm"># Attention projections alone are cheaper; adding the MLP</span>
+                          <span class="cm"># projections usually helps. Ablate it and record both.</span>
+    task_type="CAUSAL_LM",
+)
+
+model = get_peft_model(model, lora)
+model.print_trainable_parameters()   <span class="cm"># expect roughly 0.1-1% of total</span>
+
+trainer = SFTTrainer(
+    model=model,
+    train_dataset=train_ds,
+    eval_dataset=val_ds,
+    args=SFTConfig(
+        num_train_epochs=3,          <span class="cm"># small sets overfit fast -- watch eval loss</span>
+        per_device_train_batch_size=4,
+        gradient_accumulation_steps=4,   <span class="cm"># effective batch 16 without the VRAM</span>
+        learning_rate=2e-4,          <span class="cm"># ~10x a full fine-tune: only adapters move</span>
+        lr_scheduler_type="cosine",
+        warmup_ratio=0.03,
+        bf16=True,
+        eval_strategy="steps", eval_steps=50,
+        logging_steps=10,
+        <span class="cm"># Keep the checkpoint with the best VALIDATION loss, not the last.</span>
+        <span class="cm"># The last one is usually already overfitting.</span>
+        load_best_model_at_end=True,
+        metric_for_best_model="eval_loss",
+    ),
+)
+trainer.train()
+model.save_pretrained("adapters/cwe-classifier-r16")   <span class="cm"># tens of MB, not GB</span></code></pre>
+</div>
+
+<div class="note java">
+  <span class="tag">Read the curves, do not just read the final number</span>
+  <p>Training loss falling while validation loss rises is overfitting, and on a 3000-example set it usually begins in epoch 2. Both losses flat and high means the learning rate is too low or the rank is too small. Loss spiking to NaN means the learning rate is too high &mdash; or you are training in fp16 without loss scaling. Being able to describe these three shapes from your own runs is worth more in an interview than any hyperparameter you chose.</p>
+</div>
+
+<h2 id="quant"><span class="kicker">Step 06</span>Quantisation, and what it costs</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Bash</span><span>Merge, convert, quantise</span></div>
+  <pre><code><span class="cm"># 1. Merge the adapter into the base -- llama.cpp needs one set of weights.</span>
+python -c "
+from peft import AutoPeftModelForCausalLM
+m = AutoPeftModelForCausalLM.from_pretrained('adapters/cwe-classifier-r16')
+m.merge_and_unload().save_pretrained('merged/')
+"
+
+<span class="cm"># 2. Convert to GGUF at full precision first (this is the reference point).</span>
+python llama.cpp/convert_hf_to_gguf.py merged/ --outfile model-f16.gguf --outtype f16
+
+<span class="cm"># 3. Walk down the ladder. Measure accuracy at EVERY rung -- the quality</span>
+<span class="cm">#    cliff is model-specific and cannot be predicted from the bit width.</span>
+for q in Q8_0 Q5_K_M Q4_K_M Q3_K_M; do
+  ./llama.cpp/llama-quantize model-f16.gguf "model-$q.gguf" "$q"
+done</code></pre>
+</div>
+
+<div class="tbl">
+<table>
+  <caption>Fill this in from your own runs &mdash; the shape is typical, the numbers are yours</caption>
+  <thead><tr><th>Variant</th><th>Size</th><th>Accuracy</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>f16 (reference)</td><td class="nc">~16 GB</td><td>&mdash;</td><td>The number every row below is measured against</td></tr>
+    <tr><td>Q8_0</td><td class="nc">~8.5 GB</td><td>&mdash;</td><td>Usually indistinguishable from f16</td></tr>
+    <tr><td>Q5_K_M</td><td class="nc">~5.7 GB</td><td>&mdash;</td><td>Typically a small, acceptable loss</td></tr>
+    <tr><td>Q4_K_M</td><td class="nc">~4.9 GB</td><td>&mdash;</td><td>The usual sweet spot &mdash; verify, do not assume</td></tr>
+    <tr><td>Q3_K_M</td><td class="nc">~4.0 GB</td><td>&mdash;</td><td>Degradation is often visible here</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="note key">
+  <span class="tag">Measure on your task, not on perplexity</span>
+  <p>Published quantisation comparisons report perplexity, which is a poor proxy for whether a classifier still picks the right CWE. Run <em>your</em> test set at every rung. The interview answer you want is specific: <em>&ldquo;Q4_K_M cost us 1.2 points of accuracy for a 3.3&times; size reduction, so we shipped it; Q3 cost nine points and we did not.&rdquo;</em></p>
+</div>
+
+<h2 id="serve"><span class="kicker">Step 07</span>Serving and throughput</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Bash</span><span>vLLM &mdash; the production path</span></div>
+  <pre><code><span class="cm"># Serve the merged model with an OpenAI-compatible API, so your Project 1</span>
+<span class="cm"># gateway can route to it as just another Provider implementation.</span>
+vllm serve merged/ \
+  --max-model-len 8192 \
+  --gpu-memory-utilization 0.90 \
+  --max-num-seqs 64            <span class="cm"># concurrent sequences -- the batching knob</span>
+
+<span class="cm"># Then measure. Never quote throughput from a single-request test:</span>
+<span class="cm"># continuous batching means throughput at concurrency 32 can be 10x</span>
+<span class="cm"># the single-stream number, while per-request latency barely moves.</span>
+python benchmarks/benchmark_serving.py \
+  --model merged/ --dataset-name random \
+  --num-prompts 500 --request-rate 20</code></pre>
+</div>
+
+<div class="tbl">
+<table>
+  <caption>The measurements that make the serving story real</caption>
+  <thead><tr><th>Measure</th><th>At</th><th>Why it matters</th></tr></thead>
+  <tbody>
+    <tr><td>Tokens/sec, total</td><td>concurrency 1, 8, 32, 64</td><td>Shows continuous batching working &mdash; and where it stops helping</td></tr>
+    <tr><td>Time to first token, p95</td><td>each concurrency</td><td>What the user feels; degrades as the queue builds</td></tr>
+    <tr><td>VRAM used</td><td>each context length</td><td>Makes the KV-cache growth argument concrete</td></tr>
+    <tr><td>Requests/sec at your latency SLO</td><td>&mdash;</td><td>The only number that goes into the cost model</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="decide"><span class="kicker">Step 08</span>The decision document</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>analysis/tco.py &mdash; the arithmetic the interview wants</span></div>
+  <pre><code>def api_cost(n_calls, in_tok, out_tok, in_price, out_price):
+    """Prices are per million tokens. claude-haiku-4-5 is 1.00 / 5.00;
+    claude-sonnet-5 is 2.00 / 10.00; claude-opus-5 is 5.00 / 25.00."""
+    return n_calls * (in_tok * in_price + out_tok * out_price) / 1_000_000
+
+def self_host_cost(n_calls, req_per_sec, gpu_hourly, utilisation=0.35):
+    <span class="cm"># The line everyone forgets: you pay for the GPU while it idles.</span>
+    <span class="cm"># At 35% utilisation your effective cost is ~3x the busy-hour cost.</span>
+    gpu_seconds = n_calls / req_per_sec / utilisation
+    return gpu_seconds / 3600 * gpu_hourly
+
+<span class="cm"># The break-even volume is the whole answer. Below it, the API wins on</span>
+<span class="cm"># cost as well as accuracy; above it, self-hosting starts to pay -- and</span>
+<span class="cm"># you still owe the engineering time, which belongs in the write-up.</span></code></pre>
+</div>
+
+<p>Close the project with a one-page document covering: accuracy for baseline / fine-tuned / quantised; cost per million classifications each way, with the break-even volume; p95 latency each way; and the non-cost factors &mdash; data residency, provider dependency, the ongoing operational burden of running your own inference. Then state a recommendation and commit to it.</p>
+
+<div class="ex">
+  <div class="ex-top">Exercises</div>
+  <ol>
+    <li>Sweep LoRA rank across 4 / 8 / 16 / 32 / 64 at fixed alpha/r ratio. Plot validation accuracy against trainable-parameter count and find where it plateaus.</li>
+    <li>Train on 500, 1000, 2000 and 4000 examples. The resulting curve tells you whether more labelling would pay &mdash; a genuinely useful thing to be able to answer.</li>
+    <li>Ablate <code>target_modules</code>: attention-only versus attention plus MLP. Report accuracy and adapter size for both.</li>
+    <li>Take the fine-tuned model and give it the RAG context from <a href="proj-rag.html">Project 2</a>. Does fine-tuning plus retrieval beat either alone?</li>
+    <li>Register the vLLM endpoint as a second <code>Provider</code> in <a href="proj-gateway.html">Project 1</a> and fail over to it. Run the Project 5 eval suite against both and quantify the behaviour change.</li>
+  </ol>
+</div>
+
+<div class="note java">
+  <span class="tag">Topics used here</span>
+  <p><a href="fine-tuning.html">4.2 Fine-Tuning</a> &middot; <a href="open-models.html">9.2 Open Models</a> &middot; <a href="huggingface.html">9.3 Hugging Face</a> &middot; <a href="pytorch.html">2.5 PyTorch</a> &middot; <a href="nn-basics.html">2.4 NN Basics</a> &middot; <a href="llm-mechanics.html">1.3 LLM Mechanics</a> &middot; <a href="llm-architectures.html">18.4 LLM Architectures</a> &middot; <a href="model-compression.html">18.3 Model Compression</a> &middot; <a href="inference-optimization.html">6.6 Inference Optimisation</a> &middot; <a href="serving.html">6.3 Serving</a> &middot; <a href="alignment-tuning.html">9.5 Alignment Tuning</a> &middot; <a href="synthetic-data.html">18.2 Synthetic Data</a> &middot; <a href="cuda-gpu.html">2.6 CUDA &amp; GPU</a></p>
+</div>
+
+<div class="res">
+  <div class="res-top">Reference</div>
+  <ul>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2106.09685">LoRA: Low-Rank Adaptation</a><span class="why">Short and readable. Where rank and alpha come from.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2305.14314">QLoRA</a><span class="why">Why a 4-bit base with higher-precision adapters works.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://huggingface.co/docs/peft">PEFT documentation</a><span class="why">Every LoRA parameter, explained.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.vllm.ai/">vLLM</a><span class="why">Paged attention and continuous batching &mdash; the serving concepts to name in an interview.</span></span></li>
+    <li><span class="kind">Repo</span><span class="body"><a href="https://github.com/ggml-org/llama.cpp">llama.cpp</a><span class="why">The GGUF quantisation ladder and CPU inference.</span></span></li>
+    <li><span class="kind">Course</span><span class="body"><a href="https://github.com/karpathy/nanoGPT">nanoGPT</a><span class="why">If stage 0 leaves you wanting the full trainer, this is the next step.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Phase 21.5 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

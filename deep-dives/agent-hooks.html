@@ -1,0 +1,506 @@
+<title>Hooks, Middleware & Interceptors</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 08 &middot; Agent Engineering</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">8.6</span>
+    <h1>Hooks, Middleware &amp; Interceptors</h1>
+    <p class="lede">The interception layer around every agent action. This page explains pre-hooks and post-hooks &mdash; the
+middleware that runs before and after each tool call and model step &mdash; why they are where real control
+lives (auth, validation, guardrails, caching, cost, logging), builds a hook system, and covers the lifecycle
+events worth intercepting.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#what">What each hook is for</a></li><li><a href="#build">Build a hook system</a></li><li><a href="#events">The lifecycle events worth intercepting</a></li><li><a href="#patterns">What to build as hooks</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>The agent loop (Topic 8.1) and robust tool execution (Topic 8.3). If you know Servlet filters, Spring interceptors, Express middleware or React effects, you already know this pattern &mdash; this is the same idea around agent actions.</p>
+</div>
+
+<p>An agent takes actions in a loop. A <strong>hook</strong> is code that runs <em>around</em> those actions &mdash; before one (a <strong>pre-hook</strong>) or after one (a <strong>post-hook</strong>). Hooks are the seam where you insert everything that must happen on every action but does not belong inside the action itself: authorisation, validation, guardrails, caching, cost tracking, logging, redaction.</p>
+
+<div class="note key">
+  <span class="tag">Why hooks matter more than they sound</span>
+  <p>The prompt is guidance the model can ignore. <strong>Hooks are enforcement your code guarantees.</strong> "Never delete production data" in a system prompt is a hope; a pre-hook that blocks any <code>delete</code> tool call against a production resource is a rule. When you read that the real security controls for agents live "in the code, not the prompt" (Topics 5.6, 8.3), the code they mean is largely <em>hooks</em>. This is the layer that makes an agent trustworthy.</p>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Hook</dt><dd>Code that runs at a defined point in the agent's lifecycle.</dd>
+    <dt>Pre-hook</dt><dd>Runs <em>before</em> an action. Can inspect it, modify it, or block it.</dd>
+    <dt>Post-hook</dt><dd>Runs <em>after</em> an action. Can inspect or transform the result.</dd>
+    <dt>Middleware</dt><dd>The general name for this interception pattern; hooks are middleware for agents.</dd>
+    <dt>Short-circuit</dt><dd>A pre-hook stopping an action from running at all (e.g. denying it).</dd>
+    <dt>Lifecycle event</dt><dd>A named point where hooks can fire &mdash; before a tool, after a tool, on each model step, and so on.</dd>
+  </dl>
+</div>
+
+<h2 id="what"><span class="kicker">Section 02 <span class="lvl lvl-b">Beginner</span></span>What each hook is for</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Pre-hooks vs post-hooks</caption>
+    <thead><tr><th></th><th>Pre-hook (before)</th><th>Post-hook (after)</th></tr></thead>
+    <tbody>
+      <tr><td>Sees</td><td>The proposed action + arguments</td><td>The action's result</td></tr>
+      <tr><td>Can</td><td>Allow, modify, or <strong>block</strong> it</td><td>Inspect, transform, or redact it</td></tr>
+      <tr><td>Auth &amp; permissions</td><td>&check; the natural home</td><td></td></tr>
+      <tr><td>Input validation</td><td>&check;</td><td></td></tr>
+      <tr><td>Human approval gate</td><td>&check;</td><td></td></tr>
+      <tr><td>Cache lookup</td><td>&check; (short-circuit on hit)</td><td>&check; (store result)</td></tr>
+      <tr><td>Output redaction (PII)</td><td></td><td>&check;</td></tr>
+      <tr><td>Cost / token accounting</td><td>&check; (budget check)</td><td>&check; (record usage)</td></tr>
+      <tr><td>Logging / tracing</td><td>&check; (start span)</td><td>&check; (end span)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="build"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>Build a hook system</h2>
+
+<p>A hook system is a registry of functions that fire at named lifecycle points, and the agent loop calling them at the right moments. A pre-hook can return a decision that short-circuits the action.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>A minimal but real hook system</span></div>
+<pre><code>from dataclasses import dataclass
+from enum import Enum
+
+class Decision(Enum):
+    ALLOW = "allow"
+    DENY = "deny"          <span class="cm"># block the action, return a message to the model</span>
+    MODIFY = "modify"      <span class="cm"># run it, but with changed arguments</span>
+    ASK = "ask"            <span class="cm"># pause for human approval (Topic 8.4)</span>
+
+@dataclass
+class HookResult:
+    decision: Decision = Decision.ALLOW
+    reason: str = ""
+    new_args: dict | None = None
+
+class Hooks:
+    def __init__(self):
+        self.pre_tool, self.post_tool, self.on_step = [], [], []
+    def pre(self, fn):  self.pre_tool.append(fn);  return fn
+    def post(self, fn): self.post_tool.append(fn); return fn
+
+hooks = Hooks()
+
+<span class="cm"># --- PRE-HOOKS: run before every tool call ------------------------</span>
+@hooks.pre
+def authorise(ctx):
+    if not authz.permits(ctx.principal, ctx.tool, ctx.args):
+        return HookResult(Decision.DENY, "not permitted")   <span class="cm"># short-circuit</span>
+    return HookResult()
+
+@hooks.pre
+def gate_destructive(ctx):
+    if ctx.tool.is_destructive:
+        return HookResult(Decision.ASK, f"Approve {ctx.tool.name}?")
+    return HookResult()
+
+@hooks.pre
+def budget_guard(ctx):
+    if costs.spent(ctx.run_id) &gt; ctx.budget:
+        return HookResult(Decision.DENY, "run budget exceeded")
+    return HookResult()
+
+<span class="cm"># --- POST-HOOKS: run after every tool call ------------------------</span>
+@hooks.post
+def redact_pii(ctx, result):
+    return pii.redact(result)             <span class="cm"># scrub before it re-enters context</span>
+
+@hooks.post
+def record(ctx, result):
+    tracer.log(ctx.tool.name, ctx.args, size=len(str(result)))
+    return result</code></pre>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>The loop calling the hooks</span></div>
+<pre><code>def execute_with_hooks(call, ctx):
+    <span class="cm"># --- PRE: run all pre-hooks; first non-ALLOW wins -------------</span>
+    args = call.arguments
+    for hook in hooks.pre_tool:
+        r = hook(ctx.with_args(args))
+        if r.decision is Decision.DENY:
+            return tool_error(call, r.reason)          <span class="cm"># action never runs</span>
+        if r.decision is Decision.ASK:
+            if not human_approves(r.reason):           <span class="cm"># pause for a person</span>
+                return tool_error(call, "rejected by human")
+        if r.decision is Decision.MODIFY:
+            args = r.new_args                          <span class="cm"># e.g. force a tenant filter</span>
+
+    result = ctx.tool.run(args)                        <span class="cm"># THE ACTION</span>
+
+    <span class="cm"># --- POST: transform the result through every post-hook -------</span>
+    for hook in hooks.post_tool:
+        result = hook(ctx, result)
+    return tool_result(call, result)</code></pre>
+</div>
+
+<div class="note java">
+  <span class="tag">You have built this before</span>
+  <p>This is Servlet <code>Filter</code>, Spring <code>HandlerInterceptor</code>, and Spring AI's <code>Advisor</code> chain (Topic 3.2), applied to agent actions instead of HTTP requests. The <code>preHandle</code>/<code>postHandle</code> split is exactly pre-hook/post-hook, and a filter that stops the chain is a DENY. If you have written request middleware, you are not learning a new concept &mdash; you are pointing a familiar one at a new target.</p>
+</div>
+
+<h2 id="events"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>The lifecycle events worth intercepting</h2>
+
+<p>Tool calls are the most important interception point, but a full agent lifecycle has several, and real frameworks expose them.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Agent lifecycle hooks</caption>
+    <thead><tr><th>Event</th><th>Fires</th><th>Typical use</th></tr></thead>
+    <tbody>
+      <tr><td>on_run_start</td><td>Before the loop begins</td><td>Budget setup, run-level tracing, load memory</td></tr>
+      <tr><td><strong>pre_tool</strong></td><td>Before each tool call</td><td>Auth, validation, human gate, cache lookup</td></tr>
+      <tr><td><strong>post_tool</strong></td><td>After each tool call</td><td>Redaction, cache store, usage accounting</td></tr>
+      <tr><td>pre_model / post_model</td><td>Around each model call</td><td>Prompt redaction, token accounting, guardrail check on output</td></tr>
+      <tr><td>on_message</td><td>Each new message added</td><td>Content moderation, logging</td></tr>
+      <tr><td>on_run_end</td><td>After the loop finishes</td><td>Persist memory, final trace, cost report</td></tr>
+      <tr><td>on_error</td><td>On any failure</td><td>Fallback, alerting, safe cleanup</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">Hooks are cross-cutting concerns, kept out of the agent logic</span>
+  <p>The reason to use hooks rather than sprinkling checks through your loop is the same reason you use middleware anywhere: <strong>separation of concerns.</strong> Auth, logging, cost and redaction are cross-cutting &mdash; they apply to every action regardless of what it does. Putting them in hooks keeps the agent's actual logic clean, makes each concern testable in isolation, and lets you add or remove a policy (say, a new PII rule) in one place without touching the agent. It is the same argument as aspect-oriented programming, and it is right for the same reasons.</p>
+</div>
+
+<h2 id="patterns"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>What to build as hooks</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Production hooks worth having</caption>
+    <thead><tr><th>Hook</th><th>Point</th><th>Guards against</th></tr></thead>
+    <tbody>
+      <tr><td>Authorisation</td><td>pre_tool</td><td>The confused-deputy / excessive-agency risk (Topic 5.6)</td></tr>
+      <tr><td>Destructive-action gate</td><td>pre_tool</td><td>Irreversible actions on a hallucinated premise</td></tr>
+      <tr><td>Argument validation</td><td>pre_tool</td><td>Injection into whatever the tool touches</td></tr>
+      <tr><td>Semantic / result cache</td><td>pre + post</td><td>Repeated identical work; cost</td></tr>
+      <tr><td>PII redaction</td><td>post_tool, pre_model</td><td>Sensitive data entering context or provider logs</td></tr>
+      <tr><td>Budget circuit-breaker</td><td>pre_tool, pre_model</td><td>Denial-of-wallet (Topic 5.6)</td></tr>
+      <tr><td>Output guardrail</td><td>post_model</td><td>Unsafe or off-policy generations</td></tr>
+      <tr><td>Trajectory tracing</td><td>all</td><td>Undebuggable runs (Topic 8.10)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note trap">
+  <span class="tag">Two failure modes of hooks themselves</span>
+  <p><strong>A slow hook slows every action.</strong> Hooks run on the hot path of every step &mdash; a synchronous network call in a pre-hook multiplies your latency by the number of tool calls. Keep them fast, or make them async.</p>
+  <p><strong>A crashing hook can take down the agent.</strong> A post-hook that throws on an unexpected result shape halts a run that would otherwise have succeeded. Make hooks defensive and fail-open where they are advisory (logging) and fail-closed only where they are security controls (auth). Decide that per hook, deliberately.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly an evening</div>
+  <ol>
+    <li>Build the hook system from Section 03 and wire it into your agent loop from Topic 8.3.</li>
+    <li>Write an authorisation pre-hook that DENYs an unpermitted tool. Confirm the action never runs and the model gets a clean message.</li>
+    <li>Write a destructive-action gate that ASKs for human approval. Approve one call and reject another.</li>
+    <li>Write a MODIFY pre-hook that injects a tenant filter into every retrieval call &mdash; enforcing isolation regardless of what the model requested.</li>
+    <li>Write a PII-redaction post-hook and confirm sensitive data never re-enters the context.</li>
+    <li>Add a budget pre-hook and a caching pre/post pair. Measure the cost reduction on a repetitive workload.</li>
+    <li>Make a post-hook throw and observe it breaking a run. Then make it fail-open and confirm the run survives.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.claude.com/en/docs/claude-code/hooks">Claude Code &mdash; Hooks (PreToolUse / PostToolUse)</a><span class="why">A production hooks system with exactly the pre/post-tool events of this page. The clearest concrete example.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://python.langchain.com/docs/concepts/callbacks/">LangChain &mdash; Callbacks</a><span class="why">LangChain's lifecycle callbacks &mdash; the framework version of Section 04's events.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://openai.github.io/openai-agents-python/guardrails/">OpenAI Agents SDK &mdash; Guardrails</a><span class="why">Input/output guardrails implemented as hooks around the agent.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.spring.io/spring-ai/reference/api/advisors.html">Spring AI &mdash; Advisors</a><span class="why">The same interception pattern in your Java stack (Topic 3.2).</span></span></li>
+    <li><span class="kind">Security</span><span class="body"><a href="https://genai.owasp.org/llm-top-10/">OWASP LLM Top 10</a><span class="why">The risks that pre/post hooks exist to mitigate &mdash; excessive agency, output handling, unbounded consumption.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 8.6 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

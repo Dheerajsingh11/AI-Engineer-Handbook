@@ -1,0 +1,503 @@
+<title>Orchestration Patterns</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 08 &middot; Agent Engineering</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">8.2</span>
+    <h1>Orchestration Patterns</h1>
+    <p class="lede">How steps and agents are coordinated. This page lays out the orchestration spectrum from a fixed chain to a
+free-for-all network, implements the core patterns &mdash; sequential, routing, parallel, orchestrator-workers,
+graph &mdash; and gives the decision rule for how much control to hand the model versus keep in your code.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#patterns">The core patterns, implemented</a></li><li><a href="#graph">Graphs: the modern default</a></li><li><a href="#multi-agent">Orchestrating multiple agents</a></li><li><a href="#deciding">Choosing the shape</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>The agent loop (Topic 8.1) and workflow patterns (Topic 5.2). This page is the coordination layer &mdash; how you arrange the loop and connect multiple steps or agents.</p>
+</div>
+
+<p>Orchestration is a plain word for a plain question: <strong>once you have models, tools and steps, who decides what runs when?</strong> That is the whole topic. Get it right and your system is predictable and debuggable; get it wrong and it is an expensive black box.</p>
+
+<p>Orchestration lives on a spectrum, defined by how much control you keep versus how much you hand to the model:</p>
+
+<div class="tbl">
+  <table>
+    <caption>The orchestration spectrum</caption>
+    <thead><tr><th>Approach</th><th>Control flow decided by</th><th>Predictable?</th></tr></thead>
+    <tbody>
+      <tr><td>Fixed chain</td><td>You, entirely</td><td>Fully</td></tr>
+      <tr><td>Router</td><td>You, with one model-chosen branch</td><td>Mostly</td></tr>
+      <tr><td>Graph (state machine)</td><td>You define nodes; model picks edges at branch points</td><td>Inspectable</td></tr>
+      <tr><td>Orchestrator&ndash;workers</td><td>A planner model decides the subtasks</td><td>Partly</td></tr>
+      <tr><td>Autonomous agent</td><td>The model, at runtime</td><td>Least</td></tr>
+      <tr><td>Agent network</td><td>Multiple models, freely</td><td>Emergent</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">The governing principle</span>
+  <p><strong>Keep control in your code until you have a concrete reason to hand it to the model.</strong> Every step of autonomy you give up buys flexibility and costs predictability, testability and money. Good orchestration is not "maximise agency" &mdash; it is choosing the <em>least</em> autonomous shape that still solves the problem.</p>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Chain</dt><dd>A fixed sequence of steps, each feeding the next.</dd>
+    <dt>Router</dt><dd>A step that classifies the input and dispatches to one of several handlers.</dd>
+    <dt>Fan-out / fan-in</dt><dd>Split into parallel branches, then merge the results.</dd>
+    <dt>Orchestrator</dt><dd>A coordinator that decides and delegates subtasks (often itself a model).</dd>
+    <dt>Worker</dt><dd>A component that executes one delegated subtask.</dd>
+    <dt>Graph</dt><dd>Nodes (steps) connected by edges (transitions); the modern way to make control flow explicit.</dd>
+  </dl>
+</div>
+
+<h2 id="patterns"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>The core patterns, implemented</h2>
+
+<p>Five shapes cover almost everything. They compose &mdash; real systems nest them.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Sequential, routing, parallel</span></div>
+<pre><code>import asyncio
+
+<span class="cm"># --- 1. SEQUENTIAL CHAIN: fixed order, each step's output feeds on -</span>
+def summarise_pipeline(doc):
+    outline = llm(f"Outline the key points of:\n{doc}")
+    draft   = llm(f"Write a summary from this outline:\n{outline}")
+    return  llm(f"Tighten this, keep all facts:\n{draft}")
+
+<span class="cm"># --- 2. ROUTING: classify, then dispatch to a specialist ----------</span>
+def route(message):
+    category = llm(f"Classify as billing|technical|sales:\n{message}").strip()
+    return {
+        "billing":   handle_billing,
+        "technical": handle_technical,       <span class="cm"># maybe a bigger model / more tools</span>
+        "sales":     handle_sales,
+    }.get(category, handle_general)(message)
+
+<span class="cm"># --- 3. PARALLEL FAN-OUT / FAN-IN: independent subtasks at once ----</span>
+async def check_compliance(doc, policies):
+    <span class="cm"># Ten sequential calls at 3s each = 30s; concurrently = ~3s.</span>
+    findings = await asyncio.gather(*[
+        check_against(doc, p) for p in policies])
+    return merge(findings)                   <span class="cm"># fan-in: combine results</span></code></pre>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Orchestrator-workers: the model decides the subtasks</span></div>
+<pre><code><span class="cm"># The difference from parallel fan-out: here the PLANNER decides how</span>
+<span class="cm"># many subtasks and what they are -- not known when you wrote the code.</span>
+def research(question):
+    plan = llm_json(f"""Break this into independent research subtasks.
+        Return JSON: {{"subtasks": [...]}}\n\nQuestion: {question}""")
+
+    subtasks = plan["subtasks"][:MAX_SUBTASKS]   <span class="cm"># ALWAYS bound it</span>
+    results = [worker(task) for task in subtasks]  <span class="cm"># or run in parallel</span>
+
+    return llm(f"""Synthesise these findings to answer the question.
+        Question: {question}\nFindings: {results}""")</code></pre>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>Pattern &rarr; when to use it</caption>
+    <thead><tr><th>Pattern</th><th>Use when</th><th>Cost/risk</th></tr></thead>
+    <tbody>
+      <tr><td>Sequential chain</td><td>Steps are known and ordered</td><td>Lowest &mdash; fully predictable</td></tr>
+      <tr><td>Router</td><td>Distinct input categories</td><td>Low &mdash; one model decision</td></tr>
+      <tr><td>Parallel</td><td>Independent subtasks known up front</td><td>Concurrency to manage</td></tr>
+      <tr><td>Orchestrator&ndash;workers</td><td>Subtask count not known ahead of time</td><td>Planner can be wrong; bound it</td></tr>
+      <tr><td>Graph / state machine</td><td>Loops, branches, human gates, resumability</td><td>The production default for agents</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="graph"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>Graphs: the modern default</h2>
+
+<p>For anything with loops, branches, human checkpoints or resumability, the winning shape is an explicit <strong>state graph</strong> (Topic 7.1): nodes are steps, edges are transitions, a shared state flows through. It makes the control flow <em>data you can see</em> rather than behaviour hidden in a loop.</p>
+
+<div class="note key">
+  <span class="tag">Why graphs beat both extremes</span>
+  <p>A fixed chain is predictable but rigid. A fully autonomous agent is flexible but opaque. A graph is the sweet spot: <strong>you define the possible states and transitions, and the model only chooses among them at explicit branch points.</strong> You keep structural control; the model provides adaptivity exactly where you allow it. Every hard agent problem &mdash; loops, drift, debugging, human approval &mdash; becomes a property of a graph you can inspect and test node by node.</p>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>An orchestration graph with a router and a loop</span></div>
+<pre><code>from langgraph.graph import StateGraph, START, END
+
+graph = StateGraph(State)
+graph.add_node("classify", classify_node)
+graph.add_node("retrieve", retrieve_node)
+graph.add_node("agent",    agent_node)
+graph.add_node("respond",  respond_node)
+
+graph.add_edge(START, "classify")
+
+<span class="cm"># ROUTING as a conditional edge -- the model's classification</span>
+<span class="cm"># decides which path, but only among paths you defined.</span>
+graph.add_conditional_edges("classify", pick_path, {
+    "needs_docs": "retrieve",
+    "needs_tools": "agent",
+    "simple": "respond",
+})
+graph.add_edge("retrieve", "respond")
+
+<span class="cm"># A LOOP: the agent node cycles until it stops calling tools.</span>
+graph.add_conditional_edges("agent", still_working,
+                            {"continue": "agent", "done": "respond"})
+graph.add_edge("respond", END)
+
+app = graph.compile(checkpointer=checkpointer)   <span class="cm"># resumable, inspectable</span></code></pre>
+</div>
+
+<h2 id="multi-agent"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>Orchestrating multiple agents</h2>
+
+<p>When one agent is not enough, the same spectrum applies to <em>agents</em> as to steps. The topologies, most to least controllable:</p>
+
+<div class="tbl">
+  <table>
+    <caption>Multi-agent orchestration topologies</caption>
+    <thead><tr><th>Topology</th><th>Structure</th><th>Control</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Supervisor</strong></td><td>One coordinator delegates to specialists</td><td>High &mdash; start here</td></tr>
+      <tr><td>Hierarchical</td><td>Supervisors of supervisors</td><td>Medium; debugging cost grows</td></tr>
+      <tr><td>Handoff</td><td>Control passes with the conversation</td><td>Medium; clean for escalation</td></tr>
+      <tr><td>Blackboard</td><td>Agents share a common state store</td><td>Medium &mdash; it is event-driven (Topic 5.4)</td></tr>
+      <tr><td>Network</td><td>Any agent calls any other</td><td>Low &mdash; emergent, hard to test</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note trap">
+  <span class="tag">Do not reach for multi-agent too early</span>
+  <p>Most multi-agent designs would work better as one agent with more tools, or as a graph. Each extra agent multiplies cost, adds a failure mode, and makes the trajectory harder to read. Justify each agent by a concrete need &mdash; a separate context window, a different permission scope, or measured parallelism &mdash; not by "it felt more modular." This is developed fully in Topic 8.9.</p>
+</div>
+
+<h2 id="deciding"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>Choosing the shape</h2>
+
+<p>A decision procedure you can apply to any task:</p>
+
+<ol class="steps">
+  <li><strong>Can you write the steps down in advance?</strong> Yes &rarr; sequential chain or router. Stop here if you can &mdash; it is the cheapest and most reliable.</li>
+  <li><strong>Are there independent subtasks?</strong> Yes &rarr; parallelise them.</li>
+  <li><strong>Are there loops, branches, or human checkpoints?</strong> Yes &rarr; model it as a graph.</li>
+  <li><strong>Is the number of subtasks unknown until runtime?</strong> Yes &rarr; orchestrator&ndash;workers, bounded.</li>
+  <li><strong>Do subtasks need separate context or permissions?</strong> Yes &rarr; multiple agents, supervisor topology.</li>
+  <li><strong>Otherwise</strong> &rarr; a single agent loop with the right tools.</li>
+</ol>
+
+<div class="note java">
+  <span class="tag">The same spectrum in your Java stack</span>
+  <p>These patterns are framework-agnostic. In LangGraph they are nodes and edges; in Spring AI they are <code>Advisor</code> chains and method calls; in plain code they are functions and conditionals. The <em>shape</em> is what matters, not the tool &mdash; and the shape is a design decision you make before writing any framework code. Sketch the graph on paper first; the implementation is mechanical once the shape is right.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly an evening</div>
+  <ol>
+    <li>Implement all five core patterns from Section 02 on small tasks. You will recognise them in every framework afterwards.</li>
+    <li>Build a router that sends three input categories to three handlers using different models. Measure the cost saving vs one big model for all.</li>
+    <li>Convert a sequential chain into a parallel fan-out where steps are independent. Measure the latency drop.</li>
+    <li>Build the orchestration graph from Section 03 with a router and a loop. Add loop detection.</li>
+    <li>Build an orchestrator&ndash;workers researcher. Deliberately let the planner over-produce subtasks and confirm your bound caps it.</li>
+    <li>Take a task and apply the Section 05 decision procedure end to end. Justify the shape you land on in one sentence.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Article</span><span class="body"><a href="https://www.anthropic.com/engineering/building-effective-agents">Anthropic &mdash; Building Effective Agents</a><span class="why">The workflow patterns of Section 02 in their original form. The reference for this page.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://langchain-ai.github.io/langgraph/concepts/high_level/">LangGraph &mdash; core concepts</a><span class="why">Graphs, state and conditional edges &mdash; the Section 03 model in the dominant framework.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://langchain-ai.github.io/langgraph/concepts/multi_agent/">LangGraph &mdash; Multi-agent architectures</a><span class="why">Clear diagrams of the Section 04 topologies.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://www.anthropic.com/engineering/multi-agent-research-system">How we built a multi-agent research system</a><span class="why">An honest account of orchestrating several agents, including what it cost.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://openai.github.io/openai-agents-python/">OpenAI Agents SDK &mdash; handoffs</a><span class="why">The handoff topology from Section 04, implemented.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 8.2 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

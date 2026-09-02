@@ -1,0 +1,702 @@
+<title>Advanced Retrieval</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 04 &middot; RAG &amp; Vectors</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">4.6</span>
+    <h1>Advanced Retrieval</h1>
+    <p class="lede">The difference between a demo and a product. This page implements BM25 from its derivation, builds Reciprocal
+Rank Fusion and explains why it beats weighted scores, implements MMR for diversity, covers every query
+transformation, and gives the ordering that makes re-ranking the highest-return change you can make.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#hybrid">Hybrid search and BM25</a></li><li><a href="#rerank">Re-ranking &mdash; the biggest single win</a></li><li><a href="#query">Query transformation</a></li><li><a href="#assembly">Context assembly</a></li><li><a href="#patterns">Architectural patterns</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>The naive RAG loop from <a href="#deeper">Topic 4.1</a>, and bi-encoder versus cross-encoder from Topic 4.2. This page assumes you have a working baseline to improve.</p>
+</div>
+
+<p>Naive RAG &mdash; embed the query, take the top 5, stuff them in the prompt &mdash; works in a demo and disappoints in production. Understanding <em>why</em> tells you exactly what to add.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Why naive retrieval fails, and what fixes each case</caption>
+    <thead><tr><th>Failure</th><th>Example</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>Exact terms are missed</td><td>"error SKU-4471" &mdash; dense vectors are poor at rare literal tokens</td><td>Hybrid search (Section 02)</td></tr>
+      <tr><td>Right chunk retrieved, ranked 14th</td><td>The bi-encoder cannot compare finely enough</td><td>Re-ranking (Section 04)</td></tr>
+      <tr><td>Query is unanswerable as written</td><td>"What about the second one?"</td><td>Query transformation (Section 05)</td></tr>
+      <tr><td>Five near-identical chunks returned</td><td>The same paragraph appears in five documents</td><td>MMR / deduplication (Section 04)</td></tr>
+      <tr><td>Question needs two documents</td><td>"Compare the 2024 and 2025 policies"</td><td>Decomposition (Section 05)</td></tr>
+      <tr><td>Wrong index entirely</td><td>"How many orders shipped yesterday?"</td><td>Routing (Section 05)</td></tr>
+      <tr><td>Right chunk is in context but ignored</td><td>Buried in the middle of a long prompt</td><td>Context assembly (Section 06)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">The ordering that matters</span>
+  <p>Add these in order of return: <strong>hybrid search</strong>, then <strong>re-ranking</strong>, then <strong>query transformation</strong>, then everything else. The first two together typically account for most of the gap between a naive pipeline and a good one, and neither requires touching your chunking or your embedding model.</p>
+  <p>And measure recall@20 <em>before</em> optimising ranking. If the right chunk is not in the candidate set, no re-ranker can find it.</p>
+</div>
+
+<h2 id="hybrid"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>Hybrid search and BM25</h2>
+
+<p>Dense vectors capture meaning and blur specifics. Keyword search does the opposite. Neither is sufficient alone; run both and merge.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Where each method wins</caption>
+    <thead><tr><th>Query</th><th>Dense</th><th>BM25</th></tr></thead>
+    <tbody>
+      <tr><td>"how do I get my money back"</td><td><strong>Finds the refund policy</strong></td><td>Misses &mdash; no shared words</td></tr>
+      <tr><td>"error code E4471"</td><td>Vague &mdash; rare tokens are poorly represented</td><td><strong>Exact hit</strong></td></tr>
+      <tr><td>"Nakamura's report"</td><td>Weak on rare proper nouns</td><td><strong>Exact hit</strong></td></tr>
+      <tr><td>"what happens if I cancel late"</td><td><strong>Understands the intent</strong></td><td>Matches "cancel" anywhere</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h3>BM25, and where its formula comes from</h3>
+
+<p>BM25 scores a document by summing a contribution per query term. Three ideas, each correcting a flaw in the naive version.</p>
+
+<div class="math">
+  <span class="lbl">BM25</span>
+  score(<i>q</i>,<i>d</i>) &nbsp;=&nbsp; &Sigma;<sub><i>t</i>&isin;<i>q</i></sub> IDF(<i>t</i>) &middot; <span class="frac"><span><i>f</i>(<i>t</i>,<i>d</i>) &middot; (<i>k</i><sub>1</sub>+1)</span><span><i>f</i>(<i>t</i>,<i>d</i>) + <i>k</i><sub>1</sub>(1 &minus; <i>b</i> + <i>b</i> &middot; |<i>d</i>|/avgdl)</span></span>
+  <span class="note">Three corrections at work. <strong>IDF</strong> down-weights terms appearing in many documents &mdash; "the" carries no information. <strong>Saturation</strong> via <i>k</i><sub>1</sub>: the tenth occurrence of a word means far less than the second, so the contribution flattens rather than growing linearly. <strong>Length normalisation</strong> via <i>b</i>: a long document contains more of everything, so raw counts must be discounted by length. Defaults <i>k</i><sub>1</sub>=1.5, <i>b</i>=0.75 are near-universal.</span>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>BM25 from scratch</span></div>
+<pre><code>import math, re
+from collections import Counter
+
+class BM25:
+    def __init__(self, documents, k1=1.5, b=0.75):
+        self.k1, self.b = k1, b
+        self.docs = [self.tokenize(d) for d in documents]
+        self.doc_len = [len(d) for d in self.docs]
+        self.avgdl = sum(self.doc_len) / len(self.docs)
+        self.N = len(self.docs)
+
+        <span class="cm"># Document frequency: in how many documents does each term appear?</span>
+        self.df = Counter()
+        for doc in self.docs:
+            self.df.update(set(doc))
+
+        <span class="cm"># Precompute IDF. The +0.5 terms are smoothing; the +1 inside</span>
+        <span class="cm"># the log keeps IDF non-negative for very common terms.</span>
+        self.idf = {t: math.log(1 + (self.N - n + 0.5) / (n + 0.5))
+                    for t, n in self.df.items()}
+
+        self.tf = [Counter(doc) for doc in self.docs]
+
+    @staticmethod
+    def tokenize(text):
+        return re.findall(r"[a-z0-9]+", text.lower())
+
+    def score(self, query, index):
+        tf, length = self.tf[index], self.doc_len[index]
+        total = 0.0
+        for term in self.tokenize(query):
+            f = tf.get(term, 0)
+            if f == 0:
+                continue
+            numerator = f * (self.k1 + 1)
+            denominator = f + self.k1 * (1 - self.b + self.b * length / self.avgdl)
+            total += self.idf.get(term, 0.0) * numerator / denominator
+        return total
+
+    def search(self, query, k=50):
+        scores = [(self.score(query, i), i) for i in range(self.N)]
+        scores.sort(reverse=True)
+        return [(i, s) for s, i in scores[:k] if s &gt; 0]</code></pre>
+</div>
+
+<h3>Fusing the two result lists</h3>
+
+<div class="note trap">
+  <span class="tag">Why you cannot just add the scores</span>
+  <p>BM25 scores are unbounded and corpus-dependent &mdash; they might range 0&ndash;15 on one corpus and 0&ndash;40 on another. Cosine similarities live in [&minus;1,1]. Adding them, or even weighting them, means calibrating two incomparable scales, and that calibration breaks whenever the corpus or the embedding model changes.</p>
+  <p><strong>Reciprocal Rank Fusion</strong> sidesteps this entirely by discarding the scores and fusing on <em>rank</em>. It has no calibration to maintain, and it is remarkably hard to beat.</p>
+</div>
+
+<div class="math">
+  <span class="lbl">Reciprocal Rank Fusion</span>
+  RRF(<i>d</i>) &nbsp;=&nbsp; &Sigma;<sub><i>r</i></sub> <span class="frac"><span>1</span><span><i>k</i> + rank<sub><i>r</i></sub>(<i>d</i>)</span></span>
+  <span class="note">Sum over every retriever <i>r</i> that returned the document. The constant <i>k</i> (conventionally 60) damps the influence of the very top ranks, so a document ranked 1st by one retriever and 30th by another does not automatically beat one ranked 3rd by both &mdash; agreement across retrievers is rewarded.</span>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>RRF, and hybrid search assembled</span></div>
+<pre><code>def reciprocal_rank_fusion(result_lists, k=60, weights=None):
+    """result_lists: list of ranked id lists, best first."""
+    weights = weights or [1.0] * len(result_lists)
+    scores = {}
+    for weight, results in zip(weights, result_lists):
+        for rank, doc_id in enumerate(results, start=1):
+            scores[doc_id] = scores.get(doc_id, 0.0) + weight / (k + rank)
+    return sorted(scores.items(), key=lambda kv: -kv[1])
+
+def hybrid_search(query, dense_index, bm25, embed_fn, k=50):
+    q = embed_fn([query])[0]
+    q = q / np.linalg.norm(q)
+    dense_ids = np.argsort(-(dense_index["vectors"] @ q))[:k].tolist()
+    sparse_ids = [i for i, _ in bm25.search(query, k=k)]
+
+    <span class="cm"># Weight dense slightly higher for natural-language corpora;</span>
+    <span class="cm"># raise the sparse weight for code, identifiers and part numbers.</span>
+    return reciprocal_rank_fusion([dense_ids, sparse_ids], weights=[1.0, 0.7])</code></pre>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">SQL</span><span>Hybrid search in a single pgvector query</span></div>
+<pre><code>WITH dense AS (
+    SELECT id, ROW_NUMBER() OVER (ORDER BY embedding &lt;=&gt; :query_vec) AS rank
+    FROM   doc_chunk
+    WHERE  tenant_id = :tenant
+    ORDER  BY embedding &lt;=&gt; :query_vec
+    LIMIT  50
+),
+sparse AS (
+    SELECT id, ROW_NUMBER() OVER (
+               ORDER BY ts_rank_cd(content_tsv, plainto_tsquery('english', :q)) DESC
+           ) AS rank
+    FROM   doc_chunk
+    WHERE  tenant_id = :tenant
+      AND  content_tsv @@ plainto_tsquery('english', :q)
+    ORDER  BY ts_rank_cd(content_tsv, plainto_tsquery('english', :q)) DESC
+    LIMIT  50
+)
+SELECT c.id, c.content,
+       COALESCE(1.0 / (60 + d.rank), 0) + COALESCE(0.7 / (60 + s.rank), 0) AS rrf
+FROM   doc_chunk c
+LEFT   JOIN dense  d ON d.id = c.id
+LEFT   JOIN sparse s ON s.id = c.id
+WHERE  d.id IS NOT NULL OR s.id IS NOT NULL
+ORDER  BY rrf DESC
+LIMIT  20;</code></pre>
+</div>
+
+<h2 id="rerank"><span class="kicker">Section 03 <span class="lvl lvl-a">Advanced</span></span>Re-ranking &mdash; the biggest single win</h2>
+
+<p>Retrieval is a recall problem; ranking is a precision problem. Solve them with different tools: cast a wide net cheaply, then apply an expensive accurate model to the small candidate set.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Cross-encoder re-ranking</span></div>
+<pre><code>from sentence_transformers import CrossEncoder
+
+reranker = CrossEncoder("BAAI/bge-reranker-v2-m3", max_length=512)
+
+def retrieve_and_rerank(query, dense_index, bm25, embed_fn,
+                        candidates=100, final_k=5, min_score=0.3):
+    <span class="cm"># 1. WIDE: cheap retrieval, optimised for recall not precision</span>
+    fused = hybrid_search(query, dense_index, bm25, embed_fn, k=candidates)
+    candidate_ids = [doc_id for doc_id, _ in fused[:candidates]]
+    texts = [dense_index["chunks"][i] for i in candidate_ids]
+
+    <span class="cm"># 2. NARROW: the cross-encoder reads query and document TOGETHER,</span>
+    <span class="cm">#    so attention can match terms across them directly. Far more</span>
+    <span class="cm">#    accurate, and only feasible on ~100 items.</span>
+    scores = reranker.predict([(query, t) for t in texts])
+
+    ranked = sorted(zip(candidate_ids, scores), key=lambda x: -x[1])
+    <span class="cm"># 3. A real relevance threshold. Now that scores are calibrated,</span>
+    <span class="cm">#    this actually means something -- unlike a cosine cutoff.</span>
+    return [(i, float(s)) for i, s in ranked[:final_k] if s &gt;= min_score]</code></pre>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>Re-ranking options</caption>
+    <thead><tr><th>Approach</th><th>Quality</th><th>Latency (100 docs)</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Cross-encoder (local)</td><td>Excellent</td><td class="nc">50&ndash;200 ms</td><td><code>bge-reranker</code>, <code>mxbai-rerank</code>. Self-hosted, no data leaves</td></tr>
+      <tr><td>Cohere Rerank API</td><td>Excellent</td><td class="nc">100&ndash;300 ms</td><td>Managed; multilingual; per-call cost</td></tr>
+      <tr><td>ColBERT late interaction</td><td>Very good</td><td class="nc">10&ndash;50 ms</td><td>Faster, but needs multi-vector storage</td></tr>
+      <tr><td>LLM-as-reranker</td><td>Good, flexible</td><td class="nc">1&ndash;5 s</td><td>Use when relevance is domain-specific and unusual</td></tr>
+      <tr><td>Metadata boosting</td><td>Cheap complement</td><td class="nc">~0 ms</td><td>Recency, authority, document type. Combine with the above</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h3>Diversity: Maximal Marginal Relevance</h3>
+
+<p>Pure relevance ranking can return five chunks that all say the same thing, wasting context on redundancy. MMR trades a little relevance for coverage.</p>
+
+<div class="math">
+  <span class="lbl">MMR</span>
+  MMR &nbsp;=&nbsp; argmax<sub><i>d</i>&isin;<i>R</i>\<i>S</i></sub> <big>[</big> &lambda; &middot; sim(<i>d</i>,<i>q</i>) &minus; (1&minus;&lambda;) &middot; max<sub><i>s</i>&isin;<i>S</i></sub> sim(<i>d</i>,<i>s</i>) <big>]</big>
+  <span class="note">Pick the document that is most relevant to the query <em>while being least similar to what you have already selected</em>. &lambda;=1 is pure relevance; &lambda;=0 is pure diversity; 0.5&ndash;0.7 is the useful range. Note this is the same deflation idea as PCA in Topic 1.1 &mdash; take the best, discount everything like it, repeat.</span>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>MMR</span></div>
+<pre><code>def mmr(query_vec, doc_vecs, candidate_ids, k=5, lam=0.6):
+    selected, remaining = [], list(range(len(candidate_ids)))
+    relevance = doc_vecs @ query_vec
+
+    while len(selected) &lt; k and remaining:
+        if not selected:
+            best = max(remaining, key=lambda i: relevance[i])
+        else:
+            chosen = doc_vecs[selected]
+            best = max(remaining, key=lambda i:
+                       lam * relevance[i]
+                       - (1 - lam) * float((chosen @ doc_vecs[i]).max()))
+        selected.append(best)
+        remaining.remove(best)
+    return [candidate_ids[i] for i in selected]</code></pre>
+</div>
+
+<h2 id="query"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>Query transformation</h2>
+
+<p>The user's question is often a poor search query. Rewriting it before retrieval is cheap and disproportionately effective.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Every transformation, and the failure it addresses</caption>
+    <thead><tr><th>Technique</th><th>Does</th><th>Fixes</th><th>Cost</th></tr></thead>
+    <tbody>
+      <tr><td>History compression</td><td>Folds the conversation into a standalone question</td><td>"What about the second one?"</td><td>One LLM call</td></tr>
+      <tr><td>Rewriting</td><td>Rephrases conversationally-worded queries for search</td><td>Chatty or vague phrasing</td><td>One LLM call</td></tr>
+      <tr><td>Multi-query</td><td>Generates 3&ndash;5 paraphrases, retrieves each, fuses with RRF</td><td>Vocabulary mismatch with the corpus</td><td>One call + <i>n</i> searches</td></tr>
+      <tr><td>HyDE</td><td>Model writes a hypothetical <em>answer</em>; you embed that</td><td>Short queries &mdash; an answer looks more like a document than a question does</td><td>One LLM call</td></tr>
+      <tr><td>Step-back</td><td>Asks a broader question first</td><td>Narrow questions needing background</td><td>One extra turn</td></tr>
+      <tr><td>Decomposition</td><td>Splits multi-part questions into sub-queries</td><td>"Compare our 2024 and 2025 refund policies"</td><td><i>n</i> retrievals</td></tr>
+      <tr><td><strong>Routing</strong></td><td>Classifies the query and sends it to the right source</td><td>Aggregate questions hitting a vector store</td><td>One cheap classification</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>The transformations that earn their cost</span></div>
+<pre><code>def compress_history(chat_fn, history, question):
+    """Turn a follow-up into a standalone query. Do this FIRST --
+    every other technique operates on the compressed query."""
+    return chat_fn(f"""Given the conversation, rewrite the final question
+so it is fully self-contained. Output the question only.
+
+{format_history(history)}
+Final question: {question}""")
+
+def multi_query(chat_fn, query, n=4):
+    raw = chat_fn(f"""Generate {n} different phrasings of this search query,
+using varied vocabulary. One per line, no numbering.
+
+Query: {query}""")
+    return [query] + [line.strip() for line in raw.split("\n") if line.strip()]
+
+def hyde(chat_fn, query):
+    """Embed a hypothetical answer instead of the question.
+    Answers and documents share vocabulary and structure; questions
+    and documents do not. Often a large win on short queries."""
+    return chat_fn(f"Write a short factual passage that would answer "
+                   f"this question. Invented details are fine.\n\n{query}")
+
+def route(chat_fn, query):
+    """The transformation with the highest return, because it
+    prevents a whole class of confidently wrong answers."""
+    choice = chat_fn(f"""Classify this query. Answer with one word.
+
+VECTOR   - conceptual/explanatory, answered by document text
+SQL      - counts, sums, aggregates, "how many", "total", date ranges
+LOOKUP   - a specific record by identifier
+GENERAL  - needs no retrieval
+
+Query: {query}""").strip().upper()
+    return choice if choice in {"VECTOR","SQL","LOOKUP","GENERAL"} else "VECTOR"
+
+def retrieve(query, history, chat_fn, ...):
+    query = compress_history(chat_fn, history, query) if history else query
+    destination = route(chat_fn, query)
+    if destination == "SQL":
+        return text_to_sql(query)         <span class="cm"># vector search CANNOT count</span>
+    if destination == "GENERAL":
+        return []
+    variants = multi_query(chat_fn, query)
+    lists = [dense_search(v) for v in variants]
+    fused = reciprocal_rank_fusion(lists)
+    return rerank(query, fused[:100])[:5]</code></pre>
+</div>
+
+<h2 id="assembly"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>Context assembly</h2>
+
+<p>You have five excellent chunks. How you arrange them still changes the answer.</p>
+
+<ol class="steps">
+  <li><strong>Order for position.</strong> Models attend most reliably to the beginning and end of a long context. Put the strongest evidence first and second-strongest last, weakest in the middle &mdash; the opposite of a naive relevance ordering.</li>
+  <li><strong>Deduplicate.</strong> Near-identical chunks from different documents waste budget. Drop any chunk above ~0.95 cosine similarity to one already selected.</li>
+  <li><strong>Label every chunk</strong> with its source, page and date, so citations are checkable and the model can reason about recency.</li>
+  <li><strong>Delimit clearly</strong> and state that the content is data, never instruction. This is a security control as well as a quality one.</li>
+  <li><strong>Budget explicitly.</strong> Count tokens; truncate at chunk boundaries, never mid-chunk.</li>
+  <li><strong>Put stable content first</strong> so prompt caching applies.</li>
+</ol>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Assembling the context</span></div>
+<pre><code>def assemble_context(chunks, max_tokens=8000, count_tokens=len):
+    <span class="cm"># 1. Deduplicate near-identical content</span>
+    kept = []
+    for c in chunks:
+        if not any(cosine(c["vec"], k["vec"]) &gt; 0.95 for k in kept):
+            kept.append(c)
+
+    <span class="cm"># 2. Budget</span>
+    budgeted, total = [], 0
+    for c in kept:
+        n = count_tokens(c["text"])
+        if total + n &gt; max_tokens:
+            break                          <span class="cm"># stop at a boundary, never mid-chunk</span>
+        budgeted.append(c); total += n
+
+    <span class="cm"># 3. Reorder: strongest at the edges, weakest in the middle</span>
+    ordered, left, right = [], 0, len(budgeted) - 1
+    for i, c in enumerate(budgeted):
+        (ordered.insert(0, c) if i % 2 else ordered.append(c))
+
+    <span class="cm"># 4. Label and delimit</span>
+    return "\n\n---\n\n".join(
+        f"[source: {c['source']} | page: {c.get('page','?')} "
+        f"| updated: {c.get('updated','?')}]\n{c['text']}"
+        for c in ordered)</code></pre>
+</div>
+
+<h2 id="patterns"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Architectural patterns</h2>
+
+<div class="tbl">
+  <table>
+    <caption>RAG architectures beyond the basic loop</caption>
+    <thead><tr><th>Pattern</th><th>Idea</th><th>Use when</th><th>Cost</th></tr></thead>
+    <tbody>
+      <tr><td>Naive RAG</td><td>Embed, search, stuff, generate</td><td>Baseline &mdash; always build this first</td><td>1 call</td></tr>
+      <tr><td><strong>Hybrid + rerank</strong></td><td>BM25 + dense, RRF, cross-encoder</td><td><strong>The production default</strong></td><td>1 call + rerank</td></tr>
+      <tr><td>Parent-document</td><td>Match small, return large</td><td>Long structured documents</td><td>1 call</td></tr>
+      <tr><td>Self-RAG</td><td>Model decides whether to retrieve, and whether results suffice</td><td>Mixed traffic where many queries need no retrieval</td><td>2&ndash;3 calls</td></tr>
+      <tr><td>Corrective RAG (CRAG)</td><td>Grade retrieved documents; fall back to web search if poor</td><td>Corpus with known gaps</td><td>2&ndash;4 calls</td></tr>
+      <tr><td>GraphRAG</td><td>Traverse a knowledge graph</td><td>Relationship and multi-hop questions (&sect;4.8)</td><td>High ingest cost</td></tr>
+      <tr><td>Agentic RAG</td><td>Agent plans, retrieves iteratively, verifies</td><td>Complex research questions</td><td>5&ndash;20 calls</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note java">
+  <span class="tag">Latency budget for the production default</span>
+  <p>Query transformation 200&ndash;600&nbsp;ms &middot; hybrid retrieval 20&ndash;80&nbsp;ms &middot; cross-encoder rerank 50&ndash;200&nbsp;ms &middot; generation 1&ndash;5&nbsp;s. Retrieval is a small fraction of the total &mdash; generation dominates. That means you can afford re-ranking almost always, and you should be sceptical of optimising retrieval latency before you have optimised output length. Run query transformation and the first retrieval concurrently where the transformation is optional, and stream the answer so time-to-first-token is what the user experiences.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly a weekend</div>
+  <ol>
+    <li>Implement BM25 from scratch and verify against <code>rank_bm25</code>. Then find a query where BM25 beats dense retrieval, and one where the reverse holds.</li>
+    <li>Implement RRF. Measure recall@20 for dense alone, BM25 alone, and fused. Record the improvement.</li>
+    <li>Add a cross-encoder re-ranker over the top 100. Measure recall@5 before and after. This is usually the largest single number you will record in Phase 4.</li>
+    <li>Try weighted score fusion instead of RRF. Tune the weights on one corpus, then apply them to a different corpus and watch the calibration fail.</li>
+    <li>Implement MMR and sweep &lambda; from 0 to 1. Inspect the returned sets at each end to see relevance and diversity trade off.</li>
+    <li>Implement HyDE and measure its effect on short queries specifically versus long ones.</li>
+    <li>Implement routing with four destinations. Log the routing decision for 100 real queries and check it by hand.</li>
+    <li>Place the correct chunk at position 1, 5 and 10 in a long context and measure answer accuracy at each. Reproduce "lost in the middle" on your own stack.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 08 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://plg.uwaterloo.ca/~gvcormac/cormacksigir09-rrf.pdf">Reciprocal Rank Fusion outperforms Condorcet and individual rank learning methods</a><span class="why">The original RRF paper. Four pages, and it justifies the <i>k</i>=60 convention.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://www.elastic.co/search-labs/tutorials/search-tutorial/vector-search/hybrid-search">Elastic &mdash; Hybrid search with RRF</a><span class="why">A practical treatment of fusion with worked examples and tuning guidance.</span></span></li>
+    <li><span class="kind">Guide</span><span class="body"><a href="https://www.pinecone.io/learn/series/rag/rerankers/">Pinecone &mdash; Rerankers and Two-Stage Retrieval</a><span class="why">The clearest explanation of why retrieve-then-rerank beats either stage alone.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2212.10496">Precise Zero-Shot Dense Retrieval without Relevance Labels (HyDE)</a><span class="why">The hypothetical-document technique, with the intuition for why it works.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2310.11511">Self-RAG: Learning to Retrieve, Generate and Critique</a><span class="why">The adaptive-retrieval pattern from Section 06.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.spring.io/spring-ai/reference/api/retrieval-augmented-generation.html">Spring AI &mdash; RAG modules</a><span class="why">Query transformers, document retrievers and joiners &mdash; the Java implementation of this page's pipeline.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.langchain4j.dev/tutorials/rag/">LangChain4j &mdash; Advanced RAG</a><span class="why">The five-stage augmentor with query routing and re-ranking, in Java.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 4.6 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

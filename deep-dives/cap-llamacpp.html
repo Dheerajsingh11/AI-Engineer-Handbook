@@ -1,0 +1,384 @@
+<title>Running It in llama.cpp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 20 &middot; Capstone Project</span>
+    <span class="sep">/</span>
+    <span>Capstone build</span>
+  </div>
+
+  <header class="head">
+    <span class="num">20.6</span>
+    <h1>Running It in llama.cpp</h1>
+    <p class="lede">Running the fine-tuned model, privately and cheaply. This chapter merges Atlas's LoRA adapters into the base
+model, converts it to GGUF, quantises it, and serves it locally with llama.cpp. The commands, the maths of block
+quantisation and the KV cache, and why running the model yourself is the right call for an internal tool.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">The end-to-end build &middot; where this chapter sits</div>
+    <ol>
+      <li><span class="lvl lvl-b">Stage 1</span><b>Data &amp; Retrieval</b><span class="who">Ch. 20.2&ndash;20.4 &mdash; corpus, embeddings, the RAG core.</span></li>
+      <li><span class="lvl lvl-i">Stage 2</span><b>The Model</b><span class="who">Ch. 20.5&ndash;20.6 &mdash; fine-tune Llama, run it in llama.cpp.</span></li>
+      <li><span class="lvl lvl-a">Stage 3</span><b>The Application</b><span class="who">Ch. 20.7&ndash;20.8 &mdash; the agent, the serving API.</span></li>
+      <li><span class="lvl lvl-p">Stage 4</span><b>Operations</b><span class="who">Ch. 20.9&ndash;20.11 &mdash; eval, efficiency, deploy &amp; safety.</span></li>
+    </ol>
+  </div>
+
+  <div class="note java">
+    <span class="tag">How to read a capstone chapter</span>
+    <p>This is not a tutorial page &mdash; it is a build log. Every section shows <strong>code</strong>, the <strong>reason</strong> for it, and the <strong>maths or algorithm</strong> underneath, and closes with a <strong>&ldquo;Topics used here&rdquo;</strong> box linking the Phase&nbsp;1&ndash;19 pages it draws on. The goal is to see the whole handbook working as one system &mdash; chapter 20.1 gives the architecture, 20.12 indexes every topic.</p>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#merge">Merge, then convert to GGUF</a></li><li><a href="#quant">The maths of quantisation</a></li><li><a href="#run">Serve it with llama.cpp</a></li><li><a href="#why-local">Why local, for Atlas</a></li></ol>
+  </nav>
+
+<h2 id="merge"><span class="kicker">Step 01</span>Merge, then convert to GGUF</h2>
+
+<p>Chapter 20.5 produced small LoRA adapters. To run efficiently we first <strong>merge</strong> them back into the base weights (folding <i>B A</i> into <i>W</i>&#8320;), then convert to <strong>GGUF</strong> &mdash; the file format llama.cpp runs (Topic 19.4).</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python + shell</span><span>Adapters &rarr; merged model &rarr; GGUF</span></div>
+<pre><code><span class="cm"># 1. Merge the LoRA adapters into the base model (Ch. 20.5).</span>
+from peft import PeftModel
+merged = PeftModel.from_pretrained(base, "atlas-lora").merge_and_unload()
+merged.save_pretrained("atlas-merged")
+
+<span class="cm"># 2. Convert the HF model to GGUF (llama.cpp's format).</span>
+$ python llama.cpp/convert_hf_to_gguf.py atlas-merged --outfile atlas-f16.gguf
+
+<span class="cm"># 3. Quantise to 4-bit -- a quarter of the size, minimal quality loss.</span>
+$ ./llama-quantize atlas-f16.gguf atlas-q4.gguf Q4_K_M</code></pre>
+</div>
+
+<div class="note">
+  <p>Merging matters for speed: an unmerged model computes <i>W</i>&#8320;<i>x</i> + <i>BAx</i> as two operations every step, while a merged model computes a single <i>Wx</i>. For a stable, deployed model you merge once; you keep adapters separate only when you want to hot-swap different fine-tunes on one base.</p>
+</div>
+
+<h2 id="quant"><span class="kicker">Step 02</span>The maths of quantisation</h2>
+
+<p>The <code>Q4_K_M</code> step stores each weight in roughly 4 bits instead of 16. The trick that keeps quality is <strong>block-wise scaling</strong> &mdash; quantise small groups of weights, each with its own scale (Topics 6.1, 18.3).</p>
+
+<div class="math">
+  <span class="lbl">Block quantisation &mdash; per-group scale</span>
+  <span class="row">for a block of weights <i>w</i>: &nbsp; scale = <span class="frac"><span>max|<i>w</i>|</span><span>2<sup>b&minus;1</sup> &minus; 1</span></span>, &nbsp; <i>q</i> = round(<i>w</i> / scale)</span>
+  <span class="row">dequantise at runtime: &nbsp; <i>w</i> &asymp; <i>q</i> &times; scale</span>
+  <span class="note">Each block (e.g. 32 weights) stores tiny integers <i>q</i> plus one scale. A per-block scale adapts to local magnitude, so outliers in one region do not wreck precision everywhere &mdash; far better than one global scale. At <i>b</i>=4 bits the model is ~4&times; smaller and faster, with quality loss usually too small to notice on-task. This is the memory win that lets Atlas run on ordinary hardware.</span>
+</div>
+
+<h2 id="run"><span class="kicker">Step 03</span>Serve it with llama.cpp</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">shell + Python</span><span>An OpenAI-compatible local server</span></div>
+<pre><code><span class="cm"># llama.cpp ships a server exposing an OpenAI-style API on localhost.</span>
+$ ./llama-server -m atlas-q4.gguf --ctx-size 8192 --n-gpu-layers 999 --port 8080
+
+<span class="cm"># Atlas's code talks to it exactly like any chat API (Ch. 20.7, 20.8).</span>
+import openai
+client = openai.OpenAI(base_url="http://localhost:8080/v1", api_key="local")
+resp = client.chat.completions.create(
+    model="atlas", messages=[{"role": "user", "content": prompt}],
+    temperature=0.2, stream=True)               <span class="cm"># low temp: factual, grounded</span></code></pre>
+</div>
+
+<div class="note key">
+  <span class="tag">The KV cache &mdash; the other memory cost</span>
+  <p>Model weights are not the only thing in VRAM. As the model generates, it stores the attention keys and values for every token so far &mdash; the <strong>KV cache</strong> (Topic 1.3) &mdash; and it grows with context length &times; batch. That is why <code>--ctx-size</code> is a memory decision, not a free knob: an 8k context costs real VRAM on top of the weights, and a 128k context can cost more than the model itself (Topic 18.4). Grouped-query attention and cache quantisation shrink it, but the principle stands: <em>budget the KV cache alongside the weights</em> when sizing hardware (Topic 6.5).</p>
+</div>
+
+<h2 id="why-local"><span class="kicker">Step 04</span>Why local, for Atlas</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Local inference vs a hosted API, for an internal tool</caption>
+    <thead><tr><th>Concern</th><th>Local (llama.cpp) wins because&hellip;</th></tr></thead>
+    <tbody>
+      <tr><td>Privacy</td><td>Internal docs and queries never leave the network (Topic 6.4)</td></tr>
+      <tr><td>Cost</td><td>No per-token bill; fixed hardware cost (Topics 6.5, 20.10)</td></tr>
+      <tr><td>Control</td><td>It is <em>our</em> fine-tuned model, versioned and reproducible</td></tr>
+      <tr><td>Latency</td><td>No network hop; predictable on our hardware</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note java">
+  <span class="tag">The trade we accepted</span>
+  <p>A local 8B model is not a frontier model &mdash; it is less capable in the abstract. But for Atlas's bounded job (answer support questions over our docs, in our voice), a fine-tuned, RAG-grounded 8B running privately on cheap hardware is the <em>better product</em>: private, affordable, fast, and ours. That is the recurring lesson of Phases 18&ndash;19 &mdash; the smallest model that clears the bar, on the cheapest hardware that fits, usually wins (Topics 18.3, 19.4). If a task later needs more, the hybrid pattern (Topic 19.4) escalates just those cases to a bigger model.</p>
+</div>
+
+<div class="note key">
+  <span class="tag">Topics used here</span>
+  <ul>
+    <li><b>6.1 Inference, Serving &amp; Quantisation</b> &mdash; quantised serving and the KV cache.</li>
+    <li><b>19.4 Edge &amp; On-Device AI</b> &mdash; llama.cpp, GGUF, running the model locally.</li>
+    <li><b>18.3 Model Compression</b> &mdash; the block-quantisation maths.</li>
+    <li><b>18.4 Modern LLM Architectures</b> &mdash; why the KV cache grows with context.</li>
+    <li><b>6.5 AI Hardware</b> &mdash; sizing weights + KV cache to the hardware.</li>
+    <li><b>6.4 Governance &amp; Privacy</b> &mdash; the privacy case for keeping it local.</li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Capstone 20.6 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

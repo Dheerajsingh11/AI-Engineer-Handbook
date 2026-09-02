@@ -1,0 +1,668 @@
+<title>Agentic Architecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 05 &middot; Agents &amp; Ops</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">5.2</span>
+    <h1>Agentic Architecture</h1>
+    <p class="lede">Most systems called agents should not be. This page draws the workflow/agent line precisely, implements all
+six workflow patterns and the autonomous loops in Java, explains when multi-agent genuinely helps and when it
+multiplies cost for nothing, and gives the failure taxonomy for debugging systems that decide their own path.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#workflows">The six workflow patterns</a></li><li><a href="#autonomous">Autonomous agent loops</a></li><li><a href="#multi-agent">Multi-agent systems</a></li><li><a href="#failures">How agents fail, and how to see it</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>Tool calling from <a href="#deeper">Topic 5.1</a> &mdash; in particular the loop. This page is about what to put around that loop, and when not to have one at all.</p>
+</div>
+
+<p>"Agent" has become a marketing word covering everything from a prompt template to an autonomous system that modifies infrastructure. For engineering purposes there is one distinction that matters, and it is about <em>who decides the control flow</em>.</p>
+
+<div class="tbl">
+  <table>
+    <caption>The distinction that determines everything else</caption>
+    <thead><tr><th></th><th>Workflow</th><th>Agent</th></tr></thead>
+    <tbody>
+      <tr><td>Control flow</td><td><strong>You write it.</strong> LLM calls sit at fixed points</td><td><strong>The model decides it</strong> at runtime</td></tr>
+      <tr><td>Path</td><td>Known before execution</td><td>Discovered during execution</td></tr>
+      <tr><td>Cost</td><td>Predictable</td><td>Variable, unbounded without limits</td></tr>
+      <tr><td>Testing</td><td>Each step independently</td><td>Only end-to-end, statistically</td></tr>
+      <tr><td>Debugging</td><td>Standard tracing</td><td>Read the reasoning trace and infer</td></tr>
+      <tr><td>Latency</td><td>Bounded</td><td>Unpredictable</td></tr>
+      <tr><td>Best for</td><td><strong>Most production tasks</strong></td><td>Genuinely open-ended tasks</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">The guidance worth taking seriously</span>
+  <p><strong>Prefer the simplest thing that works.</strong> A single well-prompted call beats a workflow. A workflow beats an agent. Reach for an autonomous agent only when the sequence of steps genuinely cannot be known in advance &mdash; and be honest about that, because "we might need flexibility later" is not the same as needing it now.</p>
+  <p>Autonomy is a cost, not a feature. You pay in tokens, latency, testability and debuggability. Buy it only when it purchases something.</p>
+</div>
+
+<h2 id="workflows"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>The six workflow patterns</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Every workflow pattern, and what it is for</caption>
+    <thead><tr><th>Pattern</th><th>Structure</th><th>Use when</th></tr></thead>
+    <tbody>
+      <tr><td>Prompt chaining</td><td>Fixed sequence; each output feeds the next</td><td>The task decomposes into known steps</td></tr>
+      <tr><td>Routing</td><td>Classify, then dispatch to a specialised handler</td><td>Distinct input categories needing different treatment</td></tr>
+      <tr><td>Parallelisation &mdash; sectioning</td><td>Independent subtasks concurrently, then merge</td><td>Checking one document against ten policies</td></tr>
+      <tr><td>Parallelisation &mdash; voting</td><td>Same task <i>n</i> times, aggregate</td><td>High-stakes classification; reduces variance</td></tr>
+      <tr><td>Orchestrator&ndash;workers</td><td>A planner decomposes dynamically and delegates</td><td>Subtask count unknown up front</td></tr>
+      <tr><td>Evaluator&ndash;optimiser</td><td>Generate, critique, revise, repeat</td><td>Clear quality criteria and room to iterate</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Java</span><span>Chaining, routing and parallelisation</span></div>
+<pre><code><span class="cm">// ---------- 1. PROMPT CHAINING ----------------------------------</span>
+<span class="cm">// Each step is small, testable, and can use a cheaper model.</span>
+<span class="cm">// A gate between steps stops bad input propagating.</span>
+public Report generateReport(String rawData) {
+    String outline = chat.prompt()
+            .user("Produce a section outline for a report on:\n" + rawData)
+            .call().content();
+
+    if (!validator.isUsableOutline(outline)) {          <span class="cm">// programmatic gate</span>
+        throw new WorkflowGateException("outline rejected");
+    }
+
+    String draft = chat.prompt()
+            .user(u -&gt; u.text("Write the report following this outline:\n{o}\n\nData:\n{d}")
+                        .param("o", outline).param("d", rawData))
+            .call().content();
+
+    return chat.prompt()
+            .user("Tighten this report. Remove repetition. Keep all facts:\n" + draft)
+            .call().entity(Report.class);
+}
+
+<span class="cm">// ---------- 2. ROUTING ------------------------------------------</span>
+<span class="cm">// A cheap classifier sends work to a specialist. Each handler gets</span>
+<span class="cm">// a focused prompt instead of one prompt trying to cover everything.</span>
+public String handle(String message) {
+    Category category = cheapChat.prompt()
+            .user("Classify this request:\n" + message)
+            .call().entity(Category.class);
+
+    return switch (category) {
+        case BILLING   -&gt; billingHandler.handle(message);
+        case TECHNICAL -&gt; technicalHandler.handle(message);   <span class="cm">// larger model</span>
+        case SIMPLE_FAQ -&gt; faqHandler.handle(message);        <span class="cm">// no LLM at all</span>
+        case OTHER     -&gt; escalate(message);
+    };
+}
+
+<span class="cm">// ---------- 3. PARALLELISATION: SECTIONING ----------------------</span>
+public ComplianceResult check(String document) {
+    List&lt;CompletableFuture&lt;PolicyFinding&gt;&gt; futures = policies.stream()
+            .map(policy -&gt; CompletableFuture.supplyAsync(
+                    () -&gt; checkAgainst(document, policy), aiExecutor))
+            .toList();
+
+    <span class="cm">// Ten sequential calls at 3s each = 30s. Concurrently = ~3s.</span>
+    var findings = futures.stream().map(CompletableFuture::join).toList();
+    return ComplianceResult.of(findings);
+}
+
+<span class="cm">// ---------- 4. PARALLELISATION: VOTING --------------------------</span>
+public RiskLevel assess(String transaction) {
+    <span class="cm">// Temperature > 0 so the samples actually differ.</span>
+    var votes = IntStream.range(0, 5).parallel()
+            .mapToObj(i -&gt; classify(transaction, 0.7))
+            .collect(Collectors.groupingBy(r -&gt; r, Collectors.counting()));
+
+    var winner = votes.entrySet().stream()
+            .max(Map.Entry.comparingByValue()).orElseThrow();
+
+    <span class="cm">// Disagreement is itself a signal -- escalate rather than guess.</span>
+    if (winner.getValue() &lt; 4) {
+        return RiskLevel.NEEDS_HUMAN_REVIEW;
+    }
+    return winner.getKey();
+}</code></pre>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Java</span><span>Orchestrator-workers and evaluator-optimiser</span></div>
+<pre><code><span class="cm">// ---------- 5. ORCHESTRATOR-WORKERS -----------------------------</span>
+<span class="cm">// The planner decides HOW MANY subtasks -- that is what makes this</span>
+<span class="cm">// different from sectioning, where the list is fixed by you.</span>
+public Answer research(String question) {
+    Plan plan = orchestrator.prompt()
+            .user("Break this question into independent research subtasks:\n" + question)
+            .call().entity(Plan.class);
+
+    if (plan.subtasks().size() &gt; MAX_SUBTASKS) {         <span class="cm">// always bound it</span>
+        plan = plan.truncate(MAX_SUBTASKS);
+    }
+
+    var results = plan.subtasks().parallelStream()
+            .map(t -&gt; worker.execute(t))
+            .toList();
+
+    return synthesiser.prompt()
+            .user(u -&gt; u.text("Combine these findings to answer: {q}\n\n{r}")
+                        .param("q", question).param("r", format(results)))
+            .call().entity(Answer.class);
+}
+
+<span class="cm">// ---------- 6. EVALUATOR-OPTIMISER ------------------------------</span>
+<span class="cm">// Only works when quality is genuinely assessable. If the evaluator</span>
+<span class="cm">// cannot tell good from bad, this burns tokens and changes nothing.</span>
+public String refine(String task, int maxRounds) {
+    String candidate = generator.prompt().user(task).call().content();
+
+    for (int round = 0; round &lt; maxRounds; round++) {
+        Critique critique = evaluator.prompt()
+                .user(u -&gt; u.text("""
+                        Assess this against the requirements.
+                        Score 1-10 and list specific, actionable issues.
+
+                        Requirements: {task}
+                        Candidate: {candidate}
+                        """).param("task", task).param("candidate", candidate))
+                .call().entity(Critique.class);
+
+        if (critique.score() &gt;= 8 || critique.issues().isEmpty()) {
+            return candidate;                            <span class="cm">// good enough</span>
+        }
+        candidate = generator.prompt()
+                .user(u -&gt; u.text("Revise, addressing these issues:\n{i}\n\n{c}")
+                            .param("i", format(critique.issues()))
+                            .param("c", candidate))
+                .call().content();
+    }
+    return candidate;
+}</code></pre>
+</div>
+
+<h2 id="autonomous"><span class="kicker">Section 03 <span class="lvl lvl-a">Advanced</span></span>Autonomous agent loops</h2>
+
+<div class="tbl">
+  <table>
+    <caption>The four loop architectures</caption>
+    <thead><tr><th>Pattern</th><th>Mechanism</th><th>Strength</th><th>Weakness</th></tr></thead>
+    <tbody>
+      <tr><td><strong>ReAct</strong></td><td>Thought &rarr; Action &rarr; Observation, repeated</td><td>Simple; adapts after every observation</td><td>Can loop unproductively; no global plan</td></tr>
+      <tr><td>Plan-and-Execute</td><td>Plan the whole sequence, then run it</td><td>Fewer model calls; clear audit trail</td><td>Brittle if the plan is wrong; cannot adapt mid-run</td></tr>
+      <tr><td>Reflexion</td><td>Critique own attempt, retry with the lesson</td><td>Better outcomes on hard tasks</td><td>2&ndash;3&times; the tokens</td></tr>
+      <tr><td>Tree search</td><td>Explore and score multiple branches</td><td>Strong on search and planning problems</td><td>Very expensive; rarely justified</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Java</span><span>Plan-and-execute with replanning, and loop detection</span></div>
+<pre><code>public AgentResult planAndExecute(String goal, int maxSteps) {
+
+    Plan plan = planner.prompt()
+            .user("Create a numbered plan of tool-executable steps for:\n" + goal)
+            .call().entity(Plan.class);
+
+    var completed = new ArrayList&lt;StepResult&gt;();
+    var recentCalls = new ArrayDeque&lt;String&gt;();
+
+    for (int i = 0; i &lt; maxSteps &amp;&amp; !plan.isComplete(); i++) {
+        Step step = plan.next();
+
+        <span class="cm">// LOOP DETECTION: the same call three times in a row means</span>
+        <span class="cm">// the agent is stuck. Break out rather than burning the budget.</span>
+        String signature = step.tool() + "|" + step.arguments();
+        recentCalls.addLast(signature);
+        if (recentCalls.size() &gt; 3) recentCalls.removeFirst();
+        if (recentCalls.size() == 3 &amp;&amp; Set.copyOf(recentCalls).size() == 1) {
+            return AgentResult.stuck(goal, completed, "repeated identical call");
+        }
+
+        StepResult result = executor.execute(step);
+        completed.add(result);
+
+        <span class="cm">// REPLAN on failure. A plan made before seeing the data is</span>
+        <span class="cm">// often wrong; the ability to revise is what makes this work.</span>
+        if (result.failed()) {
+            plan = planner.prompt()
+                    .user(u -&gt; u.text("""
+                            Goal: {goal}
+                            Completed: {done}
+                            Step "{step}" failed: {error}
+                            Produce a revised plan for the remaining work.
+                            """)
+                        .param("goal", goal).param("done", format(completed))
+                        .param("step", step.description())
+                        .param("error", result.error()))
+                    .call().entity(Plan.class);
+        } else {
+            plan = plan.advance();
+        }
+    }
+    return AgentResult.of(goal, completed, synthesise(goal, completed));
+}</code></pre>
+</div>
+
+<h2 id="multi-agent"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>Multi-agent systems</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Topologies, from most to least controllable</caption>
+    <thead><tr><th>Topology</th><th>Structure</th><th>Caution</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Supervisor</strong></td><td>One coordinator delegates to specialists</td><td><strong>Start here</strong> if you need multiple agents at all</td></tr>
+      <tr><td>Hierarchical</td><td>Supervisors of supervisors</td><td>Debugging cost grows sharply with depth</td></tr>
+      <tr><td>Handoff</td><td>Control transfers with the conversation</td><td>Clean for support escalation; state must transfer too</td></tr>
+      <tr><td>Blackboard</td><td>Agents read and write shared state</td><td>Familiar &mdash; it is event-driven architecture (&sect;5.4)</td></tr>
+      <tr><td>Network</td><td>Any agent calls any other</td><td>Emergent behaviour; very hard to test or reason about</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note trap">
+  <span class="tag">The questions to answer before adding a second agent</span>
+  <p>Most multi-agent designs would work better as one agent with more tools, or as a plain workflow. Each additional agent multiplies token cost, adds a failure mode, and makes the trace harder to read. Before adding one, answer:</p>
+  <ul>
+    <li><strong>Does it need a genuinely separate context window?</strong> Real reason &mdash; a research sub-agent can read 200k tokens and return a 500-token summary, keeping the parent's context clean.</li>
+    <li><strong>Does it need different permissions?</strong> Real reason &mdash; a read-only analysis agent and a write-capable action agent is meaningful privilege separation.</li>
+    <li><strong>Do the subtasks genuinely run in parallel?</strong> Real reason, and measurable.</li>
+    <li><strong>"It seemed more modular"?</strong> Not a reason. Use methods.</li>
+  </ul>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Java</span><span>Supervisor with genuinely separated concerns</span></div>
+<pre><code>@Service
+class SupervisorAgent {
+
+    private final Map&lt;String, SpecialistAgent&gt; specialists;
+
+    public Answer handle(String request, Principal principal) {
+
+        Delegation delegation = supervisor.prompt()
+                .system("""
+                    You coordinate specialists. Choose ONE to handle the
+                    request, and state precisely what you need from it.
+
+                    research  - read-only. Searches documents and the web.
+                    analysis  - read-only. Computes over structured data.
+                    action    - can modify records. Requires approval.
+                    """)
+                .user(request)
+                .call().entity(Delegation.class);
+
+        var specialist = specialists.get(delegation.specialist());
+        if (specialist == null) {
+            return Answer.error("No such specialist.");
+        }
+
+        <span class="cm">// PRIVILEGE SEPARATION is the real justification here.</span>
+        <span class="cm">// The research agent physically cannot write, whatever any</span>
+        <span class="cm">// injected instruction in a retrieved document may say.</span>
+        if (!authz.permits(principal, specialist.requiredScope())) {
+            return Answer.error("Not permitted.");
+        }
+
+        <span class="cm">// The specialist runs in its OWN context and returns a summary,</span>
+        <span class="cm">// not a transcript. This is the context-isolation benefit.</span>
+        return specialist.execute(delegation.instruction(), principal);
+    }
+}</code></pre>
+</div>
+
+<h2 id="failures"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>How agents fail, and how to see it</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Failure taxonomy</caption>
+    <thead><tr><th>Failure</th><th>Symptom</th><th>Mitigation</th></tr></thead>
+    <tbody>
+      <tr><td>Goal drift</td><td>Ends up solving a different problem</td><td>Restate the goal in each turn; check final output against it</td></tr>
+      <tr><td>Infinite loop</td><td>Same action repeatedly</td><td>Loop detection (Section 03); step limits</td></tr>
+      <tr><td>Premature completion</td><td>Declares success without doing the work</td><td>Explicit completion criteria; verification step</td></tr>
+      <tr><td>Context exhaustion</td><td>Degrades after many steps</td><td>Compaction; offloading; sub-agents (&sect;5.3)</td></tr>
+      <tr><td>Cascading errors</td><td>One bad step poisons everything after</td><td>Validate between steps; replan on failure</td></tr>
+      <tr><td>Cost explosion</td><td>One run costs a hundred times the median</td><td>Token budget per run; alert on outliers</td></tr>
+      <tr><td>Silent wrong answer</td><td>Plausible output, incorrect</td><td>Verification tools; citations; human review on high stakes</td></tr>
+      <tr><td>Over-delegation</td><td>Sub-agents spawning sub-agents</td><td>Bound recursion depth explicitly</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note java">
+  <span class="tag">What to trace</span>
+  <p>An agent run is a span tree, and it is the only way to debug something whose control flow you did not write. Capture per step: the model's stated reasoning, the tool called with arguments, the result size, the duration, tokens consumed, and cumulative cost. Then track four aggregates: <strong>steps per run</strong> (rising = the agent is struggling), <strong>cost per run p50 and p99</strong> (the gap reveals runaway cases), <strong>completion rate</strong>, and <strong>human-intervention rate</strong>.</p>
+  <p>Set hard limits on all of it &mdash; max steps, max tokens, max wall time, max cost &mdash; and treat hitting a limit as an alert, not just a failure. It usually means a class of input you did not anticipate.</p>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>Choosing the architecture</caption>
+    <thead><tr><th>If the task&hellip;</th><th>Use</th></tr></thead>
+    <tbody>
+      <tr><td>Is one well-defined transformation</td><td>A single prompted call</td></tr>
+      <tr><td>Has known steps in a fixed order</td><td>Prompt chaining</td></tr>
+      <tr><td>Splits into distinct categories</td><td>Routing</td></tr>
+      <tr><td>Has independent subtasks known in advance</td><td>Parallelisation</td></tr>
+      <tr><td>Has a checkable quality bar</td><td>Evaluator&ndash;optimiser</td></tr>
+      <tr><td>Has subtasks discovered at runtime</td><td>Orchestrator&ndash;workers</td></tr>
+      <tr><td>Genuinely cannot be planned in advance</td><td>ReAct agent, with hard limits</td></tr>
+      <tr><td>Needs separate permissions or context windows</td><td>Supervisor multi-agent</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly a weekend</div>
+  <ol>
+    <li>Take a task you were going to build as an agent. Implement it as a workflow instead. Compare cost, latency and testability honestly.</li>
+    <li>Implement all six workflow patterns on small tasks. You will recognise them in every framework afterwards.</li>
+    <li>Build routing with a small model as classifier and a large one for hard cases. Measure the cost saving over always using the large model.</li>
+    <li>Implement voting with five samples. Find a case where the votes split and confirm your escalation path works.</li>
+    <li>Build evaluator&ndash;optimiser. Then check whether the evaluator's scores correlate with human judgement &mdash; if not, the loop is theatre.</li>
+    <li>Implement plan-and-execute with replanning. Make a tool fail deliberately and watch it recover.</li>
+    <li>Add loop detection. Construct a scenario that loops and confirm you break out cleanly.</li>
+    <li>Instrument a run as a span tree with per-step cost. Find the p99 run and work out what made it expensive.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Article</span><span class="body"><a href="https://www.anthropic.com/engineering/building-effective-agents">Anthropic &mdash; Building Effective Agents</a><span class="why">The workflow-versus-agent distinction and all six patterns in Section 02 come from here. If you read one thing in Phase 5, read this.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2210.03629">ReAct: Synergizing Reasoning and Acting</a><span class="why">The foundational loop. Short and readable.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2303.11366">Reflexion: Language Agents with Verbal Reinforcement Learning</a><span class="why">Self-critique and retry, with measured improvements and the cost.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://lilianweng.github.io/posts/2023-06-23-agent/">LLM Powered Autonomous Agents &mdash; Lilian Weng</a><span class="why">A thorough survey of planning, memory and tool use. Dense and worth the time.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://langchain-ai.github.io/langgraph/concepts/multi_agent/">LangGraph &mdash; Multi-agent architectures</a><span class="why">Clear diagrams of supervisor, hierarchical and network topologies. Concepts transfer to Java directly.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://www.anthropic.com/engineering/multi-agent-research-system">How we built a multi-agent research system</a><span class="why">An honest engineering account, including where multi-agent did not help and what it cost.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 5.2 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

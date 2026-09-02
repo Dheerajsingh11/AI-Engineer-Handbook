@@ -1,0 +1,439 @@
+<title>Data Engineering for AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 18 &middot; Data &amp; Model Efficiency</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">18.1</span>
+    <h1>Data Engineering for AI</h1>
+    <p class="lede">The unglamorous work that decides whether any AI project succeeds. This page covers the data lifecycle behind a
+model &mdash; collection, cleaning, labelling and annotation, versioning and pipelines &mdash; why data quality
+beats model choice almost every time, and the practices that keep a dataset trustworthy as it grows.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#lifecycle">The data lifecycle</a></li><li><a href="#labelling">Labelling &amp; annotation</a></li><li><a href="#pipelines">Pipelines, versioning &amp; validation</a></li><li><a href="#production">In production: drift &amp; feedback</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>Pandas (Topic 2.2) and a sense of what a model consumes. This page is about the data <em>before</em> feature engineering (Topic 14.1) ever begins.</p>
+</div>
+
+<p>Every model, classical or frontier, is a function of its data. You can swap architectures all week, but if the data is wrong, incomplete, mislabelled or leaking, the model will be wrong in exactly the same ways. <strong>Data engineering for AI</strong> is the discipline of getting the right data, in the right shape, with the right labels, reliably and repeatably &mdash; and it is where most real projects spend most of their time.</p>
+
+<div class="note key">
+  <span class="tag">The 80% rule</span>
+  <p>Practitioners repeat a rough figure: <strong>roughly 80% of the effort on a real AI project is data work</strong> &mdash; collecting it, cleaning it, labelling it, fixing it &mdash; and only the remaining fraction is modelling. The famous phrase is <em>"data-centric AI"</em>: hold the model fixed and improve the data, and you often gain more than any architecture change would give you. The models are increasingly commoditised; the data, and the pipeline that keeps it clean, is the durable advantage.</p>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Dataset</dt><dd>The collection of examples a model learns or is evaluated on.</dd>
+    <dt>Label / annotation</dt><dd>The correct answer attached to an example, usually by a human.</dd>
+    <dt>Ground truth</dt><dd>The labels you treat as correct &mdash; the standard everything is measured against.</dd>
+    <dt>Data pipeline</dt><dd>The automated flow that takes raw data to model-ready data.</dd>
+    <dt>Data versioning</dt><dd>Tracking exactly which data produced which model, like Git for datasets.</dd>
+    <dt>Drift</dt><dd>The world changing so that yesterday's data no longer matches today's.</dd>
+  </dl>
+</div>
+
+<h2 id="lifecycle"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>The data lifecycle</h2>
+
+<p>Data for AI moves through a repeatable set of stages. Naming them makes the work visible &mdash; and shows where quality is won or lost.</p>
+
+<div class="tbl">
+  <table>
+    <caption>From raw signal to model-ready data</caption>
+    <thead><tr><th>Stage</th><th>What happens</th><th>The failure to avoid</th></tr></thead>
+    <tbody>
+      <tr><td>Collection</td><td>Gather from sources: logs, databases, APIs, scraping, sensors, user input</td><td>Sampling bias &mdash; the data does not represent production</td></tr>
+      <tr><td>Cleaning</td><td>Fix types, dedupe, handle missing/corrupt rows, normalise formats</td><td>Silent corruption that survives into training</td></tr>
+      <tr><td>Labelling</td><td>Attach ground-truth answers (Section 03)</td><td>Inconsistent labels &mdash; the ceiling on model accuracy</td></tr>
+      <tr><td>Validation</td><td>Schema checks, range checks, distribution checks</td><td>Bad data reaching the model unnoticed</td></tr>
+      <tr><td>Versioning</td><td>Snapshot the exact dataset used for each model (Section 04)</td><td>Not being able to reproduce a result</td></tr>
+      <tr><td>Monitoring</td><td>Watch for drift once in production (Topic 14.7, 5.5)</td><td>A model quietly decaying as the world moves</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note">
+  <p><strong>For LLM applications, the lifecycle looks a little different but the principle is identical.</strong> You are less often training on labelled rows and more often curating: the documents that feed a RAG index (Topic 4.5), the prompt&ndash;response pairs for fine-tuning (Topic 3.5), the evaluation sets that tell you whether anything works (Topic 19.1). Each of those is a dataset with a lifecycle &mdash; and each rewards the same collect&rarr;clean&rarr;validate&rarr;version discipline.</p>
+</div>
+
+<h2 id="labelling"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>Labelling &amp; annotation</h2>
+
+<p>Supervised learning needs labels, and the quality of those labels is a hard ceiling on the quality of the model. If humans disagree on the answer 15% of the time, no model trained on those labels can reliably do better than 85%.</p>
+
+<div class="tbl">
+  <table>
+    <caption>How labels get made</caption>
+    <thead><tr><th>Approach</th><th>What it is</th><th>Trade-off</th></tr></thead>
+    <tbody>
+      <tr><td>In-house experts</td><td>Your own domain specialists label</td><td>High quality, low volume, expensive</td></tr>
+      <tr><td>Crowdsourcing</td><td>Many non-experts (e.g. via a platform) label</td><td>High volume, needs quality control</td></tr>
+      <tr><td>Programmatic / weak supervision</td><td>Rules and heuristics generate noisy labels at scale</td><td>Cheap and fast, noisier &mdash; e.g. Snorkel</td></tr>
+      <tr><td>Model-assisted</td><td>A model pre-labels; humans correct</td><td>Fast, but risks anchoring humans to model errors</td></tr>
+      <tr><td>LLM-as-labeller</td><td>A strong LLM labels the data (Topic 18.2)</td><td>Very cheap and scalable, needs auditing</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">Measure your labels before you trust them</span>
+  <p>The single most valuable habit in annotation is measuring <strong>inter-annotator agreement</strong> &mdash; have several people label the same examples and compute how often they agree (Cohen's or Fleiss' kappa). Low agreement is not a people problem to paper over; it is telling you the <em>task itself is ambiguous</em>, and no amount of modelling will fix an ambiguous target. The fix is a clearer labelling guideline, adjudication of disagreements, and sometimes redefining the task. Good ground truth is engineered, not assumed.</p>
+</div>
+
+<h2 id="pipelines"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>Pipelines, versioning &amp; validation</h2>
+
+<p>A one-off cleaned CSV is not data engineering. The goal is a <em>reproducible</em> pipeline: raw data in, model-ready data out, the same way every time, with a record of exactly what produced each model.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>A validated, versioned data step</span></div>
+<pre><code>import pandas as pd
+<span class="cm"># Data validation: assert the shape you expect, fail loudly if not.</span>
+<span class="cm"># (pandera / Great Expectations do this declaratively at scale.)</span>
+def validate(df: pd.DataFrame) -&gt; pd.DataFrame:
+    assert df["age"].between(0, 120).all(),      "age out of range"
+    assert df["label"].isin({0, 1}).all(),       "unexpected label value"
+    assert df["user_id"].notna().all(),          "missing user_id"
+    assert not df.duplicated("event_id").any(),  "duplicate events"
+    return df
+
+clean = (raw
+         .pipe(fix_types)
+         .pipe(drop_corrupt)
+         .pipe(validate))
+
+<span class="cm"># Version the OUTPUT so a model is traceable to its exact data.</span>
+<span class="cm"># DVC tracks large files by hash; Git tracks the pointer.</span>
+clean.to_parquet("data/clean_v7.parquet")   <span class="cm"># $ dvc add data/clean_v7.parquet</span></code></pre>
+</div>
+
+<div class="kv">
+  <div><dt>Validation</dt><dd>Great Expectations, pandera &mdash; schema &amp; distribution checks</dd></div>
+  <div><dt>Versioning</dt><dd>DVC, LakeFS, Delta Lake &mdash; reproducible dataset snapshots</dd></div>
+  <div><dt>Orchestration</dt><dd>Airflow, Dagster, Prefect &mdash; scheduled, monitored pipelines</dd></div>
+  <div><dt>Storage</dt><dd>Parquet on object storage; a warehouse or lakehouse</dd></div>
+</div>
+
+<div class="note trap">
+  <span class="tag">The reproducibility trap</span>
+  <p>If you cannot say <strong>exactly which data produced a given model</strong>, you cannot debug it, reproduce it, or safely improve it. "We retrained on the latest data" is not a version. The discipline &mdash; snapshot the dataset, hash it, tie the hash to the model artefact and the code commit &mdash; is what separates an experiment from an engineering practice. It is the data equivalent of a Git commit, and skipping it is the most common reason a good result cannot be recovered three months later.</p>
+</div>
+
+<h2 id="production"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>In production: drift &amp; feedback</h2>
+
+<p>Data engineering does not stop at launch. The world changes, and a model trained on last quarter's data slowly stops matching this quarter's reality &mdash; <strong>data drift</strong> (the inputs shift) and <strong>concept drift</strong> (the input&rarr;output relationship shifts).</p>
+
+<div class="note">
+  <p>The professional response is a <strong>feedback loop</strong>: log production inputs and outcomes, monitor input distributions against the training distribution (Topic 14.7), flag when they diverge, and feed corrected real-world examples back into the dataset for the next retrain. The best AI products are the ones whose data pipeline turns usage into better training data &mdash; a <em>data flywheel</em>. Beware the failure mode: if you train on the model's own outputs uncritically, errors compound. Keep humans in the loop on the feedback data (Topic 19.2), and treat production data collection as consciously as you treated the first dataset.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly a weekend</div>
+  <ol>
+    <li>Take a messy public dataset. Write a cleaning pipeline with explicit validation assertions that fail loudly on bad rows.</li>
+    <li>Label 100 examples yourself, twice, a day apart. Measure your own self-agreement &mdash; feel how ambiguous "obvious" labels are.</li>
+    <li>Have two people label the same 100 examples. Compute inter-annotator agreement (kappa) and adjudicate the disagreements.</li>
+    <li>Put a dataset under DVC. Change it, commit, and roll back &mdash; prove you can reproduce an exact version.</li>
+    <li>Add a schema check with Great Expectations or pandera and wire it into a pipeline so bad data cannot pass silently.</li>
+    <li>Simulate drift: train on one time slice, evaluate on a later one, and quantify the decay. This is why monitoring exists.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Course</span><span class="body"><a href="https://github.com/DataTalksClub/data-engineering-zoomcamp">Data Engineering Zoomcamp</a><span class="why">A free, hands-on course on pipelines, orchestration and warehousing &mdash; Section 04 in depth.</span></span></li>
+    <li><span class="kind">Movement</span><span class="body"><a href="https://datacentricai.org/">Data-Centric AI (Andrew Ng)</a><span class="why">The case for improving data over models &mdash; the ethos of Section 01.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://dvc.org/doc">DVC documentation</a><span class="why">Data versioning in practice &mdash; the reproducibility of Section 04.</span></span></li>
+    <li><span class="kind">Tool</span><span class="body"><a href="https://greatexpectations.io/">Great Expectations</a><span class="why">Declarative data validation &mdash; the checks of Section 04, at scale.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://research.google/pubs/pub49953/">Everyone Wants to Do the Model Work, Not the Data Work</a><span class="why">Google research on why data work is undervalued and how that hurts projects.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 18.1 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

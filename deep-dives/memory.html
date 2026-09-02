@@ -1,0 +1,617 @@
+<title>Memory & Context Engineering</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 05 &middot; Agents &amp; Ops</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">5.3</span>
+    <h1>Memory &amp; Context Engineering</h1>
+    <p class="lede">Models are stateless; memory is your problem. This page implements every memory type from message windows to
+episodic recall, treats the context window as a resource to be managed rather than filled, and covers the
+compaction, offloading and sub-agent techniques that keep long-running agents coherent.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#types">Types of memory</a></li><li><a href="#long-term">Long-term memory</a></li><li><a href="#context-engineering">Context engineering</a></li><li><a href="#production">Operating memory</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>How context windows work (<a href="#deeper">Topic 1.3</a>) and the agent loop (Topic 5.1).</p>
+</div>
+
+<p>A model has no memory between calls. None. Every request is processed as if it were the first thing the model has ever seen.</p>
+
+<p>The illusion of a conversation exists because your application resends the entire history every time. Turn five of a chat sends turns one through four plus the new message. The model appears to remember; in fact you remembered on its behalf.</p>
+
+<div class="note key">
+  <span class="tag">Two consequences that follow immediately</span>
+  <ul>
+    <li><strong>Cost grows quadratically with conversation length.</strong> Turn 1 sends 100 tokens, turn 20 sends 4,000. Across a 20-turn conversation you have paid for roughly 40,000 input tokens, not 4,000. Prompt caching mitigates this substantially, and only if your prefix is stable.</li>
+    <li><strong>Conversations have a hard ceiling.</strong> Eventually the history exceeds the context window and the request fails outright. "Memory management" is really <em>context budget management</em>, and every technique below is a way of spending that budget better.</li>
+  </ul>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Short-term memory</dt><dd>The current conversation. Lives in the context window.</dd>
+    <dt>Long-term memory</dt><dd>Anything that survives across sessions. Lives in your database.</dd>
+    <dt>Working memory / scratchpad</dt><dd>Notes the agent keeps while solving one task.</dd>
+    <dt>Compaction</dt><dd>Summarising older turns to free context, keeping decisions verbatim.</dd>
+    <dt>Offloading</dt><dd>Writing a large result to storage and keeping only a reference in context.</dd>
+    <dt>Context engineering</dt><dd>Deciding what occupies the window at each step. The discipline this page is about.</dd>
+  </dl>
+</div>
+
+<h2 id="types"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>Types of memory</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Every memory type, and what it costs</caption>
+    <thead><tr><th>Type</th><th>Holds</th><th>Lives in</th><th>Trade-off</th></tr></thead>
+    <tbody>
+      <tr><td>Buffer</td><td>Every message</td><td>Context</td><td>Perfect fidelity; overflows</td></tr>
+      <tr><td>Message window</td><td>Last <i>n</i> messages</td><td>Context</td><td>Bounded; forgets abruptly mid-topic</td></tr>
+      <tr><td>Token window</td><td>As many messages as fit a budget</td><td>Context</td><td>Better cost control than a message count</td></tr>
+      <tr><td>Summary</td><td>Rolling summary + recent turns</td><td>Context</td><td>Long sessions; loses specifics</td></tr>
+      <tr><td>Summary + buffer</td><td>Summary of old, verbatim recent</td><td>Context</td><td><strong>The practical default for chat</strong></td></tr>
+      <tr><td>Episodic</td><td>Past interactions, searchable</td><td>Vector store</td><td>"What did we decide last month?"; retrieval cost</td></tr>
+      <tr><td>Semantic</td><td>Durable facts about the user or domain</td><td>Key-value / graph</td><td>Precise; needs explicit write logic</td></tr>
+      <tr><td>Procedural</td><td>Learned how-to knowledge</td><td>Prompts / examples</td><td>Improves over time; needs curation</td></tr>
+      <tr><td>Scratchpad</td><td>Working state for one task</td><td>File or field</td><td>Frees context; agent must remember to read it</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Java</span><span>Token-aware summary-plus-buffer memory</span></div>
+<pre><code>public class SummaryBufferMemory implements ChatMemory {
+
+    private final TokenCountEstimator tokens;
+    private final ChatModel summariser;
+    private final int maxTokens;
+    private final int keepRecentTurns;
+    private final MemoryStore store;
+
+    @Override
+    public List&lt;Message&gt; get(String conversationId) {
+        var state = store.load(conversationId);
+        var messages = new ArrayList&lt;Message&gt;();
+        if (state.summary() != null) {
+            messages.add(new SystemMessage(
+                "Summary of earlier conversation:\n" + state.summary()));
+        }
+        messages.addAll(state.recent());
+        return messages;
+    }
+
+    @Override
+    public void add(String conversationId, Message message) {
+        var state = store.load(conversationId);
+        state.recent().add(message);
+
+        if (countTokens(state) &lt;= maxTokens) {
+            store.save(conversationId, state);
+            return;
+        }
+
+        <span class="cm">// Over budget: fold the oldest turns into the summary.</span>
+        <span class="cm">// Keep the most recent verbatim -- they carry the immediate</span>
+        <span class="cm">// context the model needs to answer the next message.</span>
+        int cut = Math.max(0, state.recent().size() - keepRecentTurns);
+        var toFold = new ArrayList&lt;&gt;(state.recent().subList(0, cut));
+        state.recent().subList(0, cut).clear();
+
+        state.setSummary(summariser.call(new Prompt("""
+            Update the running summary with these new exchanges.
+
+            PRESERVE VERBATIM: decisions made, commitments given,
+            identifiers mentioned, unresolved questions, user preferences.
+            COMPRESS: pleasantries, restatements, exploratory discussion.
+
+            Existing summary:
+            %s
+
+            New exchanges:
+            %s
+            """.formatted(state.summary(), render(toFold)))).getResult()
+              .getOutput().getText());
+
+        store.save(conversationId, state);
+    }
+}</code></pre>
+</div>
+
+<div class="note trap">
+  <span class="tag">What summarisation quietly destroys</span>
+  <p>A naive summariser writes "the user asked about their order and we discussed shipping options" &mdash; and the order number is gone. So is the discount the agent promised, and the fact that the customer said they were travelling next week.</p>
+  <p>Instruct the summariser <strong>explicitly</strong> about what must survive verbatim: identifiers, numbers, decisions, commitments, open questions and stated preferences. Better still, extract those into structured fields <em>before</em> summarising, so they are stored as data rather than trusted to prose. Prose summaries lose exactly the details that later turns need.</p>
+</div>
+
+<h2 id="long-term"><span class="kicker">Section 03 <span class="lvl lvl-a">Advanced</span></span>Long-term memory</h2>
+
+<p>Long-term memory is RAG pointed at your own conversation history rather than at documents. The retrieval machinery from Phase 4 applies unchanged; what is new is deciding <em>what is worth remembering</em>.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Java</span><span>Episodic and semantic memory</span></div>
+<pre><code>@Service
+class LongTermMemory {
+
+    private final VectorStore episodes;
+    private final UserFactRepository facts;
+    private final ChatClient extractor;
+
+    <span class="cm">// ---------- EPISODIC: what happened, searchable ---------------</span>
+    public void recordEpisode(String userId, Conversation conversation) {
+        <span class="cm">// Store a summary, not the transcript. A verbatim transcript</span>
+        <span class="cm">// retrieves poorly (too much filler) and costs too much context.</span>
+        String summary = extractor.prompt()
+                .user("Summarise what was discussed and decided:\n" + conversation)
+                .call().content();
+
+        episodes.add(List.of(new Document(summary, Map.of(
+                "user_id", userId,
+                "conversation_id", conversation.id(),
+                "occurred_at", conversation.endedAt().toString()))));
+    }
+
+    public List&lt;String&gt; recallRelevant(String userId, String query, int k) {
+        return episodes.similaritySearch(SearchRequest.builder()
+                    .query(query).topK(k).similarityThreshold(0.7)
+                    .filterExpression("user_id == '" + userId + "'")  <span class="cm">// isolation</span>
+                    .build())
+                .stream().map(Document::getText).toList();
+    }
+
+    <span class="cm">// ---------- SEMANTIC: durable facts, structured --------------</span>
+    public void extractFacts(String userId, Conversation conversation) {
+        FactExtraction extracted = extractor.prompt()
+                .system("""
+                    Extract durable facts about the user worth remembering
+                    for future conversations: stated preferences, constraints,
+                    role, recurring needs.
+
+                    Do NOT extract: transient state, one-off requests,
+                    anything the user asked you to forget, or sensitive
+                    personal data not needed for service.
+                    """)
+                .user(conversation.toString())
+                .call().entity(FactExtraction.class);
+
+        for (Fact fact : extracted.facts()) {
+            <span class="cm">// UPSERT with conflict resolution. Without this, contradictory</span>
+            <span class="cm">// facts accumulate ("prefers email" and "prefers phone") and</span>
+            <span class="cm">// the model gets confused rather than informed.</span>
+            facts.upsert(userId, fact.key(), fact.value(),
+                         fact.confidence(), Instant.now());
+        }
+    }
+
+    public String buildProfile(String userId) {
+        return facts.findByUserId(userId).stream()
+                .filter(f -&gt; f.confidence() &gt; 0.7)
+                .sorted(comparing(UserFact::updatedAt).reversed())
+                .limit(20)                         <span class="cm">// bound it: this is context</span>
+                .map(f -&gt; "- " + f.key() + ": " + f.value())
+                .collect(joining("\n"));
+    }
+}</code></pre>
+</div>
+
+<div class="note java">
+  <span class="tag">Memory is personal data</span>
+  <p>Long-term memory means storing what users told you, indefinitely, in a form that influences future behaviour. That has consequences your legal team will care about: right to erasure means deleting facts <em>and</em> the vectors derived from them; users should be able to see and correct what has been remembered; and sensitive categories should not be extracted at all. Build the delete path, the inspect path and a category exclusion list from the start &mdash; retrofitting them into a vector store is unpleasant. This connects directly to &sect;6.4.</p>
+</div>
+
+<h2 id="context-engineering"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>Context engineering</h2>
+
+<p>The context window is a working set, not a container. Filling it is not the goal &mdash; the goal is that at every step it holds precisely what the model needs and nothing else.</p>
+
+<div class="note key">
+  <span class="tag">The analogies are not decorative</span>
+  <p>Compaction is <strong>paging</strong>. Offloading is <strong>spilling to disk</strong>. Sub-agents are <strong>process isolation</strong>. Retrieval over history is <strong>indexing</strong>. These are the same problems as memory management in an operating system, and the same solutions apply &mdash; which means your instincts as a systems engineer transfer directly.</p>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>The four techniques</caption>
+    <thead><tr><th>Technique</th><th>Mechanism</th><th>Use when</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Compaction</strong></td><td>Summarise older turns; keep decisions verbatim</td><td>Long conversations approaching the limit</td></tr>
+      <tr><td><strong>Offloading</strong></td><td>Write large results to storage; keep a reference</td><td>Tool results are big and only occasionally needed</td></tr>
+      <tr><td><strong>Sub-agents</strong></td><td>Delegate to a fresh context; return only a summary</td><td>A subtask needs to read a great deal</td></tr>
+      <tr><td><strong>Retrieval over history</strong></td><td>Search past turns instead of replaying them</td><td>Very long-running sessions</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Java</span><span>Offloading, and a context budget you can enforce</span></div>
+<pre><code><span class="cm">// ---------- OFFLOADING ------------------------------------------</span>
+<span class="cm">// A tool returning 200 rows costs context on EVERY subsequent turn.</span>
+<span class="cm">// Write it out; hand back a handle and a preview.</span>
+@Tool(description = """
+    Run an analytical query. Full results are written to a file;
+    you receive a preview and a handle. Use read_result_page to
+    read more if the preview is insufficient.
+    """)
+public QueryHandle runQuery(@ToolParam(description = "SQL") String sql) {
+    var rows = warehouse.query(sql);
+    var handle = artifacts.store(rows);          <span class="cm">// S3, or a temp table</span>
+
+    return new QueryHandle(
+            handle.id(),
+            rows.size(),
+            rows.stream().limit(5).toList(),     <span class="cm">// preview only</span>
+            "Showing 5 of " + rows.size() + " rows. "
+          + "Use read_result_page(handle, page) for more.");
+}
+
+<span class="cm">// ---------- CONTEXT BUDGET --------------------------------------</span>
+public List&lt;Message&gt; assembleContext(AgentState state, int budget) {
+    var messages = new ArrayList&lt;Message&gt;();
+    int used = 0;
+
+    <span class="cm">// Fixed allocations, highest priority first. What does not fit</span>
+    <span class="cm">// is dropped deliberately rather than truncated arbitrarily.</span>
+    used += add(messages, state.systemPrompt(),          budget);        <span class="cm">// always</span>
+    used += add(messages, state.userProfile(),  (int)(budget * 0.05));   <span class="cm">// 5%</span>
+    used += add(messages, state.goal(),                  budget);        <span class="cm">// always</span>
+    used += add(messages, state.retrieved(),   (int)(budget * 0.35));    <span class="cm">// 35%</span>
+    used += add(messages, state.recentTurns(), (int)(budget * 0.40));    <span class="cm">// 40%</span>
+    used += add(messages, state.scratchpad(),  (int)(budget * 0.10));    <span class="cm">// 10%</span>
+
+    <span class="cm">// Reserve headroom for the answer itself. Running out mid-</span>
+    <span class="cm">// generation is a common and avoidable production failure.</span>
+    if (used &gt; budget - MIN_OUTPUT_TOKENS) {
+        state.compact();
+        return assembleContext(state, budget);
+    }
+    return messages;
+}</code></pre>
+</div>
+
+<div class="note trap">
+  <span class="tag">Context rot</span>
+  <p>Long contexts degrade quality even when they fit. The "lost in the middle" effect means information in the centre is attended to less reliably; contradictory information from different turns confuses rather than informs; and stale tool results the model treats as current cause real errors.</p>
+  <p><strong>A shorter, cleaner context often outperforms a longer, complete one.</strong> Actively prune: remove superseded tool results, drop retrieved chunks that turned out to be irrelevant, and delete resolved sub-tasks. This is the counterintuitive part &mdash; the instinct is to give the model everything, and it is usually wrong.</p>
+</div>
+
+<h2 id="production"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>Operating memory</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Storage and lifecycle</caption>
+    <thead><tr><th>Concern</th><th>Practice</th></tr></thead>
+    <tbody>
+      <tr><td>Where state lives</td><td>Never in application memory. Redis for active sessions, Postgres for durable facts, vector store for episodes</td></tr>
+      <tr><td>Scoping</td><td>Key by authenticated user or session id. A shared default memory is a data leak</td></tr>
+      <tr><td>Expiry</td><td>TTL on session memory; explicit retention policy on long-term memory</td></tr>
+      <tr><td>Concurrency</td><td>Two tabs, one conversation. Use optimistic locking or append-only storage</td></tr>
+      <tr><td>Caching alignment</td><td>Keep the prompt prefix stable so provider caching applies; put volatile content last</td></tr>
+      <tr><td>Deletion</td><td>Deleting a user must remove facts, episodes <em>and</em> their vectors. Test this path</td></tr>
+      <tr><td>Auditability</td><td>Log what was recalled into each request &mdash; otherwise "why did it say that?" is unanswerable</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="kv">
+  <div><dt>Chat session</dt><dd>Summary + last 10 turns</dd></div>
+  <div><dt>Token budget</dt><dd>~40% of window for history</dd></div>
+  <div><dt>Output reserve</dt><dd>2&ndash;4k tokens minimum</dd></div>
+  <div><dt>Tool result cap</dt><dd>2&ndash;4k tokens, then offload</dd></div>
+  <div><dt>Compact at</dt><dd>~70% of window</dd></div>
+  <div><dt>Profile facts</dt><dd>Top 20 by recency and confidence</dd></div>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly a weekend</div>
+  <ol>
+    <li>Instrument a 20-turn conversation and plot cumulative input tokens per turn. See the quadratic growth for yourself.</li>
+    <li>Enable prompt caching and repeat. Measure the difference &mdash; then reorder the prompt so the volatile part is last and measure again.</li>
+    <li>Implement message-window memory. Find a conversation where the window cuts mid-topic and the model loses the thread.</li>
+    <li>Implement summary-plus-buffer. Mention an order number early, converse for 20 turns, then ask about it. Check whether the summariser preserved it.</li>
+    <li>Add explicit "preserve verbatim" instructions and repeat. Measure how often key details survive.</li>
+    <li>Build episodic memory over past conversations. Ask "what did we decide about X last week?" and check the retrieval.</li>
+    <li>Implement offloading for a tool returning 500 rows. Compare total token consumption across a 10-step run with and without it.</li>
+    <li>Implement the context budget with priority allocation. Force an overflow and confirm it compacts rather than failing.</li>
+    <li>Implement full deletion for a user &mdash; facts, episodes and vectors &mdash; and write a test that proves nothing remains.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Article</span><span class="body"><a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents">Effective context engineering for AI agents</a><span class="why">Compaction, offloading and sub-agents explained as the resource-management problem they are. The source for Section 04.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.spring.io/spring-ai/reference/api/chat-memory.html">Spring AI &mdash; Chat Memory</a><span class="why">The <code>ChatMemory</code> interface, repository implementations and the memory advisors.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.langchain4j.dev/tutorials/chat-memory">LangChain4j &mdash; Chat Memory</a><span class="why">Message-window and token-window memory, <code>@MemoryId</code> scoping and persistent stores.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://lilianweng.github.io/posts/2023-06-23-agent/">LLM Powered Autonomous Agents &mdash; memory section</a><span class="why">The cognitive-science framing of episodic, semantic and procedural memory, applied to agents.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2307.03172">Lost in the Middle</a><span class="why">The empirical basis for context rot. Directly informs how much history is worth keeping.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.claude.com/en/docs/build-with-claude/prompt-caching">Prompt caching</a><span class="why">How prefix caching works and how to structure prompts to benefit. The cheapest fix for the quadratic cost problem.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 5.3 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

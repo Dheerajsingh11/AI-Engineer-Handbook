@@ -1,0 +1,676 @@
+<title>Project 5 &mdash; Eval &amp; Guardrails</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 21 &middot; Interview &amp; Portfolio</span>
+    <span class="sep">/</span>
+    <span>Project 5</span>
+  </div>
+
+  <header class="head">
+    <span class="num">21.6</span>
+    <h1>Project 5 &mdash; Eval &amp; Guardrails</h1>
+    <p class="lede">The layer that makes Projects 2 and 3 shippable: a regression suite that runs on every prompt change and blocks the merge when quality drops, a judge calibrated against your own labels, guardrails on both sides of the model, and production traces that feed failures back into the golden set.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">Build order &middot; two weeks</div>
+    <ol>
+      <li><span class="lvl lvl-b">Stage 1</span><b>The runner</b><span class="who">Datasets, assertions, an LLM judge.</span></li>
+      <li><span class="lvl lvl-i">Stage 2</span><b>Calibration</b><span class="who">Label 100 outputs by hand. Non-negotiable.</span></li>
+      <li><span class="lvl lvl-a">Stage 3</span><b>The CI gate</b><span class="who">Prompts as versioned artifacts; regressions fail the build.</span></li>
+      <li><span class="lvl lvl-p">Stage 4</span><b>Guardrails &amp; traces</b><span class="who">Input and output filters; production feeds the golden set.</span></li>
+    </ol>
+  </div>
+
+  <div class="note key">
+    <span class="tag">Why this is the highest-leverage project in the set</span>
+    <p>Most candidates cannot answer <em>&ldquo;how do you know a prompt change did not break production?&rdquo;</em> It is the most under-supplied skill in the market and the clearest possible signal that you have operated an LLM system rather than demonstrated one. Build it against Projects 2 and 3 &mdash; never in the abstract.</p>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol>
+      <li><a href="#skills">What it teaches &amp; what you need</a></li>
+      <li><a href="#runner">The eval runner</a></li>
+      <li><a href="#judge">Calibrating the judge</a></li>
+      <li><a href="#versioning">Prompts as versioned artifacts</a></li>
+      <li><a href="#ci">The CI gate</a></li>
+      <li><a href="#guardrails">Guardrails, both directions</a></li>
+      <li><a href="#production">Closing the loop from production</a></li>
+      <li><a href="#measure">What to measure</a></li>
+    </ol>
+  </nav>
+
+<h2 id="skills"><span class="kicker">Step 01</span>What it teaches &amp; what you need</h2>
+
+<div class="tbl">
+<table>
+  <caption>Skill &rarr; where it is tested</caption>
+  <thead><tr><th>Skill</th><th>Interview payoff</th></tr></thead>
+  <tbody>
+    <tr><td>Designing evals for a non-deterministic system</td><td>&ldquo;How do you test something that gives different answers each run?&rdquo;</td></tr>
+    <tr><td>LLM-as-judge, and its calibration</td><td>The follow-up almost nobody survives: &ldquo;how do you know the judge is right?&rdquo;</td></tr>
+    <tr><td>Treating prompts as deployable artifacts</td><td>The sentence that lands in every design round.</td></tr>
+    <tr><td>CI gating on a statistical signal</td><td>Applies your existing CI instincts to a noisy metric.</td></tr>
+    <tr><td>Guardrails and their false-positive cost</td><td>&ldquo;What happens when the filter is wrong?&rdquo; &mdash; over-blocking is a real outage.</td></tr>
+    <tr><td>Tracing, drift detection, feedback loops</td><td>The production-operations half of LLMOps.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="tbl">
+<table>
+  <caption>Toolchain</caption>
+  <thead><tr><th>Tool</th><th>Role</th><th>Note</th></tr></thead>
+  <tbody>
+    <tr><td>Your own runner</td><td>The core</td><td><strong>Build it.</strong> Frameworks hide exactly the concepts this project exists to teach.</td></tr>
+    <tr><td><code>promptfoo</code> / <code>ragas</code></td><td>Comparison</td><td>Run alongside yours to sanity-check your metrics, after yours works.</td></tr>
+    <tr><td><code>pytest</code></td><td>Assertion harness</td><td>Deterministic checks are ordinary tests; keep them that way.</td></tr>
+    <tr><td>Langfuse <em>or</em> Phoenix</td><td>Tracing, datasets, scores</td><td>The same instance you wired in Project 1.</td></tr>
+    <tr><td>GitHub Actions</td><td>The gate</td><td>Free for public repositories &mdash; and a public repository is the point.</td></tr>
+    <tr><td>Postgres</td><td>Results history</td><td>You need the time series to distinguish a regression from noise.</td></tr>
+    <tr><td><code>presidio</code> or regex + a model pass</td><td>PII detection</td><td>Start with regex, measure its recall, then decide if you need more.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="runner"><span class="kicker">Step 02</span>The eval runner</h2>
+
+<p>Three grader types cover almost everything. Use the cheapest one that can answer the question &mdash; a deterministic assertion is faster, free, and more reliable than any judge.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>evals/runner.py</span></div>
+  <pre><code>from dataclasses import dataclass
+import asyncio, statistics
+
+@dataclass
+class Case:
+    id: str
+    input: dict
+    <span class="cm"># Cheap and exact. Reach for these first.</span>
+    must_contain: list[str] | None = None
+    must_not_contain: list[str] | None = None
+    expect_refusal: bool = False
+    <span class="cm"># Expensive and fuzzy. Only where correctness is genuinely a judgement.</span>
+    rubric: str | None = None
+
+async def run_case(system_under_test, case: Case, judge, runs: int = 3) -&gt; dict:
+    <span class="cm"># Run each case several times. A single sample of a stochastic system</span>
+    <span class="cm"># is not a measurement -- you need the mean AND the spread, or you will</span>
+    <span class="cm"># chase noise as if it were a regression.</span>
+    outputs = await asyncio.gather(*(system_under_test(case.input) for _ in range(runs)))
+
+    scores = []
+    for out in outputs:
+        if case.must_contain and not all(s in out.text for s in case.must_contain):
+            scores.append(0.0); continue
+        if case.must_not_contain and any(s in out.text for s in case.must_not_contain):
+            scores.append(0.0); continue
+        if case.expect_refusal:
+            scores.append(1.0 if out.refused else 0.0); continue
+        scores.append(await judge.score(case, out) if case.rubric else 1.0)
+
+    return {"id": case.id,
+            "mean": statistics.mean(scores),
+            "stdev": statistics.pstdev(scores),   <span class="cm"># high stdev = an unstable case,</span>
+            "runs": runs}                          <span class="cm"># worth fixing before trusting it</span>
+</code></pre>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>evals/judge.py &mdash; a rubric, not a vibe</span></div>
+  <pre><code>JUDGE_SYSTEM = """You grade one answer against a rubric. You are strict
+and consistent. Grade only what the rubric asks about.
+
+Return JSON: {"score": 0|1|2|3, "reason": "one sentence"}
+
+3 - fully correct, complete, and grounded in the sources
+2 - correct but incomplete, or one minor unsupported detail
+1 - partially correct with a material error
+0 - incorrect, or unsupported by the sources"""
+
+class Judge:
+    def __init__(self, model="claude-opus-5", version="judge-v3"):
+        <span class="cm"># PIN the model and version the rubric. An unpinned judge means a</span>
+        <span class="cm"># silent provider-side change reads as a quality regression in your</span>
+        <span class="cm"># system, and you will spend two days looking in the wrong place.</span>
+        self.model, self.version = model, version
+
+    async def score(self, case, output) -&gt; float:
+        r = await gateway.complete_json(
+            model=self.model, system=JUDGE_SYSTEM,
+            messages=[{"role": "user", "content":
+                f"Rubric:\n{case.rubric}\n\nQuestion:\n{case.input['question']}"
+                f"\n\nSources:\n{output.context}\n\nAnswer:\n{output.text}"}],
+            <span class="cm"># Grading must be reproducible: no sampling variance.</span>
+            temperature=0,
+        )
+        return r["score"] / 3.0</code></pre>
+</div>
+
+<h2 id="judge"><span class="kicker">Step 03</span>Calibrating the judge</h2>
+
+<p>This is the step that separates this project from every eval tutorial. <strong>An uncalibrated judge is a random number generator with good manners.</strong> Label 100 outputs yourself, measure agreement, and fix the rubric until it correlates.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>evals/calibrate.py</span></div>
+  <pre><code>def cohens_kappa(human: list[int], model: list[int], k: int = 4) -&gt; float:
+    """Agreement corrected for chance. Raw agreement flatters a judge that
+    always says 3 on a set that is mostly 3s -- kappa does not.
+
+    < 0.20 useless   0.21-0.40 poor   0.41-0.60 moderate
+    0.61-0.80 substantial (ship it)   > 0.80 excellent"""
+    n = len(human)
+    observed = sum(h == m for h, m in zip(human, model)) / n
+
+    <span class="cm"># Expected agreement if both raters guessed with their own marginals.</span>
+    expected = sum((human.count(c) / n) * (model.count(c) / n) for c in range(k))
+    return (observed - expected) / (1 - expected) if expected &lt; 1 else 1.0
+
+
+async def calibrate(judge, labelled: list[dict]) -&gt; dict:
+    model_scores = [round(await judge.score(r["case"], r["output"]) * 3)
+                    for r in labelled]
+    human_scores = [r["human_score"] for r in labelled]
+
+    <span class="cm"># The disagreements are the product. Read every one: they tell you</span>
+    <span class="cm"># exactly which rubric clause is ambiguous, and fixing the rubric is</span>
+    <span class="cm"># almost always more effective than changing the judge model.</span>
+    disagreements = [
+        {"id": r["case"].id, "human": h, "model": m, "text": r["output"].text}
+        for r, h, m in zip(labelled, human_scores, model_scores) if abs(h - m) &gt;= 2
+    ]
+    return {"kappa": cohens_kappa(human_scores, model_scores),
+            "disagreements": disagreements}</code></pre>
+</div>
+
+<div class="note trap">
+  <span class="tag">Judge failure modes to check for &mdash; and to name in an interview</span>
+  <ul>
+    <li><strong>Position bias</strong> in pairwise comparison: the first answer wins more often. Fix by running both orderings and averaging.</li>
+    <li><strong>Length bias</strong>: longer answers score higher regardless of correctness. Detect by correlating score with token count.</li>
+    <li><strong>Self-preference</strong>: a judge favours output from its own model family. Relevant the moment you compare providers.</li>
+    <li><strong>Rubric drift</strong>: you edit the rubric mid-project and old scores become incomparable. Version it, and re-run the baseline when it changes.</li>
+  </ul>
+</div>
+
+<h2 id="versioning"><span class="kicker">Step 04</span>Prompts as versioned artifacts</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>prompts/registry.py</span></div>
+  <pre><code>import hashlib, yaml
+from pathlib import Path
+
+class Prompt:
+    """A prompt is code: it has a version, a hash, an owner, and a test
+    result attached. Loading it from a string literal in the middle of a
+    service is how prompt changes ship unreviewed and unmeasured."""
+
+    def __init__(self, path: Path):
+        spec = yaml.safe_load(path.read_text())
+        self.name, self.version = spec["name"], spec["version"]
+        self.template = spec["template"]
+        self.model = spec["model"]
+        <span class="cm"># The hash goes into every trace, so any production output can be</span>
+        <span class="cm"># traced back to the exact prompt text that produced it.</span>
+        self.hash = hashlib.sha256(self.template.encode()).hexdigest()[:12]
+
+    def render(self, **kw) -&gt; str:
+        return self.template.format(**kw)</code></pre>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">YAML</span><span>prompts/rag_answer.yaml</span></div>
+  <pre><code>name: rag_answer
+version: 7
+model: claude-sonnet-5
+owner: platform-team
+changelog: "v7: explicit refusal string; v6 refused too rarely on out-of-corpus"
+eval_suite: suites/rag.yaml
+thresholds:
+  faithfulness: 0.92        # fail the build below this
+  refusal_recall: 0.95      # out-of-corpus questions must be refused
+  regression_tolerance: 0.02  # allowed drop vs. the current production version
+template: |
+  You answer questions using only the numbered sources provided.
+  ...</code></pre>
+</div>
+
+<h2 id="ci"><span class="kicker">Step 05</span>The CI gate</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">YAML</span><span>.github/workflows/eval.yml</span></div>
+  <pre><code>name: eval
+on:
+  pull_request:
+    paths: ["prompts/**", "app/retrieve/**", "app/generate/**"]
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }        # need the base ref to compare against
+
+      - name: Run the suite on both versions
+        env: { ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}" }
+        run: |
+          # Evaluate the PR and the base branch on the SAME cases in the
+          # SAME run. Comparing against a stored historical number invites
+          # drift from every other variable that changed in between.
+          python -m evals.cli --ref "${{ github.base_ref }}" --out base.json
+          python -m evals.cli --ref HEAD --out head.json
+          python -m evals.compare base.json head.json --out delta.md
+
+      - name: Comment the delta on the PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = require('fs').readFileSync('delta.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner, repo: context.repo.repo, body });
+
+      - name: Gate
+        run: python -m evals.gate delta.json    # non-zero exit fails the build</code></pre>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>evals/gate.py &mdash; do not fail the build on noise</span></div>
+  <pre><code>import math
+
+def significant_regression(base, head, tolerance=0.02, z=1.96) -&gt; bool:
+    """A drop only counts if it exceeds BOTH the business tolerance and the
+    run-to-run noise. Gating on the raw mean makes the suite flaky, the
+    team disables it, and you are back to shipping prompts unmeasured --
+    which is the actual failure mode this project exists to prevent."""
+    delta = base["mean"] - head["mean"]
+    if delta &lt;= tolerance:
+        return False
+
+    <span class="cm"># Pooled standard error across both runs.</span>
+    se = math.sqrt(base["stdev"] ** 2 / base["n"] + head["stdev"] ** 2 / head["n"])
+    return se == 0 or delta / se &gt; z</code></pre>
+</div>
+
+<div class="note java">
+  <span class="tag">The sentence this project earns you</span>
+  <p><em>&ldquo;A prompt change is a pull request. CI runs the suite against both versions, posts the per-metric delta as a comment, and blocks the merge if faithfulness drops more than two points beyond run-to-run noise.&rdquo;</em> Very few mid-level candidates can say that and mean it. It answers the CI question, the evaluation question and the rollout question at once.</p>
+</div>
+
+<h2 id="guardrails"><span class="kicker">Step 06</span>Guardrails, both directions</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>guardrails/chain.py</span></div>
+  <pre><code>from dataclasses import dataclass
+
+@dataclass
+class Verdict:
+    allow: bool
+    reason: str = ""
+    redacted: str | None = None
+
+class GuardrailChain:
+    """Ordered, cheapest-first. Each stage can allow, redact or block.
+    Order matters for cost: a regex that catches 80% of cases should never
+    sit behind a model call that costs a thousand times more."""
+
+    async def check_input(self, text: str) -&gt; Verdict:
+        if v := self.pii.scan(text):            <span class="cm"># regex -- microseconds</span>
+            return Verdict(True, "pii redacted", redacted=v.redacted)
+        if self.length.exceeds(text):           <span class="cm"># arithmetic -- free</span>
+            return Verdict(False, "input too long")
+        if await self.injection.classify(text): <span class="cm"># model -- expensive, last</span>
+            return Verdict(False, "possible injection")
+        return Verdict(True)
+
+    async def check_output(self, text: str, context: str) -&gt; Verdict:
+        if leaked := self.secrets.scan(text):   <span class="cm"># keys, tokens, internal hosts</span>
+            return Verdict(False, f"secret leak: {leaked}")
+        if not self.schema.valid(text):
+            return Verdict(False, "schema violation")
+        <span class="cm"># Groundedness LAST: it is the most expensive check, and the cheap</span>
+        <span class="cm"># ones will already have rejected most of what would fail here.</span>
+        if await self.grounding.score(text, context) &lt; 0.8:
+            return Verdict(False, "ungrounded claim")
+        return Verdict(True)</code></pre>
+</div>
+
+<div class="note trap">
+  <span class="tag">Measure the false-positive rate, always</span>
+  <p>A guardrail that blocks 100&nbsp;% of attacks and 8&nbsp;% of legitimate requests is an outage with good intentions. Track precision and recall for every filter separately, and treat over-blocking as a production incident. When an interviewer asks &ldquo;what happens when the filter is wrong?&rdquo;, the answer they want is that you measured it, chose a threshold deliberately, and have a path for a user to appeal a block.</p>
+</div>
+
+<h2 id="production"><span class="kicker">Step 07</span>Closing the loop from production</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>observe/loop.py</span></div>
+  <pre><code>async def sample_and_score(trace_store, rate: float = 0.02):
+    """Score a small sample of live traffic with the same judge the CI gate
+    uses. Offline evals answer 'did we break it'; this answers 'is it still
+    working on traffic we never anticipated' -- and only the second one
+    catches drift in what users actually ask."""
+    for trace in await trace_store.sample(rate=rate):
+        score = await judge.score_from_trace(trace)
+        await trace_store.attach_score(trace.id, score, judge_version=judge.version)
+
+        if score &lt; 0.5:
+            <span class="cm"># A production failure becomes a permanent regression test.</span>
+            <span class="cm"># This is the loop that makes the suite get better over time</span>
+            <span class="cm"># instead of slowly going stale -- and it is the part of the</span>
+            <span class="cm"># answer that shows you have run something, not just built it.</span>
+            await golden_set.propose(
+                Case(id=f"prod-{trace.id}", input=trace.input,
+                     rubric=DEFAULT_RUBRIC),
+                needs_human_review=True)</code></pre>
+</div>
+
+<p>Alert on the things that move slowly and silently: weekly mean score by route, refusal rate (a sudden rise usually means retrieval broke, not that users changed), p95 latency, and the embedding-distribution shift that signals users are asking about something your corpus does not cover.</p>
+
+<h2 id="measure"><span class="kicker">Step 08</span>What to measure</h2>
+
+<div class="tbl">
+<table>
+  <caption>Portfolio metrics</caption>
+  <thead><tr><th>Metric</th><th>Why it is the one that matters</th></tr></thead>
+  <tbody>
+    <tr><td>Judge&ndash;human agreement (Cohen's &kappa;)</td><td>The number that makes every other number in the project trustworthy. Quote it first.</td></tr>
+    <tr><td>Suite runtime and cost per run</td><td>A suite that costs $40 and takes 25 minutes will be disabled. Report what you did about it.</td></tr>
+    <tr><td>Regressions actually caught before merge</td><td>Concrete evidence the gate earns its keep.</td></tr>
+    <tr><td>False-positive rate per guardrail</td><td>Shows you understand the cost of over-blocking.</td></tr>
+    <tr><td>Golden-set growth from production</td><td>Evidence of a closed loop, not a one-off snapshot.</td></tr>
+    <tr><td>Score variance per case</td><td>Identifies unstable cases that would otherwise make the gate flaky.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="ex">
+  <div class="ex-top">Exercises</div>
+  <ol>
+    <li>Deliberately regress a prompt &mdash; remove the citation instruction &mdash; and confirm CI catches it. Screenshot the PR comment for your README; it is the single most persuasive artifact in the portfolio.</li>
+    <li>Run the same suite with three different judge models. Where they disagree is where your rubric is ambiguous.</li>
+    <li>Cut suite cost by 70&nbsp;% without losing sensitivity: cheaper judge for easy cases, batch API for the offline run, cache identical calls. Report the before and after.</li>
+    <li>Take the injection suite from <a href="proj-agent.html">Project 3</a> and wire it into this gate so a prompt change cannot weaken injection resistance.</li>
+    <li>Run the suite against a second provider and quantify the behaviour change &mdash; this is what makes the failover in <a href="proj-gateway.html">Project 1</a> safe rather than hopeful.</li>
+  </ol>
+</div>
+
+<div class="note java">
+  <span class="tag">Topics used here</span>
+  <p><a href="llm-evaluation.html">19.1 LLM Evaluation</a> &middot; <a href="rag-eval.html">4.7 RAG Evaluation</a> &middot; <a href="agent-eval.html">8.10 Agent Evaluation</a> &middot; <a href="guardrails.html">16.5 Guardrails</a> &middot; <a href="security.html">5.6 Security</a> &middot; <a href="llmops.html">5.5 LLMOps</a> &middot; <a href="responsible-ai.html">16.1 Responsible AI</a> &middot; <a href="explainability.html">16.3 Explainability</a> &middot; <a href="governance.html">6.5 Governance</a> &middot; <a href="testing-java.html">6.4 Testing</a> &middot; <a href="ai-product.html">19.2 AI Product</a></p>
+</div>
+
+<div class="res">
+  <div class="res-top">Reference</div>
+  <ul>
+    <li><span class="kind">Reading</span><span class="body"><a href="https://hamel.dev/blog/posts/evals/">Hamel Husain &mdash; Your AI product needs evals</a><span class="why">The best single article on why the golden set beats the framework. Read it first.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2306.05685">Judging LLM-as-a-Judge</a><span class="why">Where position bias, length bias and self-preference were measured.</span></span></li>
+    <li><span class="kind">Tool</span><span class="body"><a href="https://www.promptfoo.dev/">promptfoo</a><span class="why">Compare against your runner; its CI integration is a useful reference design.</span></span></li>
+    <li><span class="kind">Tool</span><span class="body"><a href="https://langfuse.com/docs/scores/overview">Langfuse scores &amp; datasets</a><span class="why">Attaching scores to traces and promoting traces into datasets.</span></span></li>
+    <li><span class="kind">Security</span><span class="body"><a href="https://owasp.org/www-project-top-10-for-large-language-model-applications/">OWASP Top 10 for LLM Applications</a><span class="why">Turn each item into a guardrail test case.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Phase 21.6 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

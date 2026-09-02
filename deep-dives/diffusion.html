@@ -1,0 +1,436 @@
+<title>Diffusion Models</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 12 &middot; Deep Learning Architectures</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">12.5</span>
+    <h1>Diffusion Models</h1>
+    <p class="lede">How today's image generators actually work. This page explains the diffusion idea &mdash; destroy an image
+with noise step by step, then train a network to reverse it &mdash; why that turns out to be a stable, powerful
+way to generate, how text prompts steer it, why it runs in a compressed latent space, and the trade-offs
+against GANs.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#mechanism">The two processes</a></li><li><a href="#conditioning">Steering it with text</a></li><li><a href="#latent">Latent diffusion: making it affordable</a></li><li><a href="#tradeoffs">Trade-offs and where it is going</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>Neural network training (Topic 2.4), autoencoders and latent spaces (Topic 12.3), and CLIP-style text-image embeddings (Topic 6.2).</p>
+</div>
+
+<p>Stable Diffusion, DALL-E and Midjourney all run on <strong>diffusion models</strong> &mdash; and the core idea is wonderfully counterintuitive. To learn to <em>create</em> images, you first learn to <em>destroy</em> them.</p>
+
+<div class="note key">
+  <span class="tag">The diffusion idea in one paragraph</span>
+  <p>Take a clear image and add a little random noise. Add a little more. Keep going until, after many steps, it is pure static &mdash; all structure gone. This "forward process" is easy and requires no learning. Now train a network to do <strong>one step of the reverse</strong>: given a slightly noisy image, predict the noise that was added, so you can subtract it and get a slightly cleaner image. Once the network can reliably remove a little noise, you can <em>generate from scratch</em>: start with pure random noise and run the network many times, each step removing a bit of noise, until a coherent image emerges from the static. Generation is denoising, run in reverse from nothing.</p>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Forward process</dt><dd>Gradually adding noise to an image until it is pure static. No learning needed.</dd>
+    <dt>Reverse process</dt><dd>The learned part: removing noise step by step to recover (or create) an image.</dd>
+    <dt>Denoiser</dt><dd>The network trained to predict and remove the noise at each step.</dd>
+    <dt>Sampling steps</dt><dd>How many denoising steps to run. More = higher quality, slower.</dd>
+    <dt>Conditioning</dt><dd>Steering generation with a text prompt (or another input).</dd>
+    <dt>Latent diffusion</dt><dd>Running the whole process in a compressed space (Topic 12.3) to save compute.</dd>
+  </dl>
+</div>
+
+<h2 id="mechanism"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>The two processes</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Forward (easy) and reverse (learned)</span></div>
+<pre><code>import torch
+
+<span class="cm"># --- FORWARD: add noise. Trivial, no learning. -------------------</span>
+def add_noise(x0, t, betas):
+    <span class="cm"># A closed form lets you jump straight to any noise level t.</span>
+    alpha_bar = torch.cumprod(1 - betas, 0)[t]
+    noise = torch.randn_like(x0)
+    xt = alpha_bar.sqrt() * x0 + (1 - alpha_bar).sqrt() * noise
+    return xt, noise                    <span class="cm"># the noisy image AND the noise added</span>
+
+<span class="cm"># --- TRAINING: teach the network to PREDICT the added noise ------</span>
+<span class="cm"># For a random image and a random noise level, add noise, then ask</span>
+<span class="cm"># the network to say what noise was added. That's the whole target.</span>
+def training_step(model, x0, betas):
+    t = torch.randint(0, len(betas), (x0.size(0),))
+    xt, true_noise = add_noise(x0, t, betas)
+    predicted_noise = model(xt, t)       <span class="cm"># the denoiser (a U-Net)</span>
+    return mse(predicted_noise, true_noise)   <span class="cm"># simple, stable loss!</span>
+
+<span class="cm"># --- GENERATION: start from pure noise, denoise step by step -----</span>
+def generate(model, betas, steps):
+    x = torch.randn(1, 3, 64, 64)        <span class="cm"># pure static</span>
+    for t in reversed(range(steps)):
+        predicted_noise = model(x, t)
+        x = remove_one_step_of_noise(x, predicted_noise, t, betas)
+    return x                             <span class="cm"># a coherent image emerges</span></code></pre>
+</div>
+
+<div class="note key">
+  <span class="tag">Why diffusion is more stable than GANs</span>
+  <p>Look at the training loss: it is a plain mean-squared error between predicted and actual noise (Topic 2.4). That is a <em>single, fixed, well-behaved objective</em> &mdash; unlike the adversarial moving target that makes GANs so temperamental (Topic 12.4). There is no second network to balance, no mode collapse, no delicate equilibrium. The task ("predict the noise") is easy to state and stable to optimise, yet composing thousands of these tiny denoising steps produces astonishing images. This stability, plus full coverage of the data's variety, is exactly why diffusion overtook GANs for high-quality generation.</p>
+</div>
+
+<h2 id="conditioning"><span class="kicker">Section 03 <span class="lvl lvl-a">Advanced</span></span>Steering it with text</h2>
+
+<p>Denoising from random noise gives you a <em>random</em> image. To generate "an astronaut riding a horse," you need to <strong>condition</strong> the denoiser on the prompt.</p>
+
+<div class="note">
+  <p>The prompt is turned into an embedding by a text encoder (a CLIP-style model, Topic 6.2), and that embedding is fed into the denoiser at every step via cross-attention (Topic 1.3). Now, instead of removing noise toward <em>any</em> plausible image, the network removes it toward an image that <em>matches the text</em>. <strong>Classifier-free guidance</strong> strengthens this: run the denoiser both with and without the prompt at each step and push harder in the prompt's direction, trading a little diversity for much closer adherence to the text. The prompt-following you experience in an image generator is this guidance mechanism at work.</p>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>The knobs you actually turn in an image generator</caption>
+    <thead><tr><th>Knob</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td>Prompt</td><td>What to generate &mdash; the conditioning</td></tr>
+      <tr><td>Steps</td><td>More = higher quality, slower</td></tr>
+      <tr><td>Guidance scale</td><td>How strictly to follow the prompt vs stay diverse</td></tr>
+      <tr><td>Seed</td><td>The starting noise; same seed + prompt = same image</td></tr>
+      <tr><td>Negative prompt</td><td>What to steer away from</td></tr>
+      <tr><td>ControlNet / img2img</td><td>Condition on a pose, sketch or existing image, not just text</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="latent"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>Latent diffusion: making it affordable</h2>
+
+<p>Running diffusion directly on high-resolution pixels is enormously expensive &mdash; many denoising steps, each over millions of pixels. The breakthrough that made diffusion practical (and gave us Stable Diffusion) was to run it somewhere cheaper.</p>
+
+<div class="note key">
+  <span class="tag">The autoencoder connection</span>
+  <p><strong>Latent diffusion</strong> uses an autoencoder (Topic 12.3) to compress images into a small latent space &mdash; say 64&times;64 instead of 512&times;512 &mdash; runs the entire costly diffusion process in that compact space, and then decodes the final latent back to a full-resolution image. Because the latent is ~48&times; smaller, the whole process is dramatically cheaper, which is what let image generation run on consumer GPUs and become widely available. It is a perfect example of composing foundational pieces: an autoencoder for compression, diffusion for generation, and a text encoder for control, assembled into one system. Understanding each part (Topics 12.3, 6.2, and this page) demystifies the whole.</p>
+</div>
+
+<h2 id="tradeoffs"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>Trade-offs and where it is going</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Diffusion vs GANs, recapped</caption>
+    <thead><tr><th></th><th>Diffusion</th><th>GAN (Topic 12.4)</th></tr></thead>
+    <tbody>
+      <tr><td>Training stability</td><td><strong>Stable</strong> (fixed loss)</td><td>Temperamental</td></tr>
+      <tr><td>Quality &amp; diversity</td><td><strong>State-of-the-art</strong></td><td>Good; prone to mode collapse</td></tr>
+      <tr><td>Control</td><td>Rich (prompts, ControlNet)</td><td>Harder</td></tr>
+      <tr><td>Speed</td><td>Slow &mdash; many steps</td><td><strong>Fast</strong> &mdash; one pass</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note">
+  <p><strong>The active frontier is speed.</strong> Diffusion's one weakness is that it needs many sampling steps. A lot of recent work &mdash; distillation, consistency models, and few-step samplers &mdash; has driven the step count down from dozens toward a handful, closing the gap with GANs while keeping diffusion's quality and control. The same forward-then-reverse-noise idea is also generating <strong>video and audio</strong> now. For an application builder, you will consume these models through APIs and tools rather than train them, but knowing the mechanism explains the knobs (Section 03), the costs, and why quality and speed trade off the way they do.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly a weekend</div>
+  <ol>
+    <li>Implement the forward noising process and visualise an image degrading to static over steps. Note it needs no learning.</li>
+    <li>Train a tiny diffusion model on MNIST to predict noise, then generate digits from pure noise. Watch them emerge.</li>
+    <li>Using a Stable Diffusion pipeline, generate the same prompt at 5, 20 and 50 steps. Compare quality and time.</li>
+    <li>Fix the seed and vary the guidance scale from low to high. Observe prompt adherence vs diversity (Section 03).</li>
+    <li>Use a negative prompt and img2img/ControlNet to condition on a sketch. See control beyond text.</li>
+    <li>Explain to a friend, in three sentences, why "learning to destroy images teaches you to create them."</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Article</span><span class="body"><a href="https://lilianweng.github.io/posts/2021-07-11-diffusion-models/">What are Diffusion Models? &mdash; Lilian Weng</a><span class="why">The definitive technical explainer. Dense but complete; pairs with Section 02.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://jalammar.github.io/illustrated-stable-diffusion/">The Illustrated Stable Diffusion</a><span class="why">Jay Alammar's diagrams of the text-encoder + latent-diffusion system (Sections 03&ndash;04).</span></span></li>
+    <li><span class="kind">Course</span><span class="body"><a href="https://huggingface.co/learn/diffusion-course">Hugging Face Diffusion Course</a><span class="why">Free and hands-on &mdash; builds diffusion models and uses the Diffusers library.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2006.11239">Denoising Diffusion Probabilistic Models (DDPM)</a><span class="why">The paper that made diffusion work for images. Section 02 is its core.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2112.10752">Latent Diffusion (Stable Diffusion)</a><span class="why">The compression trick of Section 04 (also Topic 12.3).</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 12.5 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

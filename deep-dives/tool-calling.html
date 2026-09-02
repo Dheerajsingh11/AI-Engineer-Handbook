@@ -1,0 +1,703 @@
+<title>Tool & Function Calling</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 05 &middot; Agents &amp; Ops</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">5.1</span>
+    <h1>Tool &amp; Function Calling</h1>
+    <p class="lede">The mechanism behind every agent. This page walks the raw JSON of a tool-calling exchange, writes the agent
+loop by hand so no framework is ever mysterious again, covers schema design as a prompt-engineering problem,
+and treats the security model with the seriousness that autonomous execution demands.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#loop">Write the loop by hand</a></li><li><a href="#design">Designing tools the model can use</a></li><li><a href="#results">Results, errors and context economics</a></li><li><a href="#security">The security model</a></li><li><a href="#reliability">Making it reliable</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>How a model generates text (<a href="#deeper">Topic 1.3</a>) and structured output (Topic 3.1). Java for the code, though the concepts are language-independent.</p>
+</div>
+
+<p>A language model can only produce text. It cannot query your database, call an API, or send an email. Tool calling is the protocol that lets it <em>ask you</em> to do those things.</p>
+
+<div class="note key">
+  <span class="tag">The one misconception to clear immediately</span>
+  <p><strong>The model does not execute anything.</strong> It emits a piece of JSON that says "I would like to call <code>getOrderStatus</code> with <code>orderId=ORD-889</code>". Your code receives that, decides whether to honour it, runs the method itself, and sends the result back as more text.</p>
+  <p>The model proposes. Your code disposes. Every security property of an agent follows from taking that sentence literally &mdash; and almost every agent security incident comes from forgetting it.</p>
+</div>
+
+<h3>The loop</h3>
+
+<ol class="steps">
+  <li><strong>You send</strong> the conversation plus a list of tool definitions: name, description, JSON Schema for parameters.</li>
+  <li><strong>The model replies</strong> with either ordinary text (it is done) or one or more tool calls.</li>
+  <li><strong>You authorise</strong> the call against the real authenticated user.</li>
+  <li><strong>You execute</strong> the method.</li>
+  <li><strong>You append the result</strong> to the conversation and call the model again.</li>
+  <li><strong>Repeat</strong> until the model answers or you hit a step limit.</li>
+</ol>
+
+<div class="code">
+  <div class="code-top"><span class="lang">JSON</span><span>What actually goes over the wire</span></div>
+<pre><code><span class="cm">// REQUEST -- note the tool definition is just a schema plus prose</span>
+{
+  "messages": [
+    {"role": "user", "content": "Is SKU-4471 in stock?"}
+  ],
+  "tools": [{
+    "name": "check_stock",
+    "description": "Return current stock level for a product SKU. Use when a customer asks about availability of a specific item.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "sku": {"type": "string", "description": "Product SKU, format SKU-1234"}
+      },
+      "required": ["sku"]
+    }
+  }]
+}
+
+<span class="cm">// RESPONSE -- the model wants a tool called. stop_reason says so.</span>
+{
+  "stop_reason": "tool_use",
+  "content": [
+    {"type": "text", "text": "Let me check that for you."},
+    {"type": "tool_use", "id": "toolu_01A", "name": "check_stock",
+     "arguments": {"sku": "SKU-4471"}}
+  ]
+}
+
+<span class="cm">// YOUR NEXT REQUEST -- append the model's turn, then the result.</span>
+<span class="cm">// The tool_use_id must match, or the model loses the association.</span>
+{
+  "messages": [
+    {"role": "user", "content": "Is SKU-4471 in stock?"},
+    {"role": "assistant", "content": [ ...the block above... ]},
+    {"role": "user", "content": [{
+        "type": "tool_result",
+        "tool_use_id": "toolu_01A",
+        "content": "{\"sku\":\"SKU-4471\",\"available\":12,\"restock\":\"2026-09-02\"}"
+    }]}
+  ]
+}
+
+<span class="cm">// FINAL RESPONSE -- stop_reason is now end_turn</span>
+{"stop_reason": "end_turn",
+ "content": [{"type": "text",
+   "text": "Yes -- 12 units of SKU-4471 are in stock, with more arriving 2 September."}]}</code></pre>
+</div>
+
+<h2 id="loop"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>Write the loop by hand</h2>
+
+<p>Frameworks hide this loop. Write it once yourself and every agent framework afterwards is recognisable rather than magical.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Java</span><span>The agent loop, complete</span></div>
+<pre><code>public class AgentLoop {
+
+    private final ChatModel model;
+    private final ToolRegistry registry;
+    private final AuthorizationService authz;
+    private final MeterRegistry meters;
+
+    public AgentResult run(String userGoal, Principal principal, int maxSteps) {
+
+        var messages = new ArrayList&lt;Message&gt;();
+        messages.add(new SystemMessage(SYSTEM_PROMPT));
+        messages.add(new UserMessage(userGoal));
+
+        var trace = new ArrayList&lt;ToolInvocation&gt;();
+        int totalTokens = 0;
+
+        for (int step = 0; step &lt; maxSteps; step++) {
+
+            ChatResponse response = model.call(new Prompt(messages, options));
+            var output = response.getResult().getOutput();
+            messages.add(output);
+            totalTokens += response.getMetadata().getUsage().getTotalTokens();
+
+            <span class="cm">// Budget guard: a looping agent is a runaway cost.</span>
+            if (totalTokens &gt; MAX_TOKENS) {
+                throw new AgentBudgetExceededException(totalTokens);
+            }
+
+            if (!output.hasToolCalls()) {
+                return new AgentResult(output.getText(), trace, step, totalTokens);
+            }
+
+            <span class="cm">// Parallel calls: the model may request several at once.</span>
+            <span class="cm">// Independent reads can run concurrently; writes should not.</span>
+            for (ToolCall call : output.getToolCalls()) {
+                messages.add(execute(call, principal, trace));
+            }
+        }
+        throw new AgentStepLimitExceededException(maxSteps, trace);
+    }
+
+    private Message execute(ToolCall call, Principal principal,
+                            List&lt;ToolInvocation&gt; trace) {
+        var timer = Timer.start(meters);
+        try {
+            <span class="cm">// 1. Does the tool exist? A hallucinated name is common.</span>
+            var tool = registry.find(call.name());
+            if (tool == null) {
+                return ToolResponse.error(call,
+                    "No tool named '" + call.name() + "'. Available: "
+                    + registry.names());
+            }
+
+            <span class="cm">// 2. Validate arguments against the schema BEFORE executing.</span>
+            var validation = tool.validate(call.arguments());
+            if (!validation.isValid()) {
+                <span class="cm">// Errors go back as DATA so the model can correct itself.</span>
+                return ToolResponse.error(call, validation.message());
+            }
+
+            <span class="cm">// 3. AUTHORISE against the real user, in Java, every time.</span>
+            if (!authz.permits(principal, tool, call.arguments())) {
+                meters.counter("agent.tool.denied", "tool", call.name()).increment();
+                return ToolResponse.error(call, "Not permitted.");
+            }
+
+            <span class="cm">// 4. Execute with a timeout -- a hanging tool hangs the agent.</span>
+            Object result = tool.executeWithTimeout(call.arguments(),
+                                                    Duration.ofSeconds(30));
+
+            <span class="cm">// 5. Bound the result. Every result re-enters context next turn;</span>
+            <span class="cm">//    a 50,000-token result wrecks both cost and reasoning.</span>
+            String payload = truncate(serialize(result), 4_000);
+
+            trace.add(ToolInvocation.ok(call, payload));
+            return ToolResponse.of(call, payload);
+
+        } catch (Exception e) {
+            <span class="cm">// A thrown exception ends the run; an error message lets</span>
+            <span class="cm">// the agent try something else. Prefer the latter.</span>
+            trace.add(ToolInvocation.failed(call, e));
+            return ToolResponse.error(call, describeForModel(e));
+        } finally {
+            timer.stop(meters.timer("agent.tool", "tool", call.name()));
+        }
+    }
+}</code></pre>
+</div>
+
+<h2 id="design"><span class="kicker">Section 03 <span class="lvl lvl-a">Advanced</span></span>Designing tools the model can use</h2>
+
+<div class="note key">
+  <span class="tag">The description is a prompt, not documentation</span>
+  <p>The tool description is the <em>only</em> information the model has when deciding whether to call your tool. It goes into the context window and conditions the output distribution exactly like any other text.</p>
+  <p>Write it for a competent colleague on their first day: what it does, when to use it, <strong>when not to use it</strong>, what it returns, and any preconditions. The "when not to" clause does more work than anything else &mdash; it is what stops a tool being called for adjacent problems it cannot solve.</p>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Java</span><span>Bad and good tool definitions</span></div>
+<pre><code><span class="cm">// BAD: the model has no idea when this applies or what it returns.</span>
+@Tool(description = "Gets order data")
+public Object getOrder(String id) { ... }
+
+<span class="cm">// GOOD: purpose, boundaries, format, and a stated non-use.</span>
+@Tool(description = """
+    Retrieve the current status, line items and delivery estimate for
+    a single order the customer has already placed.
+
+    Use when: the customer asks about a specific order they can identify.
+    Do NOT use for: general delivery-policy questions, or to search for
+    orders when the customer does not know the ID -- use search_orders
+    for that.
+
+    Returns: order status (PENDING, SHIPPED, DELIVERED, CANCELLED),
+    line items, and estimated delivery date.
+    Returns an error object if the order does not exist or is not
+    accessible to this customer.
+    """)
+public OrderDetail getOrder(
+        @ToolParam(description = "Order ID in the format ORD-123456. "
+                               + "Ask the customer if you do not have it; "
+                               + "never guess.")
+        String orderId) { ... }</code></pre>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>Schema design rules, and what each prevents</caption>
+    <thead><tr><th>Rule</th><th>Prevents</th></tr></thead>
+    <tbody>
+      <tr><td>Enums instead of free strings</td><td>Invented values. <code>status: "shipped"|"pending"</code> beats <code>status: string</code></td></tr>
+      <tr><td>Mark required fields</td><td>Omitted parameters and a retry round-trip</td></tr>
+      <tr><td>Declare formats</td><td>Ambiguous dates. State ISO-8601 explicitly</td></tr>
+      <tr><td>Keep schemas flat</td><td>Deep nesting is measurably harder for models to fill correctly</td></tr>
+      <tr><td>Bounded numerics</td><td>A <code>limit</code> of 100,000 flooding your context</td></tr>
+      <tr><td>Few tools, well named</td><td>Selection errors. Accuracy degrades past roughly 20 tools</td></tr>
+      <tr><td>No overlapping tools</td><td>The model dithering between two similar options</td></tr>
+      <tr><td>Idempotency key on writes</td><td>Duplicate side effects when the agent retries</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>Types of tool, and how each should behave</caption>
+    <thead><tr><th>Type</th><th>Examples</th><th>Design rules</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Read</strong></td><td>Look up, search, list</td><td>Safe to auto-execute; paginate; cache</td></tr>
+      <tr><td><strong>Compute</strong></td><td>Calculate, convert, validate</td><td>Deterministic; use these instead of trusting model arithmetic</td></tr>
+      <tr><td><strong>Write</strong></td><td>Create, update</td><td>Idempotency key required; audit log</td></tr>
+      <tr><td><strong>Destructive</strong></td><td>Delete, cancel, refund</td><td><strong>Human confirmation.</strong> Never auto-execute</td></tr>
+      <tr><td><strong>Outbound</strong></td><td>Email, message, publish</td><td>Human confirmation; recipient allowlist</td></tr>
+      <tr><td><strong>Delegating</strong></td><td>Call a sub-agent</td><td>Bound depth; return a summary, not a transcript</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="results"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>Results, errors and context economics</h2>
+
+<p>Every tool result re-enters the context on the next turn and stays there for the rest of the run. A tool that returns 200 rows of JSON does not cost you once &mdash; it costs you on every subsequent step.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Java</span><span>Shaping results for a model, not for a UI</span></div>
+<pre><code><span class="cm">// BAD: full entity graph, ISO timestamps, internal IDs, nulls.</span>
+<span class="cm">// Thousands of tokens, most of them noise.</span>
+return orderRepository.findAll(spec);
+
+<span class="cm">// GOOD: paginated, projected, and self-describing.</span>
+public OrderSearchResult searchOrders(String customerId, String from,
+                                      String to, int page) {
+
+    var results = orders.search(customerId, from, to, PageRequest.of(page, 20));
+
+    return new OrderSearchResult(
+        results.map(o -&gt; new OrderSummary(          <span class="cm">// only what matters</span>
+                o.getPublicId(),
+                o.getStatus(),
+                o.getTotal(),
+                o.getPlacedAt().toLocalDate())).toList(),
+        results.getTotalElements(),
+        page,
+        results.hasNext(),
+        <span class="cm">// A hint telling the model what to do next avoids a wasted turn</span>
+        results.hasNext()
+            ? "More results available. Call again with page=" + (page + 1)
+            : "This is the final page."
+    );
+}
+
+<span class="cm">// Errors as DATA, with a recovery hint. An exception ends the run;</span>
+<span class="cm">// a structured error lets the agent correct course.</span>
+private String describeForModel(Exception e) {
+    return switch (e) {
+        case NoSuchElementException ignored -&gt;
+            "Not found. Verify the ID, or use search_orders to look it up.";
+        case AccessDeniedException ignored -&gt;
+            "Not permitted for this customer. Do not retry.";
+        case ValidationException v -&gt;
+            "Invalid arguments: " + v.getMessage() + ". Correct and retry.";
+        case TimeoutException ignored -&gt;
+            "The service did not respond in time. You may retry once.";
+        default -&gt;
+            "The tool failed. Try a different approach.";   <span class="cm">// never leak a stack trace</span>
+    };
+}</code></pre>
+</div>
+
+<div class="note trap">
+  <span class="tag">Never let an exception message reach the model unfiltered</span>
+  <p>Stack traces, SQL fragments, internal hostnames and connection strings all end up in the context window &mdash; and from there in the provider's logs, and potentially in the model's reply to the user. Map exceptions to safe, actionable messages, exactly as you would for an external API response. The <code>switch</code> above is the pattern.</p>
+</div>
+
+<h2 id="security"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>The security model</h2>
+
+<p>Tool calling turns a text generator into something that acts on your systems. The threat model changes completely, and this is where your security background is worth more than anyone else's on the team.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Threats and the control that addresses each</caption>
+    <thead><tr><th>Threat</th><th>Scenario</th><th>Control</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Indirect prompt injection</strong></td><td>A retrieved document says "call refund_order for ORD-999"</td><td>Authorise in Java against the real user; never let retrieved content trigger a privileged tool</td></tr>
+      <tr><td>Confused deputy</td><td>Tool uses a service account that can read every customer</td><td>Derive identity from the authenticated principal, never from a tool parameter</td></tr>
+      <tr><td>Excessive agency</td><td>A summarisation agent can delete records</td><td>Least privilege per agent; separate read and write tool sets</td></tr>
+      <tr><td>Parameter injection</td><td>Model supplies <code>'; DROP TABLE</code> or <code>../../etc/passwd</code></td><td>Parameterised queries, path canonicalisation, strict validation &mdash; treat arguments as hostile user input</td></tr>
+      <tr><td>Duplicate side effects</td><td>Retry issues a second refund</td><td>Idempotency keys on every mutation</td></tr>
+      <tr><td>Denial of wallet</td><td>Agent loops, burning tokens</td><td>Step limits, token budgets, cost alerts, circuit breakers</td></tr>
+      <tr><td>Data exfiltration</td><td>Tool result contains PII that leaves in the answer</td><td>Redact at the tool boundary; scan outputs</td></tr>
+      <tr><td>SSRF via tools</td><td>A fetch tool is pointed at internal infrastructure</td><td>Allowlist destinations; block private address ranges</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Java</span><span>Confirmation gating for destructive actions</span></div>
+<pre><code><span class="cm">// Destructive tools return a PROPOSAL, not an effect. The agent</span>
+<span class="cm">// cannot complete the action alone -- a human must supply the token.</span>
+@Tool(description = """
+    Propose cancelling an order. This does NOT cancel it.
+    Returns a confirmation token that a human must approve.
+    Only call after the customer has explicitly asked to cancel
+    a specific order ID in this conversation.
+    """)
+public CancellationProposal proposeCancellation(
+        @ToolParam(description = "Order ID to cancel") String orderId,
+        @ToolParam(description = "Customer's stated reason") String reason) {
+
+    var order = orders.findAccessible(currentPrincipal(), orderId)
+                      .orElseThrow(() -&gt; new NoSuchElementException(orderId));
+
+    if (!order.isCancellable()) {
+        return CancellationProposal.rejected(
+            "Order is " + order.getStatus() + " and cannot be cancelled.");
+    }
+
+    <span class="cm">// Short-lived, single-use, bound to this order and principal.</span>
+    var token = confirmations.create(currentPrincipal(), "CANCEL_ORDER",
+                                     orderId, Duration.ofMinutes(5));
+
+    return CancellationProposal.pending(token.id(), order.summary(),
+            order.refundAmount(),
+            "Show these details to the customer and ask them to confirm.");
+}
+
+<span class="cm">// The actual cancellation is a separate, human-triggered endpoint.</span>
+<span class="cm">// It is NOT a tool, so no amount of prompt injection can reach it.</span>
+@PostMapping("/confirmations/{id}/approve")
+public CancelResult approve(@PathVariable String id,
+                            @AuthenticationPrincipal User user) {
+    var confirmation = confirmations.consume(id, user);   <span class="cm">// single use</span>
+    return orders.cancelIdempotent(confirmation.subjectId(), id);
+}</code></pre>
+</div>
+
+<h2 id="reliability"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Making it reliable</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Failure modes and mitigations</caption>
+    <thead><tr><th>Failure</th><th>Symptom</th><th>Mitigation</th></tr></thead>
+    <tbody>
+      <tr><td>Tool not called when it should be</td><td>Model answers from memory instead</td><td>Sharpen the description; add "always use X for Y" to the system prompt</td></tr>
+      <tr><td>Wrong tool selected</td><td>Overlapping descriptions</td><td>Merge or clearly differentiate; reduce tool count</td></tr>
+      <tr><td>Hallucinated tool name</td><td>Call to a non-existent tool</td><td>Return a structured error listing available tools</td></tr>
+      <tr><td>Invented parameter values</td><td>A plausible but wrong order ID</td><td>"Ask the user; never guess" in the parameter description; validate</td></tr>
+      <tr><td>Infinite loop</td><td>Same tool called repeatedly with the same arguments</td><td>Detect repeats; step limit; surface the loop in the trace</td></tr>
+      <tr><td>Context exhaustion</td><td>Failure after several tool calls</td><td>Truncate results; summarise old turns; offload to storage</td></tr>
+      <tr><td>Latency accumulation</td><td>Five sequential calls = five round trips</td><td>Encourage parallel calls for independent reads; timeouts on each</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note java">
+  <span class="tag">Observability for tool calls</span>
+  <p>Trace every invocation: tool name, arguments, principal, result size, duration, outcome, and the step number within the run. Four metrics tell you almost everything: <strong>selection accuracy</strong> (was the right tool chosen), <strong>error rate per tool</strong>, <strong>steps per run</strong> (rising means the agent is struggling), and <strong>denied calls</strong> (a spike is a possible injection attempt). OpenTelemetry's GenAI conventions cover this, so it lands in the dashboards you already run.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly a weekend</div>
+  <ol>
+    <li>Call a model API directly with <code>curl</code> and one tool definition. Read the raw JSON at each step. Do this before touching a framework.</li>
+    <li>Write the agent loop by hand in Java, without Spring AI's tool support. Then rewrite it using the framework and note exactly what was hidden.</li>
+    <li>Take a vague tool description and improve it with purpose, boundaries and a "do not use for" clause. Measure selection accuracy over 30 queries before and after.</li>
+    <li>Change a free-string parameter to an enum. Count invalid values before and after.</li>
+    <li>Return a 50,000-token tool result and observe the effect on subsequent reasoning and cost. Then paginate it.</li>
+    <li>Make a tool throw an exception, then make it return a structured error with a recovery hint. Compare how the agent behaves.</li>
+    <li>Implement confirmation gating for a destructive action. Then attempt prompt injection to trigger it directly, and confirm you cannot.</li>
+    <li>Build a tool whose <em>description</em> contains an injected instruction. Observe whether the model follows it &mdash; this is the tool-poisoning vector from &sect;3.4.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 08 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.claude.com/en/docs/agents-and-tools/tool-use/overview">Anthropic &mdash; Tool use</a><span class="why">Schema design, parallel calls, forced tool use and error handling, with the raw message format. Named in your roadmap.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.spring.io/spring-ai/reference/api/tools.html">Spring AI &mdash; Tool Calling</a><span class="why">Method and function callbacks, the execution lifecycle, and return-direct behaviour.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.langchain4j.dev/tutorials/tools/">LangChain4j &mdash; Tools</a><span class="why">Static and dynamic tool specifications, and the hallucinated-tool-name strategy.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://www.anthropic.com/engineering/writing-tools-for-agents">Writing tools for agents</a><span class="why">Practical guidance on descriptions, result shaping and the token economics of Section 04.</span></span></li>
+    <li><span class="kind">Security</span><span class="body"><a href="https://genai.owasp.org/llm-top-10/">OWASP Top 10 for LLM Applications</a><span class="why">Excessive Agency and Improper Output Handling map directly onto Section 05.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2210.03629">ReAct: Synergizing Reasoning and Acting in Language Models</a><span class="why">The reasoning-plus-action loop that this page implements, in its original form.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 5.1 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

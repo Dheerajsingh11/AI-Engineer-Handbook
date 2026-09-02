@@ -1,0 +1,566 @@
+<title>Governance, Privacy & Compliance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 06 &middot; Production</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">6.4</span>
+    <h1>Governance, Privacy &amp; Compliance</h1>
+    <p class="lede">The requirements that block a launch if you meet them late. This page covers the EU AI Act's risk tiers, GDPR
+as it applies to LLM systems, PII handling in a RAG pipeline, the right to erasure when data lives in
+embeddings, and the audit trail that turns "the AI decided" into a defensible record.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#eu-ai-act">The EU AI Act &mdash; risk tiers</a></li><li><a href="#gdpr">GDPR for LLM systems</a></li><li><a href="#pii">Handling PII in the pipeline</a></li><li><a href="#erasure">The right to erasure, when data is in embeddings</a></li><li><a href="#audit">The audit trail</a></li><li><a href="#checklist">A pre-launch checklist</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>How RAG stores data (Phase 4) and how memory persists (Topic 5.3). No legal background needed &mdash; this is the engineering view of the rules, not legal advice.</p>
+</div>
+
+<p>Governance is the least exciting topic in this roadmap and the one most likely to stop your project shipping. A model that works brilliantly is worthless if legal will not approve its launch, and legal will not approve it if you cannot answer their questions about data, decisions and deletion.</p>
+
+<div class="note key">
+  <span class="tag">Why this is an engineering problem, not a paperwork problem</span>
+  <p>Almost every governance requirement translates into something you must <em>build</em>: an audit trail, a deletion path, a PII filter, a human-review step, a data-retention job. Retrofitting these into a live RAG system &mdash; especially deletion, once personal data is baked into embeddings &mdash; is painful and sometimes nearly impossible. Building them in from the start costs little. This page is about knowing what to build before someone tells you that you needed it three months ago.</p>
+  <p>None of this is legal advice. It is the engineer's map of where the requirements land in your architecture, so you can have an informed conversation with the people whose job the law actually is.</p>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>PII</dt><dd>Personally identifiable information &mdash; anything that identifies a person.</dd>
+    <dt>Data subject</dt><dd>The person the data is about. Under GDPR they have rights.</dd>
+    <dt>Right to erasure</dt><dd>A person can require you to delete their data ("right to be forgotten").</dd>
+    <dt>Data residency</dt><dd>Rules about which country or region data may be stored and processed in.</dd>
+    <dt>Automated decision-making</dt><dd>A decision affecting someone made without meaningful human involvement. Specially regulated.</dd>
+    <dt>Audit trail</dt><dd>An immutable record of what happened, who did it, and on what basis.</dd>
+    <dt>Data processing agreement (DPA)</dt><dd>The contract governing how a vendor may handle your data.</dd>
+  </dl>
+</div>
+
+<h2 id="eu-ai-act"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>The EU AI Act &mdash; risk tiers</h2>
+
+<p>The EU AI Act classifies AI systems by risk, and the tier determines your obligations. It has extraterritorial reach: if your system affects people in the EU, it applies regardless of where you are.</p>
+
+<div class="tbl">
+  <table>
+    <caption>The four risk tiers</caption>
+    <thead><tr><th>Tier</th><th>Examples</th><th>Obligation</th></tr></thead>
+    <tbody>
+      <tr><td>Unacceptable</td><td>Social scoring, manipulative or exploitative systems</td><td><strong>Banned</strong></td></tr>
+      <tr><td>High risk</td><td>Hiring, credit, education, healthcare, essential services, law enforcement</td><td>Conformity assessment, risk management, human oversight, logging, documentation</td></tr>
+      <tr><td>Limited risk</td><td>Chatbots, most business assistants</td><td><strong>Transparency</strong> &mdash; tell people they are dealing with AI</td></tr>
+      <tr><td>Minimal risk</td><td>Spam filters, most internal tooling</td><td>None specific</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note trap">
+  <span class="tag">The tier you land in is easy to underestimate</span>
+  <p>"It's just a support chatbot" sounds like limited risk. But if that chatbot decides who gets a refund, who is escalated, or who is denied a service, it may be making decisions that touch the high-risk category &mdash; hiring and creditworthiness are explicitly listed. The obligations at high risk are substantial: documented risk management, human oversight built into the workflow, detailed logging, and a conformity assessment before deployment.</p>
+  <p>Determine your tier <em>early</em>, with your legal team, because a high-risk classification changes what you build. Human oversight is not a checkbox you add at the end &mdash; it is a review step in the flow, an override capability, and a logged record that a human could and did intervene.</p>
+</div>
+
+<h2 id="gdpr"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>GDPR for LLM systems</h2>
+
+<div class="tbl">
+  <table>
+    <caption>GDPR principles, and what each demands of your system</caption>
+    <thead><tr><th>Principle</th><th>What it means for an LLM system</th></tr></thead>
+    <tbody>
+      <tr><td>Lawful basis</td><td>You need a legal reason to process personal data &mdash; consent, contract, legitimate interest</td></tr>
+      <tr><td>Purpose limitation</td><td>Data collected for support cannot be silently repurposed to train a model</td></tr>
+      <tr><td>Data minimisation</td><td>Do not send more personal data to the model than the task needs</td></tr>
+      <tr><td>Right of access</td><td>A person can ask what data you hold about them &mdash; including in memory and embeddings</td></tr>
+      <tr><td><strong>Right to erasure</strong></td><td>You must be able to delete a person's data &mdash; from the database, memory, <em>and vectors</em></td></tr>
+      <tr><td>Right to rectification</td><td>A person can correct wrong data you hold about them</td></tr>
+      <tr><td>Automated-decision rights</td><td>The right not to be subject to solely automated decisions with significant effect, and to an explanation</td></tr>
+      <tr><td>Data protection by design</td><td>Privacy built in from the start, not added later</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note trap">
+  <span class="tag">Sending data to a model provider is a data transfer</span>
+  <p>Every prompt you send to a hosted model is a transfer of whatever personal data that prompt contains to a third party, often in another jurisdiction. This triggers real obligations: a data processing agreement with the provider, a lawful basis for the transfer, and confirmation that the provider does not train on your data (most business tiers contractually commit to this &mdash; verify it, in writing).</p>
+  <p>Practical controls: minimise PII in prompts, redact where possible, prefer providers with EU data residency for EU data, and for the most sensitive data consider self-hosting (Topic 6.1) so nothing leaves your VPC at all. Your legal team owns the DPA; you own the data-minimisation and residency engineering.</p>
+</div>
+
+<h2 id="pii"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>Handling PII in the pipeline</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Java</span><span>Redaction at the boundary, with reversible tokens</span></div>
+<pre><code>@Component
+class PiiRedactionAdvisor implements CallAdvisor {
+
+    private final PiiDetector detector;      <span class="cm">// Presidio, or a cloud DLP service</span>
+    private final TokenVault vault;
+
+    @Override public int getOrder() { return 0; }   <span class="cm">// FIRST -- before anything else sees the text</span>
+
+    @Override
+    public ChatClientResponse adviseCall(ChatClientRequest request,
+                                         CallAdvisorChain chain) {
+
+        <span class="cm">// 1. Detect and replace PII with stable placeholders BEFORE the</span>
+        <span class="cm">//    prompt reaches the provider. The model reasons over</span>
+        <span class="cm">//    &lt;PERSON_1&gt; and &lt;EMAIL_1&gt;, never the real values.</span>
+        var detected = detector.scan(request.prompt().getContents());
+        var redacted = detected.isEmpty()
+                ? request
+                : request.mutate().prompt(replaceWithTokens(request, detected)).build();
+
+        <span class="cm">// Store the mapping so we can restore real values in the answer</span>
+        <span class="cm">// if policy allows -- scoped to this request only.</span>
+        var mapping = vault.store(detected, Duration.ofMinutes(5));
+
+        ChatClientResponse response = chain.nextCall(redacted);
+
+        <span class="cm">// 2. Rehydrate only where the user is entitled to see the value.</span>
+        <span class="cm">//    For many use cases you leave the tokens in place.</span>
+        return restoreAuthorised(response, mapping, currentPrincipal());
+    }
+}
+
+<span class="cm">// Detection covers the categories that matter and is never perfect --</span>
+<span class="cm">// treat it as one layer, not a guarantee.</span>
+enum PiiCategory {
+    NAME, EMAIL, PHONE, ADDRESS, NATIONAL_ID, CREDIT_CARD,
+    IBAN, IP_ADDRESS, DATE_OF_BIRTH, HEALTH, BIOMETRIC
+}</code></pre>
+</div>
+
+<div class="note java">
+  <span class="tag">Redaction is a layer, not a wall</span>
+  <p>PII detectors miss things &mdash; unusual name formats, PII embedded in free text, identifiers that only become sensitive in combination. Do not treat redaction as a guarantee that no personal data reaches the provider. Combine it with data minimisation (do not retrieve fields the task does not need), a provider contract that forbids training on your data, and &mdash; for the most sensitive workloads &mdash; self-hosting. Defence in depth, exactly as in security (Topic 5.6), because the failure mode here is a compliance breach rather than an exploit.</p>
+</div>
+
+<h2 id="erasure"><span class="kicker">Section 05 <span class="lvl lvl-a">Advanced</span></span>The right to erasure, when data is in embeddings</h2>
+
+<p>This is the requirement that catches teams out, because personal data in a RAG system is not in one place. It is in the source rows, in the chunks, in the vectors, in conversation memory, in cached responses, and possibly in provider logs. "Delete this person" means all of them.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Java</span><span>A complete deletion path</span></div>
+<pre><code>@Service
+class DataErasureService {
+
+    @Transactional
+    public ErasureReport erase(String subjectId, ErasureRequest request) {
+        var report = new ErasureReport(subjectId, Instant.now());
+
+        <span class="cm">// 1. Source records</span>
+        report.add("source", sourceRepo.deleteBySubject(subjectId));
+
+        <span class="cm">// 2. Chunks AND their vectors. Deleting the row without the</span>
+        <span class="cm">//    vector, or vice versa, leaves recoverable personal data.</span>
+        var documentIds = documentRepo.findBySubject(subjectId);
+        for (var docId : documentIds) {
+            vectorStore.delete("document_id == '" + docId + "'");
+            report.add("vectors", chunkRepo.deleteByDocument(docId));
+        }
+
+        <span class="cm">// 3. Conversation memory -- short-term AND long-term episodes</span>
+        report.add("sessions", memoryStore.deleteByUser(subjectId));
+        report.add("episodes", episodeStore.delete(
+                "user_id == '" + subjectId + "'"));
+        report.add("facts", factRepo.deleteByUser(subjectId));
+
+        <span class="cm">// 4. Caches -- a semantic cache can hold an answer about them</span>
+        report.add("cache", semanticCache.evictBySubject(subjectId));
+
+        <span class="cm">// 5. Provider-side: request deletion of retained logs per your DPA.</span>
+        <span class="cm">//    You cannot do this yourself -- it is a contractual process.</span>
+        providerDataController.requestDeletion(subjectId, request.reference());
+
+        <span class="cm">// 6. Audit the erasure itself -- you must prove you did it,</span>
+        <span class="cm">//    which means keeping a record ABOUT the deletion (lawful,</span>
+        <span class="cm">//    because it is required to demonstrate compliance).</span>
+        auditLog.recordErasure(report);
+        return report;
+    }
+}</code></pre>
+</div>
+
+<div class="note trap">
+  <span class="tag">Why deletion must be designed in, not bolted on</span>
+  <p>Two things make erasure hard if you did not plan for it. First, <strong>you must be able to find all of a person's data</strong> &mdash; which means every chunk, vector, episode and cache entry needs a <code>subject_id</code> attached at write time. Retrofitting that mapping onto data already ingested may be impossible, because the link between a vector and the person it concerns was never recorded.</p>
+  <p>Second, <strong>a trained or fine-tuned model that learned from personal data cannot simply forget it.</strong> This is a strong reason to keep personal data in RAG (deletable) rather than fine-tuning it into weights (not deletable) &mdash; the same RAG-versus-fine-tuning decision from Topic 3.5, now with a legal dimension. If you fine-tune on personal data, erasure may require retraining.</p>
+</div>
+
+<h2 id="audit"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>The audit trail</h2>
+
+<p>"The AI decided" is not an answer a regulator, a court, or an angry customer will accept. For any decision with real effect, you need a record of what was decided, on what basis, with what data, and whether a human was involved.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Java</span><span>A decision record built for defensibility</span></div>
+<pre><code>public record AiDecisionRecord(
+        String decisionId,
+        String subjectId,               <span class="cm">// who it was about</span>
+        String decisionType,            <span class="cm">// "refund_eligibility", "escalation"</span>
+        String outcome,
+
+        <span class="cm">// Reproducibility: enough to reconstruct exactly what happened</span>
+        String modelId, String modelVersion,
+        String promptVersion,
+        List&lt;String&gt; retrievedChunkIds, <span class="cm">// ids, not text (Topic 5.5)</span>
+        List&lt;ToolInvocation&gt; toolCalls,
+
+        <span class="cm">// Explainability: the stated reasoning, with its caveats</span>
+        String rationale,
+        double confidence,
+
+        <span class="cm">// Human oversight: the AI Act requirement made concrete</span>
+        boolean humanReviewed,
+        String reviewerId,
+        ReviewOutcome reviewOutcome,    <span class="cm">// APPROVED, OVERRIDDEN, MODIFIED</span>
+
+        Instant timestamp,
+        String lawfulBasis) {           <span class="cm">// why this processing was permitted</span>
+
+    <span class="cm">// Immutable and append-only. An audit trail you can edit is not</span>
+    <span class="cm">// an audit trail. Write to append-only storage or sign records.</span>
+}</code></pre>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>The governance controls, mapped to where they live in your system</caption>
+    <thead><tr><th>Requirement</th><th>Where it is implemented</th></tr></thead>
+    <tbody>
+      <tr><td>Transparency (it's AI)</td><td>UI disclosure at the point of interaction</td></tr>
+      <tr><td>Human oversight</td><td>A review step in the workflow, with override and logging</td></tr>
+      <tr><td>Explainability</td><td>Rationale and citations stored on the decision record</td></tr>
+      <tr><td>Data minimisation</td><td>Retrieval and prompt construction &mdash; fetch only what is needed</td></tr>
+      <tr><td>PII protection</td><td>Redaction advisor at the model boundary (Section 04)</td></tr>
+      <tr><td>Right to erasure</td><td>The deletion service (Section 05)</td></tr>
+      <tr><td>Audit trail</td><td>Append-only decision records (this section)</td></tr>
+      <tr><td>Bias monitoring</td><td>Track outcomes across protected groups; alert on disparity</td></tr>
+      <tr><td>Data residency</td><td>Provider choice and self-hosting (Topic 6.1)</td></tr>
+      <tr><td>Retention</td><td>Scheduled jobs that expire data per policy</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note java">
+  <span class="tag">Bias is measurable, and measuring it is your job</span>
+  <p>A model can produce systematically different outcomes for different groups &mdash; approving refunds less often for certain names, escalating some accents more, scoring some dialects as lower quality. This is both an ethical problem and, in high-risk domains, a legal one.</p>
+  <p>You cannot fix what you do not measure. Log decision outcomes with enough (carefully handled) demographic context to compute disparity across protected groups, and alert when outcomes diverge beyond a threshold. This is the same measurement discipline as everywhere else in the roadmap (Topics 4.7, 5.5), pointed at fairness. Treat a disparity alert as a production incident, not a research finding.</p>
+</div>
+
+<h2 id="checklist"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>A pre-launch checklist</h2>
+
+<div class="ex">
+  <div class="ex-top">Answer these before you ship &mdash; with your legal team</div>
+  <ol>
+    <li>What EU AI Act tier is this system, and what obligations follow?</li>
+    <li>What personal data does it process, and what is the lawful basis?</li>
+    <li>Is there a DPA with every model provider, and do they contractually not train on our data?</li>
+    <li>Can we delete all of one person's data &mdash; rows, chunks, vectors, memory, cache &mdash; and prove we did?</li>
+    <li>Can we reconstruct any decision: prompt version, model version, retrieved data, tool calls, rationale?</li>
+    <li>Is there human oversight on decisions with significant effect, and is intervention logged?</li>
+    <li>Are users told they are interacting with AI?</li>
+    <li>Do we redact or minimise PII before it reaches the provider?</li>
+    <li>Is sensitive data kept in RAG (deletable) rather than fine-tuned into weights (not)?</li>
+    <li>Do we monitor outcomes for bias across protected groups?</li>
+    <li>Is there a data-retention policy, and a job that enforces it?</li>
+    <li>Where is the data stored and processed, and does that satisfy residency requirements?</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 08 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Reference</span><span class="body"><a href="https://artificialintelligenceact.eu/">EU AI Act Explorer</a><span class="why">The Act, navigable, with a compliance checker to estimate your risk tier. The starting point for Section 02.</span></span></li>
+    <li><span class="kind">Reference</span><span class="body"><a href="https://gdpr.eu/">GDPR.eu</a><span class="why">Plain-language explanations of every GDPR principle and right in Section 03.</span></span></li>
+    <li><span class="kind">Framework</span><span class="body"><a href="https://www.nist.gov/itl/ai-risk-management-framework">NIST AI Risk Management Framework</a><span class="why">A practical, voluntary framework for governing AI risk. Useful structure even outside the US.</span></span></li>
+    <li><span class="kind">Tool</span><span class="body"><a href="https://microsoft.github.io/presidio/">Microsoft Presidio</a><span class="why">Open-source PII detection and anonymisation for the redaction layer in Section 04. Has a usable API.</span></span></li>
+    <li><span class="kind">Standard</span><span class="body"><a href="https://www.iso.org/standard/81230.html">ISO/IEC 42001 &mdash; AI Management Systems</a><span class="why">The emerging management-system standard for AI. Increasingly requested in enterprise procurement.</span></span></li>
+    <li><span class="kind">Guide</span><span class="body"><a href="https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/artificial-intelligence/">UK ICO &mdash; Guidance on AI and data protection</a><span class="why">Unusually practical regulator guidance, including on automated decisions and explainability.</span></span></li>
+    <li><span class="kind">Toolkit</span><span class="body"><a href="https://fairlearn.org/">Fairlearn</a><span class="why">Open-source tools for measuring and mitigating the outcome disparities discussed in Section 06.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 6.4 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

@@ -1,0 +1,475 @@
+<title>Train Your Own Model From Scratch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 09 &middot; Models &amp; Training</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">9.5</span>
+    <h1>Train Your Own Model From Scratch</h1>
+    <p class="lede">Building a language model from nothing. This page walks the full pipeline &mdash; data, tokenizer, architecture,
+pre-training loop, then SFT &mdash; using nanoGPT-scale code you can actually run, explains what each stage costs
+and why you almost never do this at frontier scale, and gives an honest map of when training from scratch is
+the right call versus fine-tuning.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#pipeline">The five stages</a></li><li><a href="#scratch">Build and train a small GPT</a></li><li><a href="#post">From base model to assistant</a></li><li><a href="#reality">When to actually train from scratch</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>Transformer mechanics (Topic 1.3), the training loop (Topic 2.5), and fine-tuning (Topic 3.5). This page is the whole model lifecycle, from raw text to a working model.</p>
+</div>
+
+<p>You asked how to train your own local AI model. There are two very different things people mean by that, and separating them is the first lesson:</p>
+
+<div class="tbl">
+  <table>
+    <caption>Two meanings of "train your own model"</caption>
+    <thead><tr><th></th><th>Fine-tuning (Topic 3.5)</th><th>Pre-training from scratch (this page)</th></tr></thead>
+    <tbody>
+      <tr><td>Start from</td><td>An existing trained model</td><td>Random weights &mdash; nothing</td></tr>
+      <tr><td>Teaches</td><td>Style, format, a task</td><td>Language and knowledge, from zero</td></tr>
+      <tr><td>Data needed</td><td>Hundreds to thousands of examples</td><td>Billions to trillions of tokens</td></tr>
+      <tr><td>Cost</td><td>Dollars to hundreds</td><td>Thousands to millions</td></tr>
+      <tr><td>You will do it&hellip;</td><td>Often</td><td>Almost never at scale &mdash; but once, small, to understand it</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">Why build a tiny one anyway</span>
+  <p>You will essentially never pre-train a frontier model &mdash; it costs millions and needs a data-centre. But building a <em>small</em> one (a few million parameters, on a laptop) is one of the most clarifying things you can do in this whole roadmap. Every abstraction &mdash; tokens, attention, the training loop, loss going down, sampling &mdash; becomes concrete when you have watched a model you built learn to produce text from nothing. That is the goal of this page: understanding through construction, not a production model.</p>
+</div>
+
+<h2 id="pipeline"><span class="kicker">Section 02 <span class="lvl lvl-b">Beginner</span></span>The five stages</h2>
+
+<div class="tbl">
+  <table>
+    <caption>From raw text to a chatting model</caption>
+    <thead><tr><th>Stage</th><th>Turns&hellip;</th><th>Into&hellip;</th><th>Covered in</th></tr></thead>
+    <tbody>
+      <tr><td>1. Data</td><td>The internet, books, code</td><td>A clean, deduplicated token stream</td><td>This page + Data Engineering</td></tr>
+      <tr><td>2. Tokenizer</td><td>Text</td><td>A vocabulary and text&harr;token mapping</td><td>Topic 1.3 (BPE)</td></tr>
+      <tr><td>3. Architecture</td><td>&mdash;</td><td>A transformer of a chosen size</td><td>Topic 1.3</td></tr>
+      <tr><td>4. Pre-training</td><td>The token stream</td><td>A base model that continues text</td><td>This page</td></tr>
+      <tr><td>5. Post-training</td><td>A base model</td><td>An assistant (SFT, then preferences)</td><td>Topic 3.5, Topic 1.3</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="scratch"><span class="kicker">Section 03 <span class="lvl lvl-a">Advanced</span></span>Build and train a small GPT</h2>
+
+<p>The whole pipeline, at a scale that runs on modest hardware. This is nanoGPT territory &mdash; a few hundred lines total; here is the shape.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Data and tokenizer</span></div>
+<pre><code>import numpy as np
+
+<span class="cm"># --- STAGE 1-2: text -> tokens. For a tiny model, a character-level</span>
+<span class="cm"># "tokenizer" is enough to learn from and keeps things simple.</span>
+text = open("input.txt", encoding="utf-8").read()   <span class="cm"># e.g. all of Shakespeare</span>
+chars = sorted(set(text))
+stoi = {c: i for i, c in enumerate(chars)}
+itos = {i: c for c, i in stoi.items()}
+encode = lambda s: [stoi[c] for c in s]
+decode = lambda ids: "".join(itos[i] for i in ids)
+
+data = np.array(encode(text), dtype=np.int64)
+n = int(0.9 * len(data))
+train_data, val_data = data[:n], data[n:]           <span class="cm"># honest held-out split</span>
+
+def get_batch(split, block_size=256, batch_size=64):
+    d = train_data if split == "train" else val_data
+    ix = np.random.randint(len(d) - block_size, size=batch_size)
+    x = np.stack([d[i:i+block_size] for i in ix])
+    y = np.stack([d[i+1:i+block_size+1] for i in ix])  <span class="cm"># y is x shifted by one</span>
+    return x, y   <span class="cm"># the model predicts the NEXT token at every position</span></code></pre>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>The pre-training loop (PyTorch)</span></div>
+<pre><code>import torch, torch.nn as nn
+from torch.nn import functional as F
+
+<span class="cm"># --- STAGE 3: a small transformer (the block from Topic 1.3) -------</span>
+model = GPT(vocab_size=len(chars), n_layer=6, n_head=6,
+            n_embd=384, block_size=256)              <span class="cm"># ~10M params</span>
+model = model.to(device)
+
+<span class="cm"># --- STAGE 4: PRE-TRAINING = next-token prediction, at scale -------</span>
+<span class="cm"># This IS how GPT is trained. The only differences at frontier</span>
+<span class="cm"># scale are: bigger model, more data, more GPUs, longer. The loop</span>
+<span class="cm"># is the same one you built in Topic 2.5.</span>
+optim = torch.optim.AdamW(model.parameters(), lr=3e-4)
+
+for step in range(5000):
+    x, y = get_batch("train")
+    x, y = torch.tensor(x, device=device), torch.tensor(y, device=device)
+
+    logits = model(x)                                <span class="cm"># (batch, seq, vocab)</span>
+    <span class="cm"># Cross-entropy over the whole sequence (Topic 1.2). This single</span>
+    <span class="cm"># loss, minimised over enough data, is where language ability</span>
+    <span class="cm"># and knowledge come from.</span>
+    loss = F.cross_entropy(logits.view(-1, logits.size(-1)), y.view(-1))
+
+    optim.zero_grad(set_to_none=True)
+    loss.backward()
+    torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+    optim.step()
+
+    if step % 500 == 0:
+        print(f"step {step}: loss {loss.item():.3f}")   <span class="cm"># watch it fall</span>
+
+<span class="cm"># --- Generate: the base model can now continue text ---------------</span>
+context = torch.zeros((1, 1), dtype=torch.long, device=device)
+print(decode(model.generate(context, max_new_tokens=500)[0].tolist()))</code></pre>
+</div>
+
+<div class="note key">
+  <span class="tag">You have now seen the whole thing</span>
+  <p>That loop, run to convergence on a small corpus, produces a model that generates text in the style of its training data from a standing start. It is genuinely the same procedure as training GPT &mdash; next-token prediction, cross-entropy loss, AdamW, gradient clipping. The gap to a frontier model is <em>scale and engineering</em> (more parameters, trillions of tokens, thousands of GPUs, months, and enormous data and infrastructure work), not a different idea. Understanding that the idea is simple, and the scale is what is hard, is the whole point.</p>
+</div>
+
+<h2 id="post"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>From base model to assistant</h2>
+
+<p>Your pre-trained model <em>continues</em> text; it does not <em>follow instructions</em>. Turning it into an assistant is post-training (Topic 1.3):</p>
+
+<ol class="steps">
+  <li><strong>Supervised fine-tuning (SFT).</strong> Train on instruction&ndash;response pairs so it answers rather than continues. This is the same fine-tuning machinery as Topic 3.5.</li>
+  <li><strong>Preference alignment.</strong> RLHF or DPO on human comparisons, to shape helpfulness, tone and refusals.</li>
+</ol>
+
+<div class="note">
+  <p>At small scale you can do SFT on your own model with the same PyTorch/TRL tools from Topics 3.5 and 9.3. Full preference alignment is more involved, but the concept &mdash; reward the responses humans prefer &mdash; is what you read about in Topic 1.3. The lesson: a usable assistant is <em>pre-training for capability, then post-training for behaviour</em>. Most of the compute is stage 4; most of the "personality" is stage 5.</p>
+</div>
+
+<h2 id="reality"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>When to actually train from scratch</h2>
+
+<div class="tbl">
+  <table>
+    <caption>The honest decision</caption>
+    <thead><tr><th>Situation</th><th>Do this</th></tr></thead>
+    <tbody>
+      <tr><td>You want a model that knows your facts</td><td>RAG (Phase 4) &mdash; not training</td></tr>
+      <tr><td>You want a model that follows your format/style</td><td>Fine-tune an open model (Topic 3.5)</td></tr>
+      <tr><td>You want a smaller/cheaper model for one task</td><td>Fine-tune or distil an open model</td></tr>
+      <tr><td>You need a genuinely new language or modality with no good open model</td><td>Continued pre-training on an open base, maybe</td></tr>
+      <tr><td>You are a research lab with a data-centre and a novel architecture</td><td>Pre-train from scratch</td></tr>
+      <tr><td>You want to <em>understand</em> how models work</td><td><strong>Build a tiny one (Section 03) &mdash; do this</strong></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note trap">
+  <span class="tag">Pre-training from scratch is almost never the right production answer</span>
+  <p>For essentially every business problem, an existing open or closed model &mdash; used directly, with RAG, or fine-tuned &mdash; is faster, cheaper and better than training your own from nothing. Pre-training a competitive model requires trillions of curated tokens, a large GPU cluster, months of work, and deep expertise in data and distributed training. The people who do it are foundation-model labs. Build the tiny one to learn; reach for RAG and fine-tuning to ship. Confusing "I trained a model" (fine-tuning) with "I built a model" (pre-training) in an interview is a tell &mdash; know the difference.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly a weekend</div>
+  <ol>
+    <li>Clone nanoGPT and train the character-level Shakespeare model on your machine. Watch the loss fall and read the samples at each stage.</li>
+    <li>Print samples at step 0, 500, 2000 and 5000. Watch it go from noise to structured text.</li>
+    <li>Change one hyperparameter (layers, embedding size, learning rate) and observe the effect on loss and output quality.</li>
+    <li>Swap the character tokenizer for a small BPE tokenizer (Topic 1.3). Compare sample quality at the same parameter count.</li>
+    <li>Compute how long and how much it would cost to scale your setup to a 1B-parameter model on rented GPUs. Appreciate the gap.</li>
+    <li>SFT your tiny base model on a handful of instruction pairs and see it start to follow instructions.</li>
+    <li>Write one paragraph explaining, to a non-engineer, why training from scratch is rarely the right business choice.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Video</span><span class="body"><a href="https://www.youtube.com/watch?v=kCc8FmEb1nY">Karpathy &mdash; Let's build GPT from scratch</a><span class="why">Builds exactly the model and loop of Section 03, line by line. The single best resource for this page.</span></span></li>
+    <li><span class="kind">Code</span><span class="body"><a href="https://github.com/karpathy/nanoGPT">nanoGPT</a><span class="why">The clean, runnable reference. Train Shakespeare in an afternoon.</span></span></li>
+    <li><span class="kind">Video</span><span class="body"><a href="https://www.youtube.com/watch?v=7xTGNNLPyMI">Karpathy &mdash; Deep Dive into LLMs like ChatGPT</a><span class="why">The full pre-training &rarr; SFT &rarr; RLHF lifecycle explained end to end.</span></span></li>
+    <li><span class="kind">Project</span><span class="body"><a href="https://github.com/karpathy/build-nanogpt">nano-llama / build-nanogpt</a><span class="why">A larger reproduction, showing what changes as you scale up.</span></span></li>
+    <li><span class="kind">Course</span><span class="body"><a href="https://huggingface.co/learn/nlp-course/chapter7/6">Hugging Face &mdash; Training a causal LM from scratch</a><span class="why">The same pipeline with the Transformers/Datasets tooling from Topic 9.3.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 9.5 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

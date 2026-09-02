@@ -1,0 +1,10 @@
+# Internal map of slug -> Claude artifact URLs. Kept locally for rebuilding
+# the online copy; the artifacts are private, so it does not belong in a
+# public repo.
+urls.json
+
+# OS / editor noise
+Thumbs.db
+desktop.ini
+.DS_Store
+*.swp

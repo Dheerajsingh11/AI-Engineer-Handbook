@@ -1,0 +1,419 @@
+<title>AI Coding Assistants</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 17 &middot; Applications &amp; Career</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">17.2</span>
+    <h1>AI Coding Assistants</h1>
+    <p class="lede">The AI systems that write and understand code &mdash; and how to build with them. This page covers how coding
+assistants work under the hood (it is RAG and agents over a codebase), the spectrum from autocomplete to
+autonomous agents, why code is a uniquely good fit for AI, how to use these tools well, and the patterns for
+building your own code-aware features.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#how">How a coding assistant works</a></li><li><a href="#using">Using AI coding tools well</a></li><li><a href="#building">Building code-aware features</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>RAG (Phase 4), agents (Phase 8) and tool use (Topic 5.1). AI coding assistants are these applied to code &mdash; and a domain you already understand deeply.</p>
+</div>
+
+<p>AI coding assistants &mdash; autocomplete, chat-in-the-editor, and autonomous coding agents &mdash; are among the most successful and widely-adopted AI applications. As a software engineer, this is a domain where you have deep intuition, which makes it a great lens for understanding applied AI. And the assistants themselves are built from exactly the components in this handbook.</p>
+
+<div class="tbl">
+  <table>
+    <caption>The spectrum of AI coding tools</caption>
+    <thead><tr><th>Level</th><th>Does</th><th>Example shape</th></tr></thead>
+    <tbody>
+      <tr><td>Autocomplete</td><td>Suggests the next lines as you type</td><td>Inline completion</td></tr>
+      <tr><td>Chat assistant</td><td>Answer questions, explain, refactor on request</td><td>Editor chat panel</td></tr>
+      <tr><td>Agentic editing</td><td>Makes multi-file changes from a task description</td><td>"Implement this feature"</td></tr>
+      <tr><td>Autonomous agent</td><td>Plans, edits, runs tests, iterates</td><td>A coding agent (Phase 8)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">Why code is a uniquely good fit for AI</span>
+  <p>Coding assistants work unusually well for reasons worth understanding, because they generalise. <strong>Code has structure and rules</strong> the model learned from vast public repositories. <strong>There is abundant training data</strong> (all of open source). And crucially, <strong>code has a verifier</strong>: you can <em>run</em> it and <em>test</em> it. Unlike an essay, where "correct" is fuzzy, code either compiles and passes tests or it does not &mdash; giving the model, and the agent around it, an objective signal to iterate against. That verifiability is why coding agents (Phase 8) can genuinely self-correct: write code, run tests, read the errors, fix, repeat. The general lesson: <strong>AI works best where outputs can be automatically verified</strong> &mdash; look for that property in any problem.</p>
+</div>
+
+<h2 id="how"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>How a coding assistant works</h2>
+
+<p>Under the hood, a coding assistant is the patterns you already know, pointed at a codebase.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Coding assistant = familiar components over code</caption>
+    <thead><tr><th>Capability</th><th>Built from</th></tr></thead>
+    <tbody>
+      <tr><td>Understands your codebase</td><td>RAG over code (retrieval, Phase 4) &mdash; find relevant files/functions</td></tr>
+      <tr><td>Knows the current file &amp; cursor</td><td>Context assembly (Topic 4.6)</td></tr>
+      <tr><td>Makes changes</td><td>Tools: read file, edit file, run command (Topics 5.1, 8.4)</td></tr>
+      <tr><td>Multi-step tasks</td><td>The agent loop (Phase 8)</td></tr>
+      <tr><td>Self-corrects</td><td>Run tests as a tool; iterate on failures (Topic 8.7)</td></tr>
+      <tr><td>Connects to tools</td><td>MCP servers for docs, issues, deploys (Topic 3.4)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note">
+  <p><strong>The retrieval problem for code is distinctive.</strong> Retrieving relevant code is not quite the same as retrieving prose (Phase 4): you can use the structure &mdash; imports, call graphs, type definitions, symbol references &mdash; not just embedding similarity. Good code assistants combine semantic search (embeddings of code, Topic 4.2) with structural signals (which functions call this one, what this type is defined as) to assemble the right context. It is hybrid retrieval (Topic 4.6) enriched with the graph structure of the codebase (Topic 12.6) &mdash; a nice example of composing several techniques from this handbook for one real problem.</p>
+</div>
+
+<h2 id="using"><span class="kicker">Section 03 <span class="lvl lvl-a">Advanced</span></span>Using AI coding tools well</h2>
+
+<p>These tools amplify a good engineer and can mislead a careless one. Using them well is a skill.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Getting the most from coding assistants</caption>
+    <thead><tr><th>Do</th><th>Because</th></tr></thead>
+    <tbody>
+      <tr><td>Give clear, scoped tasks</td><td>Vague asks produce vague, wrong code</td></tr>
+      <tr><td>Provide context (files, examples, conventions)</td><td>The model works from what it can see</td></tr>
+      <tr><td>Review everything it writes</td><td>It produces plausible-but-wrong code confidently (Topic 1.3)</td></tr>
+      <tr><td>Let it run tests</td><td>Verification is where it self-corrects (Section 01)</td></tr>
+      <tr><td>Work in small steps</td><td>Easier to review; less compounding error</td></tr>
+      <tr><td>Keep security in mind</td><td>It can introduce vulnerabilities; review as you would a junior's PR</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note trap">
+  <span class="tag">The confident-wrong-code trap</span>
+  <p>AI-generated code is fluent, plausible, and sometimes subtly wrong &mdash; it may use a non-existent API, introduce an off-by-one, or add a security hole, all while looking perfectly reasonable (the hallucination problem, Topic 1.3, in code form). It can also produce code that works but is insecure or does not match your conventions. <strong>Treat AI-written code exactly as you would a pull request from a capable but unfamiliar junior engineer:</strong> read every line, run the tests, check the security implications, and never merge what you do not understand. The productivity gain is real, but it comes from <em>reviewing faster</em>, not from <em>reviewing less</em>. Blindly accepting AI code is how subtle bugs and vulnerabilities reach production.</p>
+</div>
+
+<h2 id="building"><span class="kicker">Section 04 <span class="lvl lvl-p">Professional</span></span>Building code-aware features</h2>
+
+<p>You may build code-understanding features into your own products &mdash; a documentation assistant, a code-review bot, an internal tool that answers questions about your systems. The patterns:</p>
+
+<div class="tbl">
+  <table>
+    <caption>Building with code as the domain</caption>
+    <thead><tr><th>Feature</th><th>Built from</th></tr></thead>
+    <tbody>
+      <tr><td>Ask-my-codebase</td><td>RAG over code + structure-aware retrieval (Section 02)</td></tr>
+      <tr><td>Automated code review</td><td>Agent + diff analysis + your standards as a prompt/skill (Topics 8.3, 8.5)</td></tr>
+      <tr><td>Doc generation</td><td>LLM over code with structured output (Topic 3.1)</td></tr>
+      <tr><td>Migration / refactor tools</td><td>Agent with edit + test tools (Phase 8)</td></tr>
+      <tr><td>Incident / log analysis</td><td>RAG over logs + reasoning (Topics 4.1, 9.4)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note java">
+  <span class="tag">Your engineering background is the advantage here</span>
+  <p>Building AI-for-code features plays directly to your strengths as a software engineer: you understand codebases, testing, CI/CD, and what developers actually need. The AI part is composition of skills you now have (RAG, agents, tools, evaluation); the <em>domain</em> part &mdash; knowing what makes a code-review bot useful, how to safely let an agent edit a repo, what context a developer question really needs &mdash; is where your experience makes you better than a pure-ML engineer. This is a concrete example of the roadmap's theme: <strong>your existing expertise plus these AI skills is worth more than either alone</strong>, and code is the domain where that combination is most obviously valuable.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly a weekend</div>
+  <ol>
+    <li>Use a coding agent on a real task in a repo you know. Note where it excelled and where it produced confident-wrong code.</li>
+    <li>Build a simple "ask my codebase" RAG tool. Then improve retrieval by adding structural signals (imports, call graph) beyond embeddings.</li>
+    <li>Build a code-review bot: an agent that reads a diff, checks it against your standards (as a skill, Topic 8.5), and comments.</li>
+    <li>Give a coding agent test-running as a tool and watch it self-correct on failures (Section 01).</li>
+    <li>Deliberately accept AI code without review, find the bug it introduced, then establish your review discipline (Section 03).</li>
+    <li>Write up how your engineering background makes you better at building AI-for-code features (Section 04).</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.claude.com/en/docs/claude-code/overview">Claude Code documentation</a><span class="why">A production coding agent &mdash; how autonomous code editing, tools and hooks fit together (Phase 8).</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2107.03374">Evaluating Large Language Models Trained on Code (Codex)</a><span class="why">The foundational paper on code LLMs and why code is a good fit (Section 01).</span></span></li>
+    <li><span class="kind">Benchmark</span><span class="body"><a href="https://www.swebench.com/">SWE-bench</a><span class="why">How coding agents are evaluated on real GitHub issues &mdash; the verifier idea of Section 01.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://www.anthropic.com/engineering/building-effective-agents">Building Effective Agents</a><span class="why">The agent patterns behind autonomous coding tools (Phase 8).</span></span></li>
+    <li><span class="kind">Guide</span><span class="body"><a href="https://simonwillison.net/tags/ai-assisted-programming/">Simon Willison on AI-assisted programming</a><span class="why">Grounded, practical writing on using these tools well (Section 03).</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 17.2 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

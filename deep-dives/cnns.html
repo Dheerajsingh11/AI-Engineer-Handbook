@@ -1,0 +1,477 @@
+<title>CNNs & Computer Vision</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 12 &middot; Deep Learning Architectures</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">12.1</span>
+    <h1>CNNs &amp; Computer Vision</h1>
+    <p class="lede">The architecture that made computers see. This page explains the one idea behind convolutional networks &mdash;
+that the same small pattern-detector should slide across the whole image &mdash; builds a convolution by hand,
+covers the CNN toolkit (pooling, channels, stride) and the task taxonomy (classification, detection,
+segmentation), and places CNNs against the vision transformers that now rival them.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#convolution">A convolution, by hand</a></li><li><a href="#toolkit">The CNN toolkit</a></li><li><a href="#tasks">The vision task taxonomy</a></li><li><a href="#vit">CNNs vs vision transformers</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>Neural network basics (Topic 2.4) and what a matrix is (Topic 1.1). Computer vision is where deep learning first broke through (Topic 11.2).</p>
+</div>
+
+<p>A photo is just a grid of numbers &mdash; each pixel a brightness value, three of them for colour. So why not feed that grid to an ordinary neural network (Topic 2.4)? You can, and it works badly, for two reasons that the whole design of a CNN exists to fix.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Why a plain network is wrong for images</caption>
+    <thead><tr><th>Problem</th><th>Consequence</th></tr></thead>
+    <tbody>
+      <tr><td>Too many connections</td><td>A 1000&times;1000 image has a million inputs; connecting every one to every neuron is billions of weights &mdash; unlearnable</td></tr>
+      <tr><td>No sense of place</td><td>A plain network treats pixel (0,0) and its neighbour as unrelated; it has no notion that nearby pixels form shapes</td></tr>
+      <tr><td>No translation invariance</td><td>A cat in the top-left and the same cat in the bottom-right look completely different to it</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">The one idea behind CNNs</span>
+  <p><strong>A feature that is useful in one part of an image is useful everywhere, so learn it once and slide it across the whole image.</strong> An edge detector that works in the corner works in the centre too &mdash; so instead of separate weights per position, a CNN learns a small <em>filter</em> (a tiny pattern-detector) and applies the same filter across every location. This slashes the number of weights and builds in the idea that images are made of local patterns that can appear anywhere. That single principle &mdash; shared, sliding filters &mdash; is what a convolution is.</p>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Convolution</dt><dd>Sliding a small filter across an image, computing a match at each position.</dd>
+    <dt>Filter / kernel</dt><dd>The small grid of learned weights that detects one pattern (an edge, a texture).</dd>
+    <dt>Feature map</dt><dd>The output of one filter across the image &mdash; where that pattern was found.</dd>
+    <dt>Channel</dt><dd>One layer of the input or output; a colour image has 3 input channels.</dd>
+    <dt>Pooling</dt><dd>Shrinking a feature map by summarising small regions &mdash; keeps the gist, drops detail.</dd>
+    <dt>Stride</dt><dd>How far the filter jumps each step. Bigger stride = smaller output.</dd>
+  </dl>
+</div>
+
+<h2 id="convolution"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>A convolution, by hand</h2>
+
+<p>A convolution is multiply-and-add (Topic 1.1) applied to a sliding window. Here it is with no library, so the mechanism is unambiguous.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>2D convolution and an edge detector</span></div>
+<pre><code>import numpy as np
+
+def convolve2d(image, kernel):
+    kh, kw = kernel.shape
+    ih, iw = image.shape
+    out = np.zeros((ih - kh + 1, iw - kw + 1))
+    for y in range(out.shape[0]):
+        for x in range(out.shape[1]):
+            <span class="cm"># At each position: overlay the kernel, multiply, sum.</span>
+            <span class="cm"># A high value = "this patch matches the kernel's pattern".</span>
+            patch = image[y:y+kh, x:x+kw]
+            out[y, x] = (patch * kernel).sum()
+    return out
+
+<span class="cm"># A vertical-edge detector: dark on the left, bright on the right.</span>
+<span class="cm"># A CNN LEARNS filters like this from data instead of hand-coding them.</span>
+sobel_x = np.array([[-1, 0, 1],
+                    [-2, 0, 2],
+                    [-1, 0, 1]])
+
+edges = convolve2d(image, sobel_x)   <span class="cm"># lights up where vertical edges are</span>
+
+<span class="cm"># Stack many learned filters, then feed their feature maps into more</span>
+<span class="cm"># convolutions. Early layers learn edges; deeper layers combine them</span>
+<span class="cm"># into textures, then parts (an eye, a wheel), then whole objects.</span></code></pre>
+</div>
+
+<div class="note key">
+  <span class="tag">The hierarchy of features</span>
+  <p>The reason deep CNNs work so well is that they build a <strong>hierarchy</strong>. The first layer learns simple things &mdash; edges, colours, gradients. The next combines those into textures and simple shapes. Deeper layers combine <em>those</em> into object parts, and the deepest into whole objects. Nobody programs this hierarchy; it emerges from training, and if you visualise a trained CNN's filters you can see it. This is the deep-learning promise made visible: the network learns its own features, from raw pixels up to concepts.</p>
+</div>
+
+<h2 id="toolkit"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>The CNN toolkit</h2>
+
+<div class="tbl">
+  <table>
+    <caption>The building blocks of a CNN</caption>
+    <thead><tr><th>Layer</th><th>Does</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Convolution</td><td>Applies learned filters</td><td>Detects patterns, position-independently</td></tr>
+      <tr><td>Activation (ReLU)</td><td>Non-linearity (Topic 2.4)</td><td>Lets layers stack meaningfully</td></tr>
+      <tr><td>Pooling</td><td>Downsamples (e.g. max of each 2&times;2)</td><td>Shrinks data; adds position tolerance</td></tr>
+      <tr><td>Channels</td><td>Many filters per layer</td><td>Detect many patterns at once</td></tr>
+      <tr><td>Stride / padding</td><td>Control output size</td><td>Manage resolution through the network</td></tr>
+      <tr><td>Fully-connected head</td><td>Final classification (Topic 2.4)</td><td>Turns features into a decision</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>A small CNN in PyTorch</span></div>
+<pre><code>import torch.nn as nn
+
+model = nn.Sequential(
+    nn.Conv2d(3, 32, kernel_size=3, padding=1), nn.ReLU(),  <span class="cm"># 3 colour -> 32 features</span>
+    nn.MaxPool2d(2),                                        <span class="cm"># halve the resolution</span>
+    nn.Conv2d(32, 64, kernel_size=3, padding=1), nn.ReLU(),
+    nn.MaxPool2d(2),
+    nn.Flatten(),
+    nn.Linear(64 * 8 * 8, 128), nn.ReLU(),
+    nn.Linear(128, 10),                                     <span class="cm"># 10 classes</span>
+)
+<span class="cm"># Train it with the exact loop from Topic 2.5 -- CNNs are ordinary</span>
+<span class="cm"># neural nets whose layers happen to be convolutions.</span></code></pre>
+</div>
+
+<h2 id="tasks"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>The vision task taxonomy</h2>
+
+<p>"Computer vision" is several distinct problems, each with its own output shape and models.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Types of vision task</caption>
+    <thead><tr><th>Task</th><th>Question</th><th>Output</th><th>Example model family</th></tr></thead>
+    <tbody>
+      <tr><td>Classification</td><td>What is in this image?</td><td>One label</td><td>ResNet, EfficientNet, ViT</td></tr>
+      <tr><td>Object detection</td><td>What is where?</td><td>Boxes + labels</td><td>YOLO, DETR</td></tr>
+      <tr><td>Segmentation</td><td>Which pixels are what?</td><td>A label per pixel</td><td>U-Net, Mask R-CNN, SAM</td></tr>
+      <tr><td>Pose / keypoints</td><td>Where are the parts?</td><td>Points</td><td>OpenPose</td></tr>
+      <tr><td>Image embedding</td><td>Represent for search/similarity</td><td>A vector</td><td>CLIP (Topic 6.2)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note java">
+  <span class="tag">Where CNNs touch your AI-engineering work</span>
+  <p>You are unlikely to train a CNN from scratch, but they appear in your world constantly: the <strong>vision encoder</strong> inside a multimodal model that reads documents (Topic 6.2) is CNN- or ViT-based; <strong>OCR and layout parsing</strong> in your ingestion pipeline (Topic 4.5) uses vision models; and <strong>image embeddings</strong> for multimodal RAG (Topic 6.2) come from these architectures. You use them through higher-level APIs, but knowing what a convolution does demystifies why these systems behave as they do &mdash; and why, for a bespoke vision task, fine-tuning a pretrained CNN is usually the right move over training one from nothing.</p>
+</div>
+
+<h2 id="vit"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>CNNs vs vision transformers</h2>
+
+<p>Since 2020, the transformer (Topic 1.3) has moved into vision as the <strong>Vision Transformer (ViT)</strong>, cutting images into patches and treating them as tokens (Topic 6.2). It now rivals or beats CNNs on many benchmarks &mdash; but CNNs are far from obsolete.</p>
+
+<div class="tbl">
+  <table>
+    <caption>The trade-off</caption>
+    <thead><tr><th></th><th>CNN</th><th>Vision Transformer</th></tr></thead>
+    <tbody>
+      <tr><td>Built-in assumption</td><td>Locality &amp; translation invariance</td><td>None &mdash; learns relationships from data</td></tr>
+      <tr><td>Data efficiency</td><td>Good with less data</td><td>Needs lots of data (or pretraining)</td></tr>
+      <tr><td>Peak accuracy at scale</td><td>Strong</td><td>State-of-the-art on many tasks</td></tr>
+      <tr><td>Compute</td><td>Efficient</td><td>Heavier (attention is quadratic)</td></tr>
+      <tr><td>Use when</td><td>Limited data, edge devices</td><td>Large data, top accuracy, multimodal</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note">
+  <p><strong>The pattern is familiar from Topic 11.2.</strong> The CNN builds in a strong human-designed assumption (locality); the transformer builds in almost nothing and learns the structure from data &mdash; and, given enough data and compute, the general approach wins, exactly as the "bitter lesson" predicts. For an application builder the practical upshot is simple: use whatever the pretrained model you are consuming happens to use, and reach for a CNN when data is scarce or compute is tight, a ViT when you have data and want peak accuracy.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly a weekend</div>
+  <ol>
+    <li>Implement <code>convolve2d</code> and run the Sobel edge detector on a photo. See the edges light up.</li>
+    <li>Train the small PyTorch CNN on CIFAR-10 or MNIST. Reach a good accuracy using the Topic 2.5 training loop.</li>
+    <li>Visualise the learned first-layer filters. Confirm they resemble edge and colour detectors.</li>
+    <li>Fine-tune a pretrained ResNet on a small custom dataset. Compare against training from scratch &mdash; note how much pretraining helps.</li>
+    <li>Run an object detector (YOLO) and a segmentation model (SAM) on the same image. Observe the different output shapes.</li>
+    <li>Compare a CNN and a ViT on a small dataset. Reproduce the data-efficiency gap from Section 05.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Course</span><span class="body"><a href="https://cs231n.github.io/">Stanford CS231n</a><span class="why">The canonical computer-vision course. The notes on convolutions and architectures are the best free resource.</span></span></li>
+    <li><span class="kind">Video</span><span class="body"><a href="https://www.youtube.com/watch?v=KuXjwB4LzSA">3Blue1Brown &mdash; But what is a convolution?</a><span class="why">The clearest visual intuition for the operation in Section 02.</span></span></li>
+    <li><span class="kind">Course</span><span class="body"><a href="https://course.fast.ai/">fast.ai &mdash; Practical Deep Learning</a><span class="why">Builds and fine-tunes vision models fast, top-down. Ideal for the Section 06 exercises.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2010.11929">An Image is Worth 16x16 Words (ViT)</a><span class="why">The Vision Transformer from Section 05 (also Topic 6.2).</span></span></li>
+    <li><span class="kind">Tool</span><span class="body"><a href="https://poloclub.github.io/cnn-explainer/">CNN Explainer</a><span class="why">An interactive, in-browser CNN you can watch process an image layer by layer.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 12.1 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

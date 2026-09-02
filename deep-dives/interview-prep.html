@@ -1,0 +1,608 @@
+<title>Interview Preparation Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 21 &middot; Interview &amp; Portfolio</span>
+    <span class="sep">/</span>
+    <span>Getting hired</span>
+  </div>
+
+  <header class="head">
+    <span class="num">21.1</span>
+    <h1>Interview Preparation Guide</h1>
+    <p class="lede">What an Applied AI Engineer loop actually asks a backend developer with four years of experience &mdash; the five rounds, a real question bank with the answers interviewers are listening for, a system-design framework that survives pressure, and a triage of the handbook's 113 topics into what is tested and what is not.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">The loop &middot; five rounds, in the order they usually run</div>
+    <ol>
+      <li><span class="lvl lvl-b">Round 1</span><b>Coding</b><span class="who">Still LeetCode-shaped. Increasingly with an LLM flavour.</span></li>
+      <li><span class="lvl lvl-i">Round 2</span><b>Fundamentals</b><span class="who">How the things you use actually work. No coding.</span></li>
+      <li><span class="lvl lvl-a">Round 3</span><b>AI System Design</b><span class="who">The round that decides the offer.</span></li>
+      <li><span class="lvl lvl-p">Round 4&ndash;5</span><b>Practical &amp; Deep-Dive</b><span class="who">One system you shipped, interrogated. Bring numbers.</span></li>
+    </ol>
+  </div>
+
+  <div class="note key">
+    <span class="tag">The one-line strategy</span>
+    <p>You are not applying as a Java developer learning AI. You are applying as a <strong>backend engineer who ships LLM systems in production</strong> &mdash; a profile that is in demand, under-supplied, and one your four years actually qualifies you for. Everything on this page serves that single positioning.</p>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol>
+      <li><a href="#target">Pick the right target</a></li>
+      <li><a href="#loop">The loop, round by round</a></li>
+      <li><a href="#bank">The fundamentals question bank</a></li>
+      <li><a href="#design">AI system design, with a framework</a></li>
+      <li><a href="#coding">The coding round</a></li>
+      <li><a href="#deepdive">Project deep-dive &amp; behavioural</a></li>
+      <li><a href="#triage">Topic triage &mdash; what is actually tested</a></li>
+      <li><a href="#plan">Twelve weeks, and how to apply</a></li>
+    </ol>
+  </nav>
+
+<h2 id="target"><span class="kicker">Step 01</span>Pick the right target</h2>
+
+<p>Three doors exist for a backend engineer moving into AI, and only one of them is wide open at four years of experience. Choosing wrong is the most common way this transition fails &mdash; not because the person could not learn the material, but because they spread twelve weeks of preparation across three incompatible hiring bars.</p>
+
+<div class="tbl">
+<table>
+  <caption>The three tracks, honestly assessed</caption>
+  <thead><tr><th>Track</th><th>Winnable at 4 YOE?</th><th>Why</th></tr></thead>
+  <tbody>
+    <tr><td>AI / LLM Application Engineer<br><span style="color:var(--ink-3);font-size:13px">also: Applied AI, GenAI Engineer, AI Platform Engineer</span></td><td><strong style="color:var(--ok)">Yes &mdash; target this</strong></td><td>It is a backend role with an LLM in the critical path. Services, APIs, queues, latency budgets, on-call &mdash; that is the majority of the job and you already do it. The LLM half is learnable in months.</td></tr>
+    <tr><td>ML Engineer<br><span style="color:var(--ink-3);font-size:13px">ranking, recsys, classical pipelines</span></td><td><span style="color:var(--warn)">Hard</span></td><td>Wants two or more years of training pipelines, feature stores, and offline/online metric design. You would compete directly against people already doing it daily.</td></tr>
+    <tr><td>ML / Research Scientist</td><td><span style="color:var(--bad)">No</span></td><td>Needs publications or an equivalent research record. Not a twelve-week gap.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="note java">
+  <span class="tag">Where your Java background is worth money</span>
+  <p>Enterprise Java shops &mdash; banks, insurers, large SaaS with a JVM core &mdash; are putting LLM features into existing products and cannot hire for it. <strong>Spring AI</strong> and <strong>LangChain4j</strong> (topics <a href="spring-ai.html">3.2</a> and <a href="langchain4j.html">3.3</a>) are a genuine differentiator there. But <strong>Python is table stakes everywhere else</strong>: you must write clean async Python with FastAPI, Pydantic and an LLM SDK without looking things up. Treat Java as the specialisation and Python as the requirement, not the reverse.</p>
+</div>
+
+<h2 id="loop"><span class="kicker">Step 02</span>The loop, round by round</h2>
+
+<div class="tbl">
+<table>
+  <caption>A typical mid-level Applied AI loop</caption>
+  <thead><tr><th>Round</th><th>Format</th><th>What it is really testing</th></tr></thead>
+  <tbody>
+    <tr><td>1 &middot; Coding</td><td>45&ndash;60 min live</td><td>That you are a working engineer. This does not go away &mdash; it is still an SDE hire.</td></tr>
+    <tr><td>2 &middot; LLM fundamentals</td><td>45 min, conceptual</td><td>Whether you understand the machinery or only the SDK surface.</td></tr>
+    <tr><td>3 &middot; AI system design</td><td>60 min whiteboard</td><td>Whether you can put an LLM inside a real system with budgets, failure modes and rollback.</td></tr>
+    <tr><td>4 &middot; Practical</td><td>Take-home or pairing</td><td>Whether you can debug an LLM system you did not write. Sometimes swapped for a deep-dive on your own project.</td></tr>
+    <tr><td>5 &middot; Behavioural + deep-dive</td><td>45&ndash;60 min</td><td>Whether you have felt real production pain. Under-prepared candidates fail here regardless of the rest.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The effort that maximises offers is not spread evenly. Round 3 is where the decision is usually made and where your existing experience gives the largest edge over bootcamp-trained candidates. Round 5 is where you either have a shipped system to talk about or you do not &mdash; and no amount of theory substitutes for one.</p>
+
+<h2 id="bank"><span class="kicker">Step 03</span>The fundamentals question bank</h2>
+
+<p>These are the questions that actually recur. Each is paired with the shape of a strong answer &mdash; not a script to memorise, but the specific thing the interviewer is listening for.</p>
+
+<h3>Mechanics</h3>
+
+<div class="tbl">
+<table>
+  <caption>Round 2 &mdash; how the machinery works</caption>
+  <thead><tr><th>Question</th><th>What a strong answer contains</th></tr></thead>
+  <tbody>
+    <tr><td>Walk me through what happens between my prompt string and the first output token.</td><td>Tokenise &rarr; embed &rarr; add positional information &rarr; N transformer blocks (attention + feed-forward, residual + norm) &rarr; project to vocabulary logits &rarr; sample. Then the crucial detail: the <em>first</em> token costs a full forward pass over the whole prompt (prefill); every token after is one step using the KV-cache (decode). That split is what explains time-to-first-token versus tokens-per-second, and it is the reason the answer sounds experienced.</td></tr>
+    <tr><td>Why is attention O(n&sup2;)? What does the KV-cache change, and what does it cost?</td><td>Every token attends to every other, so the score matrix is n&times;n. The KV-cache stores past keys and values so decode is O(n) per step instead of recomputing the whole prefix &mdash; trading compute for memory. Then quantify: cache size grows with sequence length &times; layers &times; heads &times; head-dim &times; 2, which is why long contexts are memory-bound and why achievable batch size collapses as context grows.</td></tr>
+    <tr><td>Temperature, top-p, top-k &mdash; what is actually happening?</td><td>All three reshape the distribution before sampling. Temperature divides the logits before softmax (lower = sharper). Top-k truncates to the k most likely. Top-p truncates to the smallest set whose cumulative probability exceeds p, so it adapts to how confident the model is at that step. Then the practical half: temperature 0 for extraction, classification and anything you will parse; higher only where variety is the product.</td></tr>
+    <tr><td>What is an embedding, and what does dimensionality buy you?</td><td>A learned map from text to a vector where geometric closeness approximates semantic closeness. Higher dimension holds more distinctions but costs memory, index size and search time roughly linearly. Add that cosine similarity on normalised vectors reduces to a dot product &mdash; which is exactly why stores normalise at write time.</td></tr>
+    <tr><td>What actually changes when you fine-tune?</td><td>Weights, not knowledge storage in any retrievable sense. Fine-tuning reliably moves <em>behaviour</em> &mdash; format, tone, task framing, domain vocabulary. It is an unreliable way to inject facts, because there is no mechanism to update or cite them. That distinction is the whole basis of the next question.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>The decision questions</h3>
+
+<div class="tbl">
+<table>
+  <caption>Round 2 &mdash; judgment, not recall</caption>
+  <thead><tr><th>Question</th><th>What a strong answer contains</th></tr></thead>
+  <tbody>
+    <tr><td>Prompting vs. RAG vs. fine-tuning &mdash; pick one for <em>this</em> problem.</td><td>The axis is what is missing. Missing <em>knowledge</em> that changes over time &rarr; RAG. Missing <em>behaviour, format or style</em> that is stable &rarr; fine-tune. Missing <em>instruction clarity</em> &rarr; prompting. Then the cost ordering: try prompting, then RAG, then fine-tuning, because that is also cheapest-first and fastest-to-iterate-first. Say explicitly that they compose &mdash; a fine-tuned model reading retrieved context is a common and correct answer.</td></tr>
+    <tr><td>LoRA vs. full fine-tuning &mdash; when is LoRA not enough?</td><td>LoRA freezes the base and learns low-rank update matrices on selected projections &mdash; roughly 0.1&ndash;1&nbsp;% of parameters, so it fits on one GPU and produces small swappable adapters. Enough for format, tone, domain vocabulary and narrow tasks. <em>Not</em> enough when you need genuinely new capability or a substantially different data distribution &mdash; that wants full fine-tuning or continued pre-training.</td></tr>
+    <tr><td>The context window is huge &mdash; should you just put everything in?</td><td>Argue both sides, then land. Against: cost scales with input tokens, latency scales with prefill, and retrieval accuracy degrades for material buried mid-context. For: fewer moving parts, no retrieval bugs, and prompt caching makes a large <em>stable</em> prefix cheap on repeat. The honest answer is that long context replaces RAG for small stable corpora and complements it for large or changing ones.</td></tr>
+    <tr><td>How do you get guaranteed-valid JSON out of a model?</td><td>In increasing strength: ask nicely (unreliable), few-shot (better), tool/function calling with a declared schema, then structured outputs that constrain decoding so invalid tokens cannot be sampled at all. Close with the operational point: still validate on receipt, because schema-valid is not the same as semantically correct.</td></tr>
+    <tr><td>What is prompt injection, and why can a better system prompt not fix it?</td><td>Because the model has one channel. Instructions and data arrive as the same token stream, so any attacker-controlled text &mdash; a retrieved document, a scraped page, a tool result &mdash; competes with your system prompt on equal footing. Defence is architectural, not textual: least privilege on tools, human approval on side effects, treating all tool output as untrusted data, output filtering, and never letting retrieved content reach a privileged action unreviewed.</td></tr>
+    <tr><td>How do you evaluate a RAG pipeline?</td><td>Separate the two halves, because they have different owners and different fixes. <strong>Retrieval:</strong> recall@k, MRR, nDCG against a labelled set of question &rarr; correct-document pairs. <strong>Generation:</strong> faithfulness (is every claim supported by the retrieved context), answer relevance, citation accuracy. A system can score well on one and badly on the other, and conflating them means you cannot tell which to fix.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>The debugging questions</h3>
+
+<p>These carry the most signal in the round, because they cannot be answered from a blog post.</p>
+
+<div class="note trap">
+  <span class="tag">&ldquo;Your RAG system returns a confident, wrong answer. Debug it.&rdquo;</span>
+  <p>The failing answer is a flat list of possible causes. The winning answer is an <strong>ordered bisection</strong>, because it shows you have actually done this:</p>
+  <ol>
+    <li><strong>Is the answer even in the corpus?</strong> If not, this is a coverage problem, not a retrieval one, and the correct behaviour is refusing to answer.</li>
+    <li><strong>Did retrieval return the right chunk at all?</strong> Print the top-k. If the right chunk is absent, the bug is upstream: embedding model, chunking, or query phrasing.</li>
+    <li><strong>Was it retrieved but ranked below the cut?</strong> That is a reranking problem, not a retrieval problem.</li>
+    <li><strong>Was it in context and the model ignored it?</strong> Now it is generation: prompt ordering, context length, or a model that stays confident when evidence is weak.</li>
+    <li><strong>Was the chunk itself wrong or stale?</strong> An ingestion and freshness problem.</li>
+  </ol>
+  <p>Each step has a different owner and a different fix. Naming that structure <em>is</em> the answer.</p>
+</div>
+
+<div class="note trap">
+  <span class="tag">&ldquo;Inference costs went up six times last month. Find it.&rdquo;</span>
+  <p>Instrument before theorising: cost per request broken down by route, by model, and split into input / output / cached tokens. The usual culprits, ordered by how often they turn out to be the answer &mdash; a prompt-cache hit rate that silently went to zero (someone put a timestamp in the system prompt); retrieved context growing as the corpus grew; an agent loop whose average turn count crept up; a route quietly falling back to the largest model; retries against a failing tool multiplying every request. The first one is invisible unless you log <code>cache_read_input_tokens</code>, which is exactly why you log it.</p>
+</div>
+
+<h2 id="design"><span class="kicker">Step 04</span>AI system design, with a framework</h2>
+
+<p>This is the round where your four years pay. The discriminator is almost never model knowledge &mdash; it is whether you talk about latency budgets, caching layers, cost per request, failure modes, idempotency, observability and rollback. Candidates from a pure-ML background often cannot. You can. Lead with it.</p>
+
+<h3>A framework that survives pressure</h3>
+
+<ol class="steps">
+  <li><strong>Requirements, and the two AI-specific ones.</strong> The usual scale, latency and consistency questions, plus two that immediately mark you as experienced: <em>what is the cost ceiling per request?</em> and <em>what is the acceptable wrong-answer rate, and what happens when it is wrong?</em> Ask both in the first three minutes.</li>
+  <li><strong>Draw the data path before you draw the model.</strong> Where the knowledge comes from, how it is indexed, how often it changes, and who is allowed to see which parts. Access control on retrieval is the most commonly forgotten requirement and the cheapest way to stand out.</li>
+  <li><strong>Place the model, then immediately place its budget.</strong> Which model, at what context size, with what token budget per request, and what it contributes to p95. Give a number, even a rough one.</li>
+  <li><strong>Now the boring layers.</strong> Caching &mdash; both kinds &mdash; rate limiting, retries with backoff and jitter, circuit breaking, graceful degradation when the provider is down, queueing for anything asynchronous. This is the section that wins the round.</li>
+  <li><strong>Evaluation and rollout.</strong> How you know it works before shipping, how a prompt change is gated, how you roll back. Say the sentence: <em>a prompt is a deployable artifact and deserves the same discipline as code.</em></li>
+  <li><strong>Failure modes, named out loud.</strong> Hallucination, stale index, provider outage, cost blowout, prompt injection, cache poisoning. Give each one a mitigation rather than waiting to be asked.</li>
+</ol>
+
+<h3>Worked example: RAG assistant over 10M internal documents</h3>
+
+<p>The full prompt is usually: <em>10 million documents, 5000 employees, sub-2-second p95, per-team access control.</em> A strong 45-minute answer moves through these decisions.</p>
+
+<div class="tbl">
+<table>
+  <caption>The decisions, and what each one signals</caption>
+  <thead><tr><th>Decision</th><th>The answer that lands</th></tr></thead>
+  <tbody>
+    <tr><td>Ingestion</td><td>Batch pipeline with incremental re-indexing keyed on a content hash &mdash; not a nightly full rebuild, which at 10M documents is a multi-hour job that guarantees staleness. Dead-letter queue for parse failures, because a silent 3&nbsp;% parse-failure rate is a coverage bug you will never notice otherwise.</td></tr>
+    <tr><td>Access control</td><td><strong>Filter at retrieval time, inside the index &mdash; not after.</strong> Post-filtering a top-10 can return zero results for a restricted user; pre-filtering on an indexed metadata field returns <em>their</em> top-10. Saying this unprompted is the single highest-value detail in the round.</td></tr>
+    <tr><td>Index</td><td>HNSW for approximate search. Name the recall/latency knob (<code>ef_search</code>) and say you would tune it against a labelled set rather than guessing. Mention sharding once the index exceeds memory on one node.</td></tr>
+    <tr><td>Retrieval</td><td>Hybrid BM25 + dense, fused with Reciprocal Rank Fusion, then a cross-encoder reranker over the top 50 down to top 5. Budget the reranker explicitly &mdash; typically 100&ndash;300&nbsp;ms &mdash; and show it fitting inside the 2&nbsp;s.</td></tr>
+    <tr><td>The 2-second budget</td><td>Break it down out loud: ~50&nbsp;ms to embed the query, ~50&nbsp;ms vector search, ~200&nbsp;ms rerank, leaving ~1.5&nbsp;s for generation &mdash; which means <strong>streaming</strong>, so time-to-first-token is the number the user actually feels, not total time. That reframing turns a hard latency requirement into a soft one and can carry the round on its own.</td></tr>
+    <tr><td>Cost</td><td>Prompt-cache the stable system prefix, cap retrieved context length, route simple questions to a smaller model, and push anything offline through the batch API at half price.</td></tr>
+    <tr><td>Evaluation</td><td>A golden set with known-correct source documents; retrieval metrics kept separate from generation metrics; deploys gated on both.</td></tr>
+    <tr><td>Failure</td><td>Provider outage &rarr; failover to a second provider behind the same interface. Stale index &rarr; freshness SLO and an age alarm. Injection &rarr; retrieved text is data, never instructions.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>The other prompts you should have rehearsed</h3>
+
+<ul>
+  <li>Design an <strong>LLM gateway</strong> for 40 teams: routing, caching, rate limits, cost attribution, provider failover. &rarr; <a href="proj-gateway.html">Project 1</a> is exactly this question, built.</li>
+  <li>Design an <strong>agent</strong> that triages and resolves tickets end to end. Where does the human stay in the loop? &rarr; <a href="proj-agent.html">Project 3</a>.</li>
+  <li>Design <strong>evaluation and CI</strong> so a prompt change cannot silently regress production. &rarr; <a href="proj-evalops.html">Project 5</a>.</li>
+  <li>Migrate a feature from a frontier API to a <strong>self-hosted open model</strong>. What breaks? &rarr; <a href="proj-finetune.html">Project 4</a>.</li>
+</ul>
+
+<div class="note key">
+  <span class="tag">Why the projects are the preparation</span>
+  <p>Each of the five projects in this phase <em>is</em> a system-design question you have already answered in code. That is the whole point of building them: in the design round you are not improvising an architecture, you are describing one you have run, measured and broken.</p>
+</div>
+
+<h2 id="coding"><span class="kicker">Step 05</span>The coding round</h2>
+
+<p>Standard data-structures work still appears and still filters. Keep a daily rhythm of medium-difficulty array, hash-map, string, graph and heap problems. What is new is the <em>AI-flavoured</em> variant &mdash; usually easier algorithmically, but it tests whether you have actually built with these primitives rather than only imported them.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Asked verbatim: &ldquo;implement top-k retrieval&rdquo;</span></div>
+  <pre><code>import numpy as np
+
+def top_k(query: np.ndarray, corpus: np.ndarray, k: int = 5):
+    """corpus: (n, d) matrix of document vectors. query: (d,).
+    Returns (indices, scores) for the k most similar rows."""
+    <span class="cm"># Normalise so cosine similarity reduces to a dot product.</span>
+    <span class="cm"># Guard the zero vector: an empty chunk embeds near zero, and dividing</span>
+    <span class="cm"># by its norm yields NaN, which argpartition then orders unpredictably.</span>
+    qn = query / (np.linalg.norm(query) + 1e-10)
+    cn = corpus / (np.linalg.norm(corpus, axis=1, keepdims=True) + 1e-10)
+
+    scores = cn @ qn                       <span class="cm"># (n,) -- one dot product per document</span>
+    k = min(k, len(scores))
+
+    <span class="cm"># argpartition is O(n); a full argsort is O(n log n). Say this out loud.</span>
+    idx = np.argpartition(-scores, k - 1)[:k]
+    idx = idx[np.argsort(-scores[idx])]    <span class="cm"># order only the k we kept</span>
+    return idx, scores[idx]</code></pre>
+</div>
+
+<p>The follow-up is always the same: <em>&ldquo;now do it for ten million documents.&rdquo;</em> The answer is that you stop doing exact search and move to an approximate index &mdash; HNSW or IVF-PQ &mdash; accepting a recall/latency trade-off you then measure. Being able to explain <em>why</em> exact search stops working (memory bandwidth, not CPU) is the actual point of the question.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Sliding-window chunker with overlap</span></div>
+  <pre><code>def chunk(tokens: list[str], size: int = 512, overlap: int = 64) -&gt; list[list[str]]:
+    """Split into overlapping windows. Overlap preserves sentences that
+    straddle a boundary -- the most common cause of a fact becoming
+    unretrievable because it was cut in half."""
+    if overlap &gt;= size:
+        raise ValueError("overlap must be smaller than size, else no forward progress")
+
+    step, out = size - overlap, []
+    for start in range(0, max(len(tokens), 1), step):
+        window = tokens[start:start + size]
+        if not window:
+            break
+        out.append(window)
+        if start + size &gt;= len(tokens):
+            break                          <span class="cm"># avoid a trailing duplicate window</span>
+    return out</code></pre>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Token bucket &mdash; asked as &ldquo;rate-limit calls to the LLM API&rdquo;</span></div>
+  <pre><code>import time, threading
+
+class TokenBucket:
+    """Allows bursts up to `capacity`, sustained rate `refill_per_sec`.
+    The right shape for LLM APIs, which publish both a request-per-minute
+    and a token-per-minute limit -- run two buckets, one per dimension."""
+
+    def __init__(self, capacity: float, refill_per_sec: float):
+        self.capacity, self.rate = capacity, refill_per_sec
+        self.tokens = capacity
+        self.updated = time.monotonic()
+        self.lock = threading.Lock()
+
+    def take(self, n: float = 1.0) -&gt; bool:
+        with self.lock:
+            now = time.monotonic()
+            <span class="cm"># Lazy refill: no background thread, and it stays correct across</span>
+            <span class="cm"># long idle gaps because we clamp at capacity.</span>
+            self.tokens = min(self.capacity, self.tokens + (now - self.updated) * self.rate)
+            self.updated = now
+            if self.tokens &gt;= n:
+                self.tokens -= n
+                return True
+            return False</code></pre>
+</div>
+
+<p>Round out the set with bounded-concurrency batching of async calls (<code>asyncio.Semaphore</code>), one BPE merge step, and streaming SSE parsing. Every one of them appears inside <a href="proj-gateway.html">Project 1</a> &mdash; which is why that project comes first.</p>
+
+<h2 id="deepdive"><span class="kicker">Step 06</span>Project deep-dive &amp; behavioural</h2>
+
+<p>They will pick one LLM system you have built and push on it for forty minutes. What they are testing is whether you have felt real pain or only followed a tutorial. The difference is visible within two questions.</p>
+
+<div class="tbl">
+<table>
+  <caption>Have these memorised, per project</caption>
+  <thead><tr><th>Have ready</th><th>Because they will ask</th></tr></thead>
+  <tbody>
+    <tr><td>A before/after metric, with the method that produced it</td><td>&ldquo;How do you know it got better?&rdquo; &mdash; e.g. recall@10 moved 0.61 &rarr; 0.83 after adding a cross-encoder reranker, measured on a 150-question labelled set.</td></tr>
+    <tr><td>p50 and p95 latency, with the breakdown by stage</td><td>&ldquo;Where does the time go?&rdquo;</td></tr>
+    <tr><td>Cost per 1000 requests, and what you did to lower it</td><td>&ldquo;What would this cost at a hundred times the traffic?&rdquo;</td></tr>
+    <tr><td>Something you tried that did <em>not</em> work</td><td>&ldquo;What surprised you?&rdquo; &mdash; the highest-signal question in the round.</td></tr>
+    <tr><td>The failure mode you are still worried about</td><td>&ldquo;What would you fix with another month?&rdquo;</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="note java">
+  <span class="tag">Write the failures down</span>
+  <p>Keep a <code>FINDINGS.md</code> in every project repository recording approaches that did not work and why. It is the highest-signal artifact in the whole portfolio, because tutorials never contain one. <em>&ldquo;I tried HyDE for query expansion; it improved recall on ambiguous questions by four points and hurt precise ones by nine, so I gated it on query length&rdquo;</em> is worth more than any certificate.</p>
+</div>
+
+<h2 id="triage"><span class="kicker">Step 07</span>Topic triage &mdash; what is actually tested</h2>
+
+<p>This handbook has 113 topics. A hiring loop tests roughly a quarter of them. Study accordingly.</p>
+
+<h4>Tier 1 &mdash; must be fluent. Around 90&nbsp;% of technical questions live here.</h4>
+<p><a href="llm-mechanics.html">LLM mechanics</a> &middot; <a href="embeddings.html">embeddings</a> &middot; <a href="rag-decision.html">RAG decision</a> &middot; <a href="ingestion.html">ingestion</a> &middot; <a href="retrieval.html">retrieval</a> &middot; <a href="vector-index.html">vector index</a> &middot; <a href="vector-db.html">vector DB</a> &middot; <a href="rag-eval.html">RAG eval</a> &middot; <a href="prompting.html">prompting</a> &middot; <a href="fine-tuning.html">fine-tuning</a> &middot; <a href="tool-calling.html">tool calling</a> &middot; <a href="agent-fundamentals.html">agent fundamentals</a> &middot; <a href="agent-arch.html">agent architecture</a> &middot; <a href="memory.html">memory</a> &middot; <a href="agent-eval.html">agent eval</a> &middot; <a href="structured-generation.html">structured generation</a> &middot; <a href="decoding-sampling.html">decoding &amp; sampling</a> &middot; <a href="llm-evaluation.html">LLM evaluation</a> &middot; <a href="serving.html">serving</a> &middot; <a href="inference-optimization.html">inference optimisation</a> &middot; <a href="llmops.html">LLMOps</a> &middot; <a href="security.html">security</a> &middot; <a href="guardrails.html">guardrails</a> &middot; <a href="llm-apis.html">LLM APIs</a> &middot; <a href="core-python.html">core Python</a></p>
+
+<h4>Tier 2 &mdash; expected at depth in senior-leaning loops, or when the job description names them.</h4>
+<p><a href="llm-architectures.html">LLM architectures</a> &middot; <a href="open-models.html">open models</a> &middot; <a href="huggingface.html">Hugging Face</a> &middot; <a href="pytorch.html">PyTorch</a> &middot; <a href="nn-basics.html">NN basics</a> &middot; <a href="model-compression.html">model compression</a> &middot; <a href="alignment-tuning.html">alignment tuning</a> &middot; <a href="reasoning-models.html">reasoning models</a> &middot; <a href="multi-agent.html">multi-agent</a> &middot; <a href="mcp.html">MCP</a> &middot; <a href="graph-rag.html">GraphRAG</a> &middot; <a href="agent-security.html">agent security</a> &middot; <a href="data-engineering.html">data engineering</a> &middot; <a href="cloud-ai.html">cloud AI</a> &middot; <a href="deployment.html">deployment</a> &middot; <a href="responsible-ai.html">responsible AI</a> &middot; <a href="langchain-langgraph.html">LangGraph</a> &middot; <a href="llamaindex.html">LlamaIndex</a></p>
+
+<h4>Tier 3 &mdash; genuine breadth, but not tested for this role. Defer until after an offer.</h4>
+<p>GANs, diffusion, GNNs, causal inference, time series, autoencoders, training from scratch, distributed training, model merging, computer use, edge AI, green AI, AI history, speech and audio, generative media. Read them because they are interesting &mdash; not because a loop will ask.</p>
+
+<h2 id="plan"><span class="kicker">Step 08</span>Twelve weeks, and how to apply</h2>
+
+<div class="tbl">
+<table>
+  <caption>Roughly 10&ndash;12 hours a week</caption>
+  <thead><tr><th>Weeks</th><th>Focus</th><th>Output</th></tr></thead>
+  <tbody>
+    <tr><td class="nc">1&ndash;2</td><td>Python to fluency, <a href="llm-mechanics.html">LLM mechanics</a>, <a href="llm-apis.html">LLM APIs</a></td><td><a href="proj-gateway.html">Project 1</a> shipped</td></tr>
+    <tr><td class="nc">3&ndash;5</td><td>RAG end to end, built once by hand and once with a framework</td><td><a href="proj-rag.html">Project 2</a>, with an eval harness</td></tr>
+    <tr><td class="nc">6&ndash;7</td><td>Agents, tools, MCP. <strong>Start applying this week.</strong></td><td><a href="proj-agent.html">Project 3</a></td></tr>
+    <tr><td class="nc">8&ndash;9</td><td>Evaluation, guardrails, LLMOps</td><td><a href="proj-evalops.html">Project 5</a> &mdash; your design-round ammunition</td></tr>
+    <tr><td class="nc">10&ndash;12</td><td>Fine-tuning and serving, then interview reps</td><td><a href="proj-finetune.html">Project 4</a>; daily coding; six spoken mock designs</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="note trap">
+  <span class="tag">Apply at week six, not week twelve</span>
+  <p>A loop takes four to eight weeks from application to offer. Waiting until the portfolio is finished adds two idle months for no benefit. Projects 1 and 2 are enough to be credible, and <em>&ldquo;I am building the evaluation layer for it right now&rdquo;</em> is a strong answer, not a weak one. The remaining projects will finish while you are interviewing.</p>
+</div>
+
+<h4>Positioning</h4>
+<ul>
+  <li><strong>Rewrite the resume around the overlap.</strong> Your existing work described in AI-adjacent terms &mdash; throughput, latency budgets, distributed systems, data pipelines, on-call &mdash; then one project section carrying metrics.</li>
+  <li><strong>Target companies adding LLM features to existing products</strong>, not AI-native startups. The former values four years of backend experience; the latter discounts it.</li>
+  <li><strong>Lead with the systems half.</strong> In every round, the moment you can turn a question toward budgets, failure modes and observability, you are on ground where you are stronger than most of the pool.</li>
+</ul>
+
+<div class="res">
+  <div class="res-top">Practice &amp; reference</div>
+  <ul>
+    <li><span class="kind">Practice</span><span class="body"><a href="https://github.com/anthropics/anthropic-cookbook">Anthropic Cookbook</a><span class="why">Runnable notebooks for tool use, RAG, evaluation and structured output. The fastest path from concept to working code.</span></span></li>
+    <li><span class="kind">Reading</span><span class="body"><a href="https://www.anthropic.com/engineering/building-effective-agents">Building Effective Agents</a><span class="why">The workflow-versus-agent distinction, which the design round asks about directly.</span></span></li>
+    <li><span class="kind">Reading</span><span class="body"><a href="https://huyenchip.com/2023/04/11/llm-engineering.html">Chip Huyen &mdash; Building LLM Applications for Production</a><span class="why">The production-concerns list that system-design rounds are drawn from.</span></span></li>
+    <li><span class="kind">Reading</span><span class="body"><a href="https://applied-llms.org/">What We've Learned From a Year of Building with LLMs</a><span class="why">Hard-won operational lessons, and an excellent source of &ldquo;what surprised you&rdquo; material.</span></span></li>
+    <li><span class="kind">Security</span><span class="body"><a href="https://owasp.org/www-project-top-10-for-large-language-model-applications/">OWASP Top 10 for LLM Applications</a><span class="why">The vocabulary interviewers use for injection, data leakage and insecure output handling.</span></span></li>
+    <li><span class="kind">Coding</span><span class="body"><a href="https://neetcode.io/roadmap">NeetCode roadmap</a><span class="why">For round 1. Structured, and short enough to finish alongside the projects.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Phase 21.1 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

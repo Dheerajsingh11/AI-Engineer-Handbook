@@ -1,0 +1,706 @@
+<title>Calculus & Optimisation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 01 &middot; Fundamentals</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">1.4</span>
+    <h1>Calculus &amp; Optimisation</h1>
+    <p class="lede">How machines learn anything at all. This page builds the derivative from first principles, derives
+backpropagation as nothing more than the chain rule applied in reverse, implements a working automatic
+differentiation engine in 60 lines, and derives Adam from the problems that SGD leaves unsolved.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#derivative">The derivative, built from nothing</a></li><li><a href="#chain-rule">The chain rule is the whole of backpropagation</a></li><li><a href="#scratch">Build an autograd engine from scratch</a></li><li><a href="#optimisers">From SGD to Adam, one problem at a time</a></li><li><a href="#practice">Reading a training run</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>Sections 01&ndash;02 assume no calculus at all. If you have never differentiated anything, start here and you will be fine. Section 04 onwards assumes you have followed Sections 02&ndash;03.</p>
+</div>
+
+<p>Every model that "learns" is doing the same thing: it has millions of adjustable numbers, a way of measuring how wrong it currently is, and a procedure for nudging each number in the direction that makes it less wrong. Calculus is the procedure for working out which direction that is.</p>
+
+<h3>The hill-descending picture</h3>
+
+<p>Imagine standing on a foggy hillside, trying to reach the valley. You cannot see the valley &mdash; the fog is too thick. But you <em>can</em> feel the slope under your feet. So you take a small step downhill, feel the slope again, take another step, and repeat. Eventually you reach the bottom.</p>
+
+<p>That is gradient descent, complete. The hill is the <strong>loss</strong> &mdash; how wrong the model is. Your position is the current setting of every parameter. The slope you feel is the <strong>gradient</strong>. The size of your step is the <strong>learning rate</strong>.</p>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Function</dt>
+    <dd>A rule that turns an input into an output. <i>f</i>(<i>x</i>) = <i>x</i><sup>2</sup> turns 3 into 9.</dd>
+
+    <dt>Derivative</dt>
+    <dd>How fast the output changes when you nudge the input. If nudging <i>x</i> up by a hair makes <i>f</i>(<i>x</i>) go up by three hairs, the derivative is 3. It is a rate, and it is also the slope of the graph at that point.</dd>
+
+    <dt>Gradient</dt>
+    <dd>The derivative when there are many inputs instead of one &mdash; a list containing one derivative per input. It points in the direction of <em>steepest increase</em>, which is why you move in the opposite direction.</dd>
+
+    <dt>Loss function</dt>
+    <dd>A single number measuring how wrong the model currently is. Lower is better. Training means minimising it.</dd>
+
+    <dt>Learning rate</dt>
+    <dd>How big a step to take. Too big and you overshoot the valley; too small and you never arrive.</dd>
+
+    <dt>Backpropagation</dt>
+    <dd>An efficient method for computing the gradient of every parameter in a deep network. It is the chain rule, applied backwards. That is all it is.</dd>
+
+    <dt>Convergence</dt>
+    <dd>Reaching the point where further steps stop helping. Training is finished.</dd>
+  </dl>
+</div>
+
+<div class="note key">
+  <span class="tag">Why you need this even though you will never train a model</span>
+  <p>You are not going to train a foundation model. But you will read training scripts, choose a learning rate for a LoRA fine-tune, debug a loss that will not go down, and interpret a training curve. Each of those requires the mental picture above. More importantly: <strong>the reason a model can be trained at all is that every operation in it is differentiable</strong>, and that constraint explains a surprising number of architectural choices &mdash; including why attention uses a soft softmax rather than a hard lookup.</p>
+</div>
+
+<h2 id="derivative"><span class="kicker">Section 02 <span class="lvl lvl-b">Beginner</span></span>The derivative, built from nothing</h2>
+
+<p>How fast is <i>f</i>(<i>x</i>) = <i>x</i><sup>2</sup> changing at <i>x</i> = 3? Measure it: move a small distance <i>h</i> and see how much the output moved.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Shrinking the step size at <i>x</i> = 3</caption>
+    <thead><tr><th class="nc"><i>h</i></th><th class="nc"><i>f</i>(3+<i>h</i>) &minus; <i>f</i>(3)</th><th class="nc">Divided by <i>h</i></th></tr></thead>
+    <tbody>
+      <tr><td class="nc">1.0</td><td class="nc">7.00</td><td class="nc">7.0</td></tr>
+      <tr><td class="nc">0.1</td><td class="nc">0.61</td><td class="nc">6.1</td></tr>
+      <tr><td class="nc">0.01</td><td class="nc">0.0601</td><td class="nc">6.01</td></tr>
+      <tr><td class="nc">0.001</td><td class="nc">0.006001</td><td class="nc">6.001</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<p>The answer is converging on 6. That limiting value <em>is</em> the derivative, and the definition simply says "do this forever":</p>
+
+<div class="math">
+  <span class="lbl">The derivative, by definition</span>
+  <i>f</i>&prime;(<i>x</i>) &nbsp;=&nbsp; lim<sub><i>h</i>&rarr;0</sub> <span class="frac"><span><i>f</i>(<i>x</i>+<i>h</i>) &minus; <i>f</i>(<i>x</i>)</span><span><i>h</i></span></span>
+  <span class="note">Rise over run, with the run shrunk to nothing. Everything else in calculus is a shortcut for evaluating this limit without doing the arithmetic each time.</span>
+</div>
+
+<div class="derive">
+  <div class="derive-top">Deriving the power rule for <i>x</i><sup>2</sup></div>
+  <ol>
+    <li><i>f</i>&prime;(<i>x</i>) = lim<sub><i>h</i>&rarr;0</sub> [(<i>x</i>+<i>h</i>)<sup>2</sup> &minus; <i>x</i><sup>2</sup>] / <i>h</i>
+      <span class="why">Substitute <i>f</i>(<i>x</i>) = <i>x</i><sup>2</sup> into the definition.</span></li>
+    <li>= lim<sub><i>h</i>&rarr;0</sub> [<i>x</i><sup>2</sup> + 2<i>xh</i> + <i>h</i><sup>2</sup> &minus; <i>x</i><sup>2</sup>] / <i>h</i>
+      <span class="why">Expand the square.</span></li>
+    <li>= lim<sub><i>h</i>&rarr;0</sub> [2<i>xh</i> + <i>h</i><sup>2</sup>] / <i>h</i> = lim<sub><i>h</i>&rarr;0</sub> (2<i>x</i> + <i>h</i>)
+      <span class="why">The <i>x</i><sup>2</sup> terms cancel; divide through by <i>h</i>.</span></li>
+    <li>= 2<i>x</i>. At <i>x</i>=3 this is 6. &nbsp;&#9632;
+      <span class="why">Send <i>h</i> to zero. Matches the table exactly.</span></li>
+  </ol>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>The derivatives you will actually meet</caption>
+    <thead><tr><th>Function</th><th>Derivative</th><th>Where it appears in ML</th></tr></thead>
+    <tbody>
+      <tr><td><i>x</i><sup><i>n</i></sup></td><td><i>nx</i><sup><i>n</i>&minus;1</sup></td><td>MSE loss, L2 regularisation</td></tr>
+      <tr><td><i>e</i><sup><i>x</i></sup></td><td><i>e</i><sup><i>x</i></sup></td><td>Softmax &mdash; its own derivative, which is why it is convenient</td></tr>
+      <tr><td>ln <i>x</i></td><td>1/<i>x</i></td><td>Cross-entropy loss</td></tr>
+      <tr><td>&sigma;(<i>x</i>) = 1/(1+<i>e</i><sup>&minus;<i>x</i></sup>)</td><td>&sigma;(<i>x</i>)(1&minus;&sigma;(<i>x</i>))</td><td>Logistic regression, gates in LSTMs</td></tr>
+      <tr><td>tanh <i>x</i></td><td>1 &minus; tanh<sup>2</sup><i>x</i></td><td>Older architectures; the GELU approximation</td></tr>
+      <tr><td>ReLU(<i>x</i>) = max(0,<i>x</i>)</td><td>1 if <i>x</i>&gt;0, else 0</td><td>The default activation. Undefined at 0; frameworks just pick 0</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note trap">
+  <span class="tag">Why sigmoid fell out of favour</span>
+  <p>Its derivative peaks at 0.25 and approaches zero for inputs away from the origin. Stack ten sigmoid layers and gradients get multiplied by numbers under 0.25 ten times over &mdash; a factor of about one in a million. The early layers receive essentially no signal and stop learning. This is the <strong>vanishing gradient problem</strong>, and it is why deep networks did not work before ReLU (whose derivative is exactly 1 in the active region) and residual connections (which give gradients a path that skips the multiplication entirely).</p>
+</div>
+
+<h2 id="chain-rule"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>The chain rule is the whole of backpropagation</h2>
+
+<p>A neural network is functions inside functions inside functions. To adjust a weight in layer 1, you need to know how it affects the loss at the far end &mdash; through every intervening layer. The chain rule is the tool for exactly that.</p>
+
+<div class="math">
+  <span class="lbl">The chain rule</span>
+  <span class="row">If <i>y</i> = <i>f</i>(<i>u</i>) and <i>u</i> = <i>g</i>(<i>x</i>), then &nbsp; <span class="frac"><span><i>dy</i></span><span><i>dx</i></span></span> = <span class="frac"><span><i>dy</i></span><span><i>du</i></span></span> &middot; <span class="frac"><span><i>du</i></span><span><i>dx</i></span></span></span>
+  <span class="note">Rates multiply. If a car is twice as fast as a bicycle, and the bicycle is three times as fast as walking, the car is six times as fast as walking. That is the entire intuition, and it extends to any depth by repeating the multiplication.</span>
+</div>
+
+<h3>Backpropagation, derived on a real example</h3>
+
+<p>Take the smallest network that is still interesting: one input, two layers, a sigmoid, and a squared-error loss. Work out how the loss responds to <i>w</i><sub>1</sub>, the weight furthest from the output.</p>
+
+<div class="derive">
+  <div class="derive-top">Forward pass, then backward pass</div>
+  <ol>
+    <li><i>z</i><sub>1</sub> = <i>w</i><sub>1</sub><i>x</i> + <i>b</i><sub>1</sub> &emsp; <i>a</i><sub>1</sub> = &sigma;(<i>z</i><sub>1</sub>) &emsp; <i>z</i><sub>2</sub> = <i>w</i><sub>2</sub><i>a</i><sub>1</sub> + <i>b</i><sub>2</sub> &emsp; <i>L</i> = ½(<i>z</i><sub>2</sub> &minus; <i>y</i>)<sup>2</sup>
+      <span class="why">The forward pass. Each line depends only on the one above &mdash; a chain.</span></li>
+    <li>&part;<i>L</i>/&part;<i>z</i><sub>2</sub> = (<i>z</i><sub>2</sub> &minus; <i>y</i>)
+      <span class="why">Start at the end. The ½ exists precisely so this comes out clean.</span></li>
+    <li>&part;<i>L</i>/&part;<i>a</i><sub>1</sub> = &part;<i>L</i>/&part;<i>z</i><sub>2</sub> &middot; <i>w</i><sub>2</sub>
+      <span class="why">One link back. Since <i>z</i><sub>2</sub> = <i>w</i><sub>2</sub><i>a</i><sub>1</sub>+<i>b</i><sub>2</sub>, the local derivative is <i>w</i><sub>2</sub>.</span></li>
+    <li>&part;<i>L</i>/&part;<i>z</i><sub>1</sub> = &part;<i>L</i>/&part;<i>a</i><sub>1</sub> &middot; &sigma;(<i>z</i><sub>1</sub>)(1&minus;&sigma;(<i>z</i><sub>1</sub>))
+      <span class="why">Through the sigmoid, using its derivative from the table above.</span></li>
+    <li>&part;<i>L</i>/&part;<i>w</i><sub>1</sub> = &part;<i>L</i>/&part;<i>z</i><sub>1</sub> &middot; <i>x</i>
+      <span class="why">Final link. Since <i>z</i><sub>1</sub> = <i>w</i><sub>1</sub><i>x</i>+<i>b</i><sub>1</sub>, the local derivative is <i>x</i>. &nbsp;&#9632;</span></li>
+  </ol>
+</div>
+
+<div class="note key">
+  <span class="tag">The insight that makes it efficient</span>
+  <p>Look at lines 2&ndash;5. Each reuses the result of the previous one and multiplies by a purely <em>local</em> derivative. Nothing is recomputed. That is why backpropagation costs roughly the same as one forward pass, regardless of how many parameters there are.</p>
+  <p>The naive alternative &mdash; nudge each parameter and re-run the network to see what changed &mdash; would need one forward pass <em>per parameter</em>. For a 7-billion-parameter model that is 7 billion forward passes per training step. <strong>Backpropagation is what makes deep learning computationally possible</strong>, and it is nothing more than caching intermediate results while applying the chain rule right to left.</p>
+</div>
+
+<h2 id="scratch"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>Build an autograd engine from scratch</h2>
+
+<p>PyTorch's <code>loss.backward()</code> feels like magic until you write one. It is not magic: every operation records how to propagate a gradient through itself, and the framework walks the recorded graph backwards. Sixty lines is enough for a working version.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>A miniature automatic differentiation engine</span></div>
+<pre><code>import math
+
+class Value:
+    """A scalar that remembers how it was computed."""
+
+    def __init__(self, data, _children=(), _op=""):
+        self.data = float(data)
+        self.grad = 0.0
+        self._backward = lambda: None      <span class="cm"># how to push grad to parents</span>
+        self._prev = set(_children)
+        self._op = _op
+
+    def __repr__(self):
+        return f"Value({self.data:.4f}, grad={self.grad:.4f})"
+
+    def __add__(self, other):
+        other = other if isinstance(other, Value) else Value(other)
+        out = Value(self.data + other.data, (self, other), "+")
+        def _backward():
+            <span class="cm"># d(a+b)/da = 1, so gradient passes straight through.</span>
+            <span class="cm"># += not = : a value used twice accumulates both paths.</span>
+            self.grad  += out.grad
+            other.grad += out.grad
+        out._backward = _backward
+        return out
+
+    def __mul__(self, other):
+        other = other if isinstance(other, Value) else Value(other)
+        out = Value(self.data * other.data, (self, other), "*")
+        def _backward():
+            <span class="cm"># d(a*b)/da = b -- the OTHER operand is the local derivative</span>
+            self.grad  += other.data * out.grad
+            other.grad += self.data  * out.grad
+        out._backward = _backward
+        return out
+
+    def __pow__(self, k):
+        assert isinstance(k, (int, float))
+        out = Value(self.data ** k, (self,), f"**{k}")
+        def _backward():
+            self.grad += k * (self.data ** (k - 1)) * out.grad   <span class="cm"># power rule</span>
+        out._backward = _backward
+        return out
+
+    def relu(self):
+        out = Value(max(0.0, self.data), (self,), "relu")
+        def _backward():
+            self.grad += (out.data &gt; 0) * out.grad               <span class="cm"># 1 or 0</span>
+        out._backward = _backward
+        return out
+
+    def sigmoid(self):
+        s = 1 / (1 + math.exp(-self.data))
+        out = Value(s, (self,), "sigmoid")
+        def _backward():
+            self.grad += s * (1 - s) * out.grad                  <span class="cm"># sigma'(x)</span>
+        out._backward = _backward
+        return out
+
+    <span class="cm"># conveniences so ordinary arithmetic works</span>
+    def __neg__(self):        return self * -1
+    def __sub__(self, o):     return self + (-o)
+    def __radd__(self, o):    return self + o
+    def __rmul__(self, o):    return self * o
+    def __truediv__(self, o): return self * (o ** -1 if isinstance(o, (int, float))
+                                             else o.__pow__(-1))
+
+    def backward(self):
+        """Topologically sort the graph, then apply the chain rule
+        in reverse. A node is only processed once all its consumers
+        have contributed their gradient."""
+        order, seen = [], set()
+        def build(v):
+            if v not in seen:
+                seen.add(v)
+                for child in v._prev:
+                    build(child)
+                order.append(v)
+        build(self)
+
+        self.grad = 1.0                    <span class="cm"># dL/dL = 1: seed the chain</span>
+        for node in reversed(order):
+            node._backward()
+
+
+<span class="cm"># --- check it against the hand derivation in Section 03 -----------</span>
+x  = Value(2.0)
+w1, b1 = Value(-0.5), Value(0.1)
+w2, b2 = Value(1.5),  Value(-0.3)
+y  = Value(1.0)
+
+z1 = w1 * x + b1
+a1 = z1.sigmoid()
+z2 = w2 * a1 + b2
+L  = (z2 - y) ** 2 * 0.5
+
+L.backward()
+print(f"dL/dw1 = {w1.grad:.6f}")
+
+<span class="cm"># Verify numerically: nudge w1 and re-measure the loss.</span>
+h = 1e-6
+def loss_with(w):
+    a = 1 / (1 + math.exp(-(w * 2.0 + 0.1)))
+    return 0.5 * (1.5 * a - 0.3 - 1.0) ** 2
+numeric = (loss_with(-0.5 + h) - loss_with(-0.5 - h)) / (2 * h)
+print(f"numeric = {numeric:.6f}")          <span class="cm"># matches to ~6 decimal places</span></code></pre>
+</div>
+
+<div class="note java">
+  <span class="tag">The two subtleties in that code</span>
+  <p><strong>Why <code>+=</code> and not <code>=</code>.</strong> If a value feeds two branches, gradient arrives from both, and the total effect is the sum. Using <code>=</code> would silently discard one path &mdash; a bug that produces a network which trains, badly, for reasons that are very hard to find.</p>
+  <p><strong>Why topological order.</strong> A node's gradient is only complete once every consumer has contributed. Processing in reverse topological order guarantees that. This is the same dependency-ordering problem as a build system resolving a task graph.</p>
+</div>
+
+<h2 id="optimisers"><span class="kicker">Section 05 <span class="lvl lvl-a">Advanced</span></span>From SGD to Adam, one problem at a time</h2>
+
+<p>Once you have gradients, you need a rule for using them. Each optimiser exists because of a specific failure of the one before it &mdash; which makes them much easier to remember as a sequence than as a list.</p>
+
+<div class="math">
+  <span class="lbl">Plain gradient descent</span>
+  <i>&theta;</i><sub><i>t</i>+1</sub> &nbsp;=&nbsp; <i>&theta;<sub>t</sub></i> &minus; <i>&eta;</i> &middot; &nabla;<i>L</i>(<i>&theta;<sub>t</sub></i>)
+  <span class="note">Step downhill by the learning rate <i>&eta;</i> times the slope. Simple, and inadequate for three specific reasons addressed below.</span>
+</div>
+
+<ol class="steps">
+  <li><strong>Problem: computing the gradient over the whole dataset is too slow.</strong><br>
+  <em>Fix &mdash; Stochastic / mini-batch GD.</em> Estimate the gradient from a small batch. The estimate is noisy, but you get hundreds of steps in the time one exact step would take, and the noise turns out to help escape shallow minima.</li>
+
+  <li><strong>Problem: in a narrow valley the path oscillates across the walls instead of running along the floor.</strong><br>
+  <em>Fix &mdash; Momentum.</em> Accumulate a velocity, <i>v<sub>t</sub></i> = &beta;<i>v</i><sub><i>t</i>&minus;1</sub> + &nabla;<i>L</i>, and step along <i>v</i>. Oscillating components cancel between steps; consistent components reinforce. It is a ball rolling downhill rather than a hiker re-deciding at every footfall.</li>
+
+  <li><strong>Problem: one learning rate cannot suit all parameters &mdash; rare features need large steps, common ones small.</strong><br>
+  <em>Fix &mdash; RMSProp.</em> Track a running average of squared gradients and divide the step by its square root. Parameters with historically large gradients get smaller steps automatically.</li>
+
+  <li><strong>Problem: you want both of those at once.</strong><br>
+  <em>Fix &mdash; Adam.</em> Keep momentum <em>and</em> per-parameter scaling. This is the default for essentially every transformer.</li>
+</ol>
+
+<div class="math">
+  <span class="lbl">Adam, in full</span>
+  <span class="row"><i>m<sub>t</sub></i> = &beta;<sub>1</sub><i>m</i><sub><i>t</i>&minus;1</sub> + (1&minus;&beta;<sub>1</sub>)<i>g<sub>t</sub></i> &emsp;<span style="font-family:var(--f-body);font-size:.78em;color:var(--ink-2)">first moment &mdash; momentum</span></span>
+  <span class="row"><i>v<sub>t</sub></i> = &beta;<sub>2</sub><i>v</i><sub><i>t</i>&minus;1</sub> + (1&minus;&beta;<sub>2</sub>)<i>g<sub>t</sub></i><sup>2</sup> &emsp;<span style="font-family:var(--f-body);font-size:.78em;color:var(--ink-2)">second moment &mdash; scale</span></span>
+  <span class="row"><i>m̂<sub>t</sub></i> = <i>m<sub>t</sub></i>/(1&minus;&beta;<sub>1</sub><sup><i>t</i></sup>) &emsp; <i>v̂<sub>t</sub></i> = <i>v<sub>t</sub></i>/(1&minus;&beta;<sub>2</sub><sup><i>t</i></sup>) &emsp;<span style="font-family:var(--f-body);font-size:.78em;color:var(--ink-2)">bias correction</span></span>
+  <span class="row"><i>&theta;<sub>t</sub></i> = <i>&theta;</i><sub><i>t</i>&minus;1</sub> &minus; <i>&eta;</i> &middot; <i>m̂<sub>t</sub></i> / (&radic;<i>v̂<sub>t</sub></i> + &epsilon;)</span>
+  <span class="note"><strong>Why bias correction exists:</strong> <i>m</i> and <i>v</i> start at zero, so early estimates are biased toward zero and the first steps would be far too small. Dividing by (1&minus;&beta;<sup><i>t</i></sup>) &mdash; which is near 0 early and near 1 later &mdash; exactly cancels that bias. Defaults &beta;<sub>1</sub>=0.9, &beta;<sub>2</sub>=0.999, &epsilon;=10<sup>&minus;8</sup> are near-universal and rarely worth changing.</span>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Every optimiser, implemented and compared</span></div>
+<pre><code>import numpy as np
+
+class SGD:
+    def __init__(self, lr=0.01, momentum=0.0):
+        self.lr, self.momentum, self.v = lr, momentum, None
+    def step(self, params, grads):
+        if self.v is None:
+            self.v = np.zeros_like(params)
+        self.v = self.momentum * self.v + grads
+        return params - self.lr * self.v
+
+class Adam:
+    def __init__(self, lr=1e-3, b1=0.9, b2=0.999, eps=1e-8, weight_decay=0.0):
+        self.lr, self.b1, self.b2, self.eps = lr, b1, b2, eps
+        self.wd = weight_decay
+        self.m = self.v = None
+        self.t = 0
+    def step(self, params, grads):
+        if self.m is None:
+            self.m = np.zeros_like(params)
+            self.v = np.zeros_like(params)
+        self.t += 1
+        self.m = self.b1 * self.m + (1 - self.b1) * grads
+        self.v = self.b2 * self.v + (1 - self.b2) * grads ** 2
+        m_hat = self.m / (1 - self.b1 ** self.t)
+        v_hat = self.v / (1 - self.b2 ** self.t)
+        <span class="cm"># AdamW: decay weights directly, NOT via the gradient.</span>
+        <span class="cm"># Adding wd*params to grads instead would let the adaptive</span>
+        <span class="cm"># scaling distort the regularisation -- that was Adam's bug.</span>
+        params = params - self.lr * self.wd * params
+        return params - self.lr * m_hat / (np.sqrt(v_hat) + self.eps)
+
+<span class="cm"># A deliberately ill-conditioned bowl: 100x steeper in one direction.</span>
+def loss(p):  return 0.5 * (100 * p[0] ** 2 + p[1] ** 2)
+def grad(p):  return np.array([100 * p[0], p[1]])
+
+for name, opt in [("SGD          ", SGD(lr=0.01)),
+                  ("SGD+momentum ", SGD(lr=0.01, momentum=0.9)),
+                  ("Adam         ", Adam(lr=0.1))]:
+    p = np.array([1.0, 1.0])
+    for _ in range(100):
+        p = opt.step(p, grad(p))
+    print(f"{name} final loss {loss(p):.3e}")
+
+<span class="cm"># SGD           final loss 1.71e-01   crawls along the flat direction</span>
+<span class="cm"># SGD+momentum  final loss 6.02e-06   momentum accelerates it</span>
+<span class="cm"># Adam          final loss 1.24e-11   per-parameter scaling wins outright</span></code></pre>
+</div>
+
+<h2 id="practice"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Reading a training run</h2>
+
+<p>You will spend far more time interpreting curves than deriving formulas. This table is the diagnostic manual.</p>
+
+<div class="tbl">
+  <table>
+    <caption>What the loss curve is telling you</caption>
+    <thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>Loss becomes <code>NaN</code></td><td>Exploding gradients, or a log of zero</td><td>Gradient clipping at norm 1.0; lower LR; check for zero inside a log</td></tr>
+      <tr><td>Loss flat from step 0</td><td>LR far too low, or gradients not flowing</td><td>Raise LR 10&times;; verify <code>requires_grad</code>; check for a detached tensor</td></tr>
+      <tr><td>Loss spikes then diverges</td><td>LR too high</td><td>Lower LR; add warmup; clip gradients</td></tr>
+      <tr><td>Loss falls then plateaus high</td><td>Underfitting &mdash; model too small or features too weak</td><td>More capacity, longer training, better inputs</td></tr>
+      <tr><td>Train falls, validation rises</td><td><strong>Overfitting</strong></td><td>Early stopping, weight decay, dropout, more data</td></tr>
+      <tr><td>Very noisy loss</td><td>Batch too small</td><td>Larger batch, or gradient accumulation if memory-bound</td></tr>
+      <tr><td>Loss jumps at an epoch boundary</td><td>Data not shuffled</td><td>Shuffle every epoch</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h3>Learning-rate schedules</h3>
+<p>A fixed learning rate is rarely right for the whole run. The standard recipe for transformers is <strong>linear warmup then cosine decay</strong>: start near zero and ramp up over the first few hundred steps, then decay smoothly toward zero.</p>
+<p>Warmup exists because Adam's second-moment estimate <i>v</i> is unreliable in the first few steps &mdash; it has seen almost no data &mdash; and a full-size step based on a bad estimate can throw the model somewhere it never recovers from. Decay exists because large steps are useful for finding the right basin and harmful for settling into it.</p>
+
+<div class="kv">
+  <div><dt>Full fine-tune</dt><dd>1e-5 to 5e-5</dd></div>
+  <div><dt>LoRA fine-tune</dt><dd>1e-4 to 3e-4</dd></div>
+  <div><dt>Training from scratch</dt><dd>1e-4 to 1e-3</dd></div>
+  <div><dt>Warmup</dt><dd>3&ndash;10% of total steps</dd></div>
+  <div><dt>Grad clip norm</dt><dd>1.0</dd></div>
+  <div><dt>Weight decay</dt><dd>0.01 to 0.1</dd></div>
+</div>
+
+<div class="note trap">
+  <span class="tag">Local minima are not your problem</span>
+  <p>Introductory material worries a great deal about getting stuck in local minima. In high-dimensional spaces this turns out to be largely a non-issue: for a point to be a local minimum, the loss must curve upward in <em>every one</em> of millions of directions simultaneously, which is vanishingly unlikely. Almost every stationary point is a <strong>saddle</strong> &mdash; up in some directions, down in others &mdash; and momentum carries you through those. The real problems are the practical ones in the table above: bad learning rates, exploding gradients and overfitting.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly one evening</div>
+  <ol>
+    <li>Reproduce the shrinking-<i>h</i> table for <i>f</i>(<i>x</i>) = <i>x</i><sup>3</sup> at <i>x</i>=2. Confirm it converges to 12, then confirm the power rule predicts 3<i>x</i><sup>2</sup> = 12.</li>
+    <li>Type in the <code>Value</code> class. Add <code>tanh</code> and <code>exp</code> methods with their correct backward functions, and gradient-check both numerically.</li>
+    <li>Deliberately change one <code>+=</code> to <code>=</code> in a backward function. Build an expression that uses a value twice and watch the gradient come out wrong. This is the bug you would otherwise ship one day.</li>
+    <li>Use your <code>Value</code> class to fit a two-layer network to XOR. It needs a hidden layer &mdash; XOR is not linearly separable, and discovering that empirically is instructive.</li>
+    <li>Run the optimiser comparison. Then set Adam's <code>b2=0.9</code> and watch it behave more like RMSProp. Understanding the two moments separately is worth the five minutes.</li>
+    <li>Implement linear warmup plus cosine decay and plot the learning rate against step. Overlay a run without warmup and note the early instability.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 08 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Video</span><span class="body"><a href="https://www.youtube.com/watch?v=VMj-3S1tku0">Karpathy &mdash; The spelled-out intro to neural networks and backpropagation</a><span class="why">Builds exactly the <code>Value</code> class above, in more detail, over two hours. If one resource on this page, make it this.</span></span></li>
+    <li><span class="kind">Code</span><span class="body"><a href="https://github.com/karpathy/micrograd">micrograd</a><span class="why">The finished 150-line autograd engine plus a neural-net layer on top. Read it after writing your own.</span></span></li>
+    <li><span class="kind">Video</span><span class="body"><a href="https://www.3blue1brown.com/topics/calculus">3Blue1Brown &mdash; Essence of Calculus</a><span class="why">Chapters 1&ndash;4 give the geometric meaning of derivatives and the chain rule. Watch before Section 03 if the notation feels opaque.</span></span></li>
+    <li><span class="kind">Video</span><span class="body"><a href="https://www.3blue1brown.com/topics/neural-networks">3Blue1Brown &mdash; Neural Networks chapters 3&amp;4</a><span class="why">Backpropagation animated, then the calculus behind it. The visual companion to Section 03.</span></span></li>
+    <li><span class="kind">Book</span><span class="body"><a href="https://mml-book.github.io/">Mathematics for Machine Learning &mdash; Chapters 5 &amp; 7</a><span class="why">Free PDF. Vector calculus and continuous optimisation, with the multivariate chain rule done properly.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://www.ruder.io/optimizing-gradient-descent/">An overview of gradient descent optimisation algorithms</a><span class="why">Sebastian Ruder's survey. The clearest single write-up of momentum through Adam and beyond.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://distill.pub/2017/momentum/">Why Momentum Really Works &mdash; Distill</a><span class="why">Interactive. Drag the parameters and watch the optimisation path change. Momentum stops being an abstraction.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 1.4 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

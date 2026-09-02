@@ -1,0 +1,756 @@
+<title>Probability & Statistics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 01 &middot; Fundamentals</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">1.2</span>
+    <h1>Probability &amp; Statistics</h1>
+    <p class="lede">An LLM is a probability distribution wearing a chat interface. This page starts from coin flips, derives
+softmax from first principles, explains exactly what temperature does to the numbers, builds a Naive Bayes
+classifier and a full evaluation suite from scratch, and shows why accuracy is the metric that lies to you.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#bayes">Conditional probability and Bayes</a></li><li><a href="#distributions">Distributions worth recognising</a></li><li><a href="#softmax">Softmax and temperature, derived</a></li><li><a href="#scratch">Build it from scratch</a></li><li><a href="#information">Information theory: how models are scored</a></li><li><a href="#metrics">Evaluation metrics, and why accuracy lies</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>None. Fractions and percentages are enough for Sections 01&ndash;02. Logarithms appear in Section 05 and are explained where they appear.</p>
+</div>
+
+<p>Probability is the mathematics of <em>not knowing</em>. That is worth saying plainly, because it explains why it sits at the heart of AI: a language model does not know what word comes next. It has opinions, weighted by confidence. Probability is how you write those opinions down.</p>
+
+<h3>The one rule everything is built on</h3>
+
+<p>A probability is a number between 0 and 1. Zero means impossible, one means certain, and the probabilities of all possible outcomes must add up to exactly 1.</p>
+
+<p>That last clause does more work than it looks. It means probability is a <em>budget</em>. If you become more confident about one outcome, you must take that confidence from somewhere else. When you later see temperature "sharpening" a distribution, this is what is happening: the budget is being redistributed, never created.</p>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Random variable</dt>
+    <dd>A thing whose value you do not know yet. The next token, tomorrow's request count, whether this email is spam.</dd>
+
+    <dt>Distribution</dt>
+    <dd>The full list of possible values and how likely each one is. "60% cat, 30% dog, 10% bird" is a distribution.</dd>
+
+    <dt>Conditional probability</dt>
+    <dd>The probability of something <em>given</em> that you already know something else. Written <i>P</i>(A|B), read "probability of A given B". Knowing it rained changes your estimate of whether the ground is wet.</dd>
+
+    <dt>Prior / posterior</dt>
+    <dd>What you believed before seeing evidence, and what you believe after. Updating one into the other is the whole of Bayesian reasoning.</dd>
+
+    <dt>Logits</dt>
+    <dd>Raw, unbounded scores a model produces before they are converted into probabilities. They can be negative, or 40, or anything. They are not probabilities yet.</dd>
+
+    <dt>Softmax</dt>
+    <dd>The recipe that turns logits into a proper distribution &mdash; all positive, adding to 1.</dd>
+
+    <dt>Sampling</dt>
+    <dd>Actually picking one outcome according to the probabilities. Roll the weighted die.</dd>
+  </dl>
+</div>
+
+<h3>What an LLM is really doing</h3>
+
+<p>Here is the entire generation loop, stripped of jargon. You give the model "The capital of France is". It produces a score for <em>every single token in its vocabulary</em> &mdash; perhaps 100,000 of them. Softmax turns those scores into probabilities:</p>
+
+<div class="tbl">
+  <table>
+    <caption>What the model actually returns for "The capital of France is ___"</caption>
+    <thead><tr><th>Token</th><th class="nc">Logit</th><th class="nc">Probability</th></tr></thead>
+    <tbody>
+      <tr><td><code> Paris</code></td><td class="nc">12.4</td><td class="nc">0.891</td></tr>
+      <tr><td><code> the</code></td><td class="nc">9.8</td><td class="nc">0.066</td></tr>
+      <tr><td><code> located</code></td><td class="nc">8.9</td><td class="nc">0.027</td></tr>
+      <tr><td><code> a</code></td><td class="nc">7.6</td><td class="nc">0.007</td></tr>
+      <tr><td>&hellip;99,996 more</td><td class="nc">&mdash;</td><td class="nc">0.009</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<p>Then it <em>picks one</em>, appends it to the text, and does the whole thing again. That is all. There is no lookup, no database, no fact-checking step. A hallucination is what happens when the highest-probability continuation is not the true one &mdash; the machine is working exactly as designed.</p>
+
+<div class="note key">
+  <span class="tag">Why this framing pays off immediately</span>
+  <p>Once you see the model as a distribution rather than an oracle, three mysteries dissolve at once. <strong>Temperature</strong> is a knob on that table. <strong>Hallucination</strong> is a wrong table, not a bug. <strong>Evaluation</strong> must be statistical, because the output is a sample rather than a value. Everything in Phase 5 about evals follows from this one shift.</p>
+</div>
+
+<h2 id="bayes"><span class="kicker">Section 02 <span class="lvl lvl-b">Beginner</span></span>Conditional probability and Bayes</h2>
+
+<p>Most useful probability is conditional. Not "is this email spam?" but "is this email spam <em>given</em> that it contains the word 'invoice'?"</p>
+
+<p>Bayes' theorem is the rule for flipping a conditional round. It is easy to state and famously easy to misapply, so it is worth deriving rather than memorising.</p>
+
+<div class="derive">
+  <div class="derive-top">Deriving Bayes' theorem in three lines</div>
+  <ol>
+    <li><i>P</i>(A &cap; B) = <i>P</i>(A|B) &middot; <i>P</i>(B)
+      <span class="why">Definition of conditional probability: the chance both happen equals the chance B happens, times the chance A happens given it did.</span></li>
+    <li><i>P</i>(A &cap; B) = <i>P</i>(B|A) &middot; <i>P</i>(A)
+      <span class="why">The same quantity, decomposed the other way round. "Both happened" does not care which you condition on.</span></li>
+    <li><i>P</i>(A|B) = <i>P</i>(B|A) &middot; <i>P</i>(A) / <i>P</i>(B) &nbsp;&nbsp;&#9632;
+      <span class="why">Set (1) equal to (2) and divide by <i>P</i>(B). That is the whole theorem.</span></li>
+  </ol>
+</div>
+
+<h3>Why it matters: the base rate trap</h3>
+
+<p>A worked example that has caught out doctors, lawyers and &mdash; relevantly &mdash; people building classifiers. A test for a disease is 99% accurate. One person in 10,000 has the disease. You test positive. What is the chance you have it?</p>
+
+<div class="math">
+  <span class="lbl">Applying Bayes</span>
+  <span class="row"><i>P</i>(disease | positive) = <span class="frac"><span>0.99 &times; 0.0001</span><span>(0.99 &times; 0.0001) + (0.01 &times; 0.9999)</span></span> = <strong>0.0098</strong></span>
+  <span class="note">Under 1%. The intuition says 99%; the answer is 1%. The reason is that false positives are drawn from the enormous healthy population &mdash; 100 false alarms for every true detection. <strong>Rare things stay rare even after positive evidence.</strong> This is exactly why a fraud classifier with 99% accuracy on a 0.1% fraud rate is worthless, and why Section 07 insists you never report accuracy alone.</span>
+</div>
+
+<h2 id="distributions"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>Distributions worth recognising</h2>
+
+<p>A distribution is a shape of uncertainty. You need to recognise about seven of them on sight; the rest you can look up.</p>
+
+<div class="tbl">
+  <table>
+    <caption>The distributions that appear in AI work</caption>
+    <thead><tr><th>Name</th><th>Shape</th><th>Parameters</th><th>Where it shows up</th></tr></thead>
+    <tbody>
+      <tr><td>Bernoulli</td><td>One trial, two outcomes</td><td><i>p</i></td><td>A single binary classification</td></tr>
+      <tr><td>Binomial</td><td>Count of successes in <i>n</i> trials</td><td><i>n</i>, <i>p</i></td><td>"42 of 200 eval cases passed" &mdash; and its confidence interval</td></tr>
+      <tr><td><strong>Categorical</strong></td><td>One draw from <i>k</i> options</td><td><i>p</i><sub>1</sub>&hellip;<i>p<sub>k</sub></i></td><td><strong>Next-token prediction.</strong> The softmax output <em>is</em> this</td></tr>
+      <tr><td>Gaussian</td><td>Symmetric bell</td><td>&mu;, &sigma;</td><td>Weight initialisation, measurement noise, most statistical tests</td></tr>
+      <tr><td>Uniform</td><td>Flat</td><td><i>a</i>, <i>b</i></td><td>Random baselines, dropout masks, jitter in retry backoff</td></tr>
+      <tr><td>Poisson</td><td>Counts per interval</td><td>&lambda;</td><td>Requests per second; queue modelling for your inference service</td></tr>
+      <tr><td>Zipf / power law</td><td>A few dominate, long tail</td><td>&alpha;</td><td>Word frequencies &mdash; the reason subword tokenisation exists</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note java">
+  <span class="tag">The two numbers that summarise any distribution</span>
+  <p><strong>Expectation</strong> <i>E</i>[<i>X</i>] = &Sigma; <i>x<sub>i</sub>p<sub>i</sub></i> is the long-run average &mdash; each outcome weighted by how often it happens. <strong>Variance</strong> <i>E</i>[(<i>X</i>&minus;&mu;)<sup>2</sup>] is the average squared distance from that average, so it measures spread. In practice you will report a mean latency and a p95: the mean is expectation, and the gap to p95 is variance made concrete. Reporting a mean without a spread is the most common way engineers mislead themselves with numbers.</p>
+</div>
+
+<h2 id="softmax"><span class="kicker">Section 04 <span class="lvl lvl-i">Intermediate</span></span>Softmax and temperature, derived</h2>
+
+<p>You have a vector of logits. You need a probability distribution. Three requirements: every output positive, all outputs summing to 1, and larger logits mapping to larger probabilities. Softmax is the standard answer &mdash; but <em>why that formula</em>?</p>
+
+<ol class="steps">
+  <li><strong>Make everything positive.</strong> Logits can be negative, so you need a function that is always positive. <code>exp(x)</code> is the natural choice: always positive, monotonically increasing, and smooth everywhere so gradients exist.</li>
+  <li><strong>Force the sum to 1.</strong> Divide each exponentiated value by the total of all of them. Now they are a valid distribution by construction.</li>
+  <li><strong>Notice the side effect.</strong> Exponentiating <em>exaggerates differences</em>. A logit 2 points ahead becomes roughly 7&times; more likely, not 2&times;. Softmax is deliberately opinionated.</li>
+</ol>
+
+<div class="math">
+  <span class="lbl">Softmax with temperature</span>
+  <i>P</i>(<i>i</i>) &nbsp;=&nbsp; <span class="frac"><span>exp(<i>z<sub>i</sub></i> / <i>T</i>)</span><span>&Sigma;<sub>j</sub> exp(<i>z<sub>j</sub></i> / <i>T</i>)</span></span>
+  <span class="note">Temperature divides the logits <em>before</em> exponentiating, which rescales all the gaps between them at once. Small <i>T</i> stretches the gaps apart, so the leader runs away with the probability mass. Large <i>T</i> squashes the gaps together, so everything approaches equally likely. The name comes from statistical physics, where the same equation (the Boltzmann distribution) describes how particles occupy energy states at temperature <i>T</i>.</span>
+</div>
+
+<h3>The two limits, and why they behave that way</h3>
+<ul>
+  <li><strong><i>T</i> &rarr; 0.</strong> Dividing by a tiny number magnifies every gap enormously. The largest logit's exponential dwarfs all others, its probability goes to 1, and sampling becomes <code>argmax</code>. This is greedy decoding.</li>
+  <li><strong><i>T</i> &rarr; &infin;.</strong> Every <i>z<sub>i</sub></i>/<i>T</i> approaches 0, every <code>exp</code> approaches 1, and all outcomes become equally likely. Pure noise.</li>
+</ul>
+
+<div class="note trap">
+  <span class="tag">Numerical stability &mdash; the bug everyone writes once</span>
+  <p><code>exp(800)</code> overflows to infinity in float64, and <code>inf/inf</code> is <code>NaN</code>. Since softmax is unchanged if you subtract a constant from every logit (the constant factors out of numerator and denominator and cancels), <strong>always subtract the maximum logit first</strong>. Then the largest exponent is <code>exp(0) = 1</code> and nothing can overflow. Every production implementation does this; if you write your own and skip it, you will get <code>NaN</code> on your first real batch.</p>
+</div>
+
+<h2 id="scratch"><span class="kicker">Section 05 <span class="lvl lvl-a">Advanced</span></span>Build it from scratch</h2>
+
+<h3>Sampling strategies, implemented</h3>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Every decoding strategy, from nothing</span></div>
+<pre><code>import numpy as np
+
+def softmax(logits, T=1.0):
+    z = np.asarray(logits, dtype=np.float64) / T
+    z = z - z.max()                   <span class="cm"># stability: largest exponent becomes 0</span>
+    e = np.exp(z)
+    return e / e.sum()
+
+def greedy(logits):
+    return int(np.argmax(logits))     <span class="cm"># deterministic, repetitive</span>
+
+def sample_temperature(logits, T=0.7, rng=None):
+    rng = rng or np.random.default_rng()
+    return int(rng.choice(len(logits), p=softmax(logits, T)))
+
+def sample_top_k(logits, k=40, T=1.0, rng=None):
+    rng = rng or np.random.default_rng()
+    logits = np.asarray(logits, dtype=np.float64)
+    keep = np.argpartition(-logits, k)[:k]        <span class="cm"># k largest, unsorted</span>
+    p = softmax(logits[keep], T)                  <span class="cm"># renormalise over survivors</span>
+    return int(keep[rng.choice(len(keep), p=p)])
+
+def sample_top_p(logits, p_thresh=0.9, T=1.0, rng=None):
+    """Nucleus sampling: smallest set of tokens whose mass reaches p."""
+    rng = rng or np.random.default_rng()
+    probs = softmax(logits, T)
+    order = np.argsort(-probs)                    <span class="cm"># descending</span>
+    cumulative = np.cumsum(probs[order])
+    <span class="cm"># +1 so we always keep at least one token, and always cross the threshold</span>
+    cutoff = int(np.searchsorted(cumulative, p_thresh)) + 1
+    keep = order[:cutoff]
+    renorm = probs[keep] / probs[keep].sum()
+    return int(keep[rng.choice(len(keep), p=renorm)])
+
+def sample_min_p(logits, min_p=0.05, T=1.0, rng=None):
+    """Keep tokens at least min_p as likely as the best token."""
+    rng = rng or np.random.default_rng()
+    probs = softmax(logits, T)
+    keep = np.flatnonzero(probs &gt;= min_p * probs.max())
+    renorm = probs[keep] / probs[keep].sum()
+    return int(keep[rng.choice(len(keep), p=renorm)])
+
+def apply_repetition_penalty(logits, generated, penalty=1.1):
+    """Divide positive logits of seen tokens; multiply negative ones."""
+    logits = np.array(logits, dtype=np.float64)
+    for t in set(generated):
+        logits[t] = logits[t] / penalty if logits[t] &gt; 0 else logits[t] * penalty
+    return logits
+
+<span class="cm"># See how the distribution changes shape</span>
+logits = [12.4, 9.8, 8.9, 7.6, 3.1, 1.0]
+for T in (0.2, 0.7, 1.0, 1.5):
+    print(f"T={T}: {np.round(softmax(logits, T), 4)}")
+
+<span class="cm"># T=0.2: [1.     0.     0.     0.     0.     0.    ]  -- effectively greedy</span>
+<span class="cm"># T=0.7: [0.969  0.024  0.007  0.001  0.     0.    ]</span>
+<span class="cm"># T=1.0: [0.899  0.067  0.027  0.007  0.     0.    ]</span>
+<span class="cm"># T=1.5: [0.759  0.134  0.074  0.031  0.002  0.    ]  -- more adventurous</span></code></pre>
+</div>
+
+<h3>A complete classifier from scratch: Naive Bayes</h3>
+
+<p>Bayes' theorem is not just theory &mdash; it is a working classifier that was the state of the art for spam filtering for a decade, trains in one pass, and still beats neural networks when you have 200 labelled examples. Building it makes the theorem concrete.</p>
+
+<p>The "naive" part is an assumption: that words appear independently of each other given the class. This is obviously false &mdash; "New" and "York" are not independent &mdash; but the classifier works well anyway, because it only needs the <em>ranking</em> of class scores to be right, not the probabilities themselves.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Naive Bayes in 40 lines, no libraries</span></div>
+<pre><code>import math, re
+from collections import defaultdict, Counter
+
+class NaiveBayes:
+    def __init__(self, alpha=1.0):
+        self.alpha = alpha            <span class="cm"># Laplace smoothing strength</span>
+        self.log_prior = {}
+        self.log_likelihood = {}
+        self.vocab = set()
+
+    @staticmethod
+    def tokens(text):
+        return re.findall(r"[a-z']+", text.lower())
+
+    def fit(self, docs, labels):
+        n = len(docs)
+        by_class = defaultdict(list)
+        for d, y in zip(docs, labels):
+            by_class[y].extend(self.tokens(d))
+        self.vocab = {w for words in by_class.values() for w in words}
+        V = len(self.vocab)
+
+        class_counts = Counter(labels)
+        for c, words in by_class.items():
+            <span class="cm"># P(class) -- how common is this class at all?</span>
+            self.log_prior[c] = math.log(class_counts[c] / n)
+
+            <span class="cm"># P(word | class), with +alpha so an unseen word</span>
+            <span class="cm"># does not zero out the entire product.</span>
+            counts = Counter(words)
+            total = len(words) + self.alpha * V
+            self.log_likelihood[c] = {
+                w: math.log((counts[w] + self.alpha) / total) for w in self.vocab
+            }
+            self.log_likelihood[c]["&lt;UNK&gt;"] = math.log(self.alpha / total)
+
+    def predict(self, doc):
+        <span class="cm"># Work in log space: products of many small numbers underflow</span>
+        <span class="cm"># to zero in floating point, but sums of logs are stable.</span>
+        scores = {}
+        for c in self.log_prior:
+            s = self.log_prior[c]
+            for w in self.tokens(doc):
+                s += self.log_likelihood[c].get(w, self.log_likelihood[c]["&lt;UNK&gt;"])
+            scores[c] = s
+        return max(scores, key=scores.get), scores
+
+docs = ["free money now", "win a free prize", "meeting at three",
+        "project meeting tomorrow", "claim your free reward", "lunch tomorrow?"]
+labels = ["spam", "spam", "ham", "ham", "spam", "ham"]
+
+nb = NaiveBayes()
+nb.fit(docs, labels)
+print(nb.predict("free lunch tomorrow")[0])   <span class="cm"># ham -- 'lunch'+'tomorrow' outweigh 'free'</span>
+print(nb.predict("claim free money")[0])      <span class="cm"># spam</span></code></pre>
+</div>
+
+<div class="note key">
+  <span class="tag">Two techniques worth stealing from this code</span>
+  <p><strong>Log space.</strong> Multiplying 500 probabilities each around 0.001 underflows to exactly 0.0 in float64, destroying the answer. Adding their logarithms does not. Any time you multiply many small probabilities &mdash; language model scoring, HMMs, beam search &mdash; work in logs. This is also why models report <em>log</em> probabilities.</p>
+  <p><strong>Smoothing.</strong> Without <code>+alpha</code>, one unseen word makes <i>P</i>(document|class) exactly zero, vetoing the class no matter how much other evidence supports it. Adding a pseudo-count to everything means "I have never seen this, but it is not impossible". The same idea reappears as regularisation in Section 2.3.</p>
+</div>
+
+<h2 id="information"><span class="kicker">Section 06 <span class="lvl lvl-a">Advanced</span></span>Information theory: how models are scored</h2>
+
+<p>Four quantities, all variations on "how surprised were you?". They are how language models are trained, compared and monitored, so it is worth being precise about the differences.</p>
+
+<div class="math">
+  <span class="lbl">The family</span>
+  <span class="row">Entropy&emsp;<i>H</i>(<i>p</i>) = &minus;&Sigma;<sub>i</sub> <i>p<sub>i</sub></i> log <i>p<sub>i</sub></i></span>
+  <span class="row">Cross-entropy&emsp;<i>H</i>(<i>p</i>,<i>q</i>) = &minus;&Sigma;<sub>i</sub> <i>p<sub>i</sub></i> log <i>q<sub>i</sub></i></span>
+  <span class="row">KL divergence&emsp;<i>D</i><sub>KL</sub>(<i>p</i>&#8214;<i>q</i>) = <i>H</i>(<i>p</i>,<i>q</i>) &minus; <i>H</i>(<i>p</i>)</span>
+  <span class="row">Perplexity&emsp;PPL = exp(<i>H</i>(<i>p</i>,<i>q</i>))</span>
+  <span class="note">Read them as a sequence. <strong>Entropy</strong> is your average surprise if reality matches your beliefs. <strong>Cross-entropy</strong> is your average surprise when reality is <i>p</i> but you believed <i>q</i> &mdash; always at least as large. <strong>KL</strong> is the excess: the price of being wrong. <strong>Perplexity</strong> exponentiates cross-entropy back into "effective number of equally likely choices", which is the only one of the four that is human-readable.</span>
+</div>
+
+<p><strong>Why the logarithm?</strong> Because information should add. Learning two independent facts should give you twice the information, but their probabilities <em>multiply</em>. The logarithm is the function that turns multiplication into addition, so &minus;log <i>p</i> is the unique sensible measure of surprise. Base 2 gives bits; base <i>e</i> gives nats, which is what deep learning frameworks use.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Scoring a language model the way training does</span></div>
+<pre><code>import numpy as np
+
+def cross_entropy(true_ids, predicted_probs, eps=1e-12):
+    """Mean negative log-probability the model assigned to what
+    actually came next. This IS the LLM training loss."""
+    p = np.clip(predicted_probs[np.arange(len(true_ids)), true_ids], eps, 1.0)
+    return float(-np.log(p).mean())
+
+def perplexity(true_ids, predicted_probs):
+    return float(np.exp(cross_entropy(true_ids, predicted_probs)))
+
+def entropy(p, eps=1e-12):
+    """Uncertainty of a single prediction -- a cheap hallucination signal."""
+    p = np.clip(np.asarray(p, dtype=float), eps, 1.0)
+    return float(-(p * np.log(p)).sum())
+
+<span class="cm"># A confident prediction vs an uncertain one</span>
+confident = np.array([0.95, 0.03, 0.01, 0.01])
+uncertain = np.array([0.30, 0.28, 0.22, 0.20])
+print(f"confident H = {entropy(confident):.3f} nats")   <span class="cm"># 0.246</span>
+print(f"uncertain H = {entropy(uncertain):.3f} nats")   <span class="cm"># 1.371</span>
+
+<span class="cm"># In production: log per-token entropy alongside the answer.</span>
+<span class="cm"># A spike in mean entropy across a response correlates with</span>
+<span class="cm"># the model making things up, and costs nothing to compute.</span></code></pre>
+</div>
+
+<h2 id="metrics"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Evaluation metrics, and why accuracy lies</h2>
+
+<p>Every classification result is one of four things. Lay them out and every metric becomes obvious.</p>
+
+<div class="tbl">
+  <table>
+    <caption>The confusion matrix &mdash; the source of all classification metrics</caption>
+    <thead><tr><th></th><th>Predicted positive</th><th>Predicted negative</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Actually positive</strong></td><td>True Positive (TP) &mdash; correct hit</td><td>False Negative (FN) &mdash; <em>a miss</em></td></tr>
+      <tr><td><strong>Actually negative</strong></td><td>False Positive (FP) &mdash; <em>a false alarm</em></td><td>True Negative (TN) &mdash; correct rejection</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<p>Now the definitions read themselves. <strong>Precision</strong> = TP/(TP+FP) looks down the "predicted positive" column: <em>when I raise the alarm, am I right?</em> <strong>Recall</strong> = TP/(TP+FN) looks across the "actually positive" row: <em>of everything I should have caught, how much did I catch?</em></p>
+
+<div class="note trap">
+  <span class="tag">Why accuracy is the metric that lies</span>
+  <p>Accuracy is (TP+TN)/total &mdash; it counts true negatives, which are usually abundant and worthless. On a fraud dataset with 0.1% fraud, a model that predicts "never fraud" scores <strong>99.9% accuracy</strong> while catching zero fraud. It is a perfect score for a useless model, and it is the single most common way an ML project reports success while delivering nothing. Report precision and recall, or PR-AUC, and accuracy will stop deceiving you.</p>
+</div>
+
+<h3>The trade-off is real and it is yours to set</h3>
+
+<p>Precision and recall pull against each other. Lower your decision threshold and you catch more true cases (recall up) but raise more false alarms (precision down). There is no universally correct point on that curve &mdash; it depends on the relative cost of the two errors, which is a business decision, not a mathematical one.</p>
+
+<div class="math">
+  <span class="lbl">F&beta; &mdash; encoding which error you fear more</span>
+  <i>F</i><sub>&beta;</sub> &nbsp;=&nbsp; (1 + &beta;<sup>2</sup>) &middot; <span class="frac"><span>precision &middot; recall</span><span>(&beta;<sup>2</sup> &middot; precision) + recall</span></span>
+  <span class="note">&beta;=1 gives the familiar F1, weighting both equally. &beta;=2 weights recall four times as heavily &mdash; use it when a miss is far worse than a false alarm, as in disease screening or security scanning. &beta;=0.5 does the reverse. Note it is a <em>harmonic</em> mean, so unlike an ordinary average it cannot be gamed by making one of the two very high while the other collapses.</span>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Every metric from scratch, then verified against scikit-learn</span></div>
+<pre><code>import numpy as np
+
+def confusion(y_true, y_pred, positive=1):
+    y_true, y_pred = np.asarray(y_true), np.asarray(y_pred)
+    tp = int(((y_pred == positive) &amp; (y_true == positive)).sum())
+    fp = int(((y_pred == positive) &amp; (y_true != positive)).sum())
+    fn = int(((y_pred != positive) &amp; (y_true == positive)).sum())
+    tn = int(((y_pred != positive) &amp; (y_true != positive)).sum())
+    return tp, fp, fn, tn
+
+def metrics(y_true, y_pred, beta=1.0):
+    tp, fp, fn, tn = confusion(y_true, y_pred)
+    precision = tp / (tp + fp) if tp + fp else 0.0
+    recall    = tp / (tp + fn) if tp + fn else 0.0
+    b2 = beta * beta
+    denom = b2 * precision + recall
+    fbeta = (1 + b2) * precision * recall / denom if denom else 0.0
+    return {
+        "accuracy":  (tp + tn) / max(tp + fp + fn + tn, 1),
+        "precision": precision,
+        "recall":    recall,
+        f"f{beta:g}": fbeta,
+        "specificity": tn / (tn + fp) if tn + fp else 0.0,
+    }
+
+def average_precision(y_true, scores):
+    """Area under the precision-recall curve -- the honest metric
+    for imbalanced data. Walk the threshold down, accumulate."""
+    order = np.argsort(-np.asarray(scores))
+    y = np.asarray(y_true)[order]
+    tp = np.cumsum(y)
+    precision = tp / np.arange(1, len(y) + 1)
+    total_pos = y.sum()
+    return float((precision * y).sum() / total_pos) if total_pos else 0.0
+
+<span class="cm"># The imbalanced case that exposes accuracy</span>
+rng = np.random.default_rng(0)
+y_true = np.zeros(10_000, dtype=int); y_true[:10] = 1   <span class="cm"># 0.1% positive</span>
+never_fires = np.zeros(10_000, dtype=int)
+
+print(metrics(y_true, never_fires))
+<span class="cm"># {'accuracy': 0.999, 'precision': 0.0, 'recall': 0.0, 'f1': 0.0, ...}</span>
+<span class="cm"># 99.9% accurate. Catches nothing. Precision and recall tell the truth.</span></code></pre>
+</div>
+
+<h3>Averaging across classes, and metrics for ranking</h3>
+
+<div class="tbl">
+  <table>
+    <caption>Multi-class averaging &mdash; state which one you used</caption>
+    <thead><tr><th>Method</th><th>How</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td>Macro</td><td>Compute per class, then average unweighted</td><td>A tiny class counts as much as a huge one. Use when rare classes matter</td></tr>
+      <tr><td>Micro</td><td>Pool all TP/FP/FN, then compute once</td><td>Dominated by frequent classes; equals accuracy in single-label problems</td></tr>
+      <tr><td>Weighted</td><td>Per class, averaged by class frequency</td><td>A compromise; can hide poor performance on rare classes</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<p>RAG is a <em>ranking</em> problem, not a classification one, so it needs order-aware metrics. These return in &sect;4.7, but the definitions belong here:</p>
+
+<ul>
+  <li><strong>Precision@k / Recall@k</strong> &mdash; the same formulas, restricted to the top <i>k</i> results.</li>
+  <li><strong>MRR</strong> &mdash; mean of 1/(rank of first correct result). Rewards getting one right answer to the top. Use when there is a single correct document.</li>
+  <li><strong>NDCG@k</strong> &mdash; discounted cumulative gain, normalised. Handles graded relevance and penalises correct results that appear far down the list. The most informative and the least intuitive.</li>
+</ul>
+
+<div class="note java">
+  <span class="tag">Statistical significance &mdash; the professional habit</span>
+  <p>Prompt A scores 82% on 50 test cases; prompt B scores 86%. Is B better? With <i>n</i>=50, the 95% confidence interval on 82% is roughly &plusmn;11 points. <strong>The intervals overlap heavily, so you have learned nothing.</strong> A rough rule: the standard error of a proportion is &radic;(<i>p</i>(1&minus;<i>p</i>)/<i>n</i>), so detecting a 5-point difference reliably needs several hundred cases, not fifty. Report intervals alongside every eval number, and treat differences smaller than the interval as noise. This one habit will save you from shipping prompt changes that do nothing.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 08 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly one evening</div>
+  <ol>
+    <li>Implement <code>softmax</code> without the max-subtraction trick and feed it <code>[800, 799]</code>. Observe the <code>NaN</code>. Then add the trick and watch it work. You will never forget it afterwards.</li>
+    <li>Print the softmax of a fixed logit vector at <i>T</i> = 0.1, 0.5, 1.0, 2.0, 5.0. Plot the five distributions on one chart. This picture is what "temperature" means.</li>
+    <li>Implement top-<i>p</i> sampling. Then check: at <i>p</i>=0.9, how many tokens survive for a peaked distribution versus a flat one? That adaptivity is the whole argument for nucleus over top-<i>k</i>.</li>
+    <li>Build the Naive Bayes classifier on the SMS Spam Collection dataset. Report precision, recall and F1 &mdash; not accuracy. Then deliberately report accuracy too, and note how much better it makes a mediocre model look.</li>
+    <li>Work the medical-test Bayes calculation for prevalences of 1 in 100, 1 in 1,000 and 1 in 100,000. Plot posterior probability against prevalence. This is the base-rate fallacy made visual.</li>
+    <li>Take any eval you have run and compute a 95% confidence interval on the pass rate. Decide honestly whether your last "improvement" was inside the noise.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 09 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Interactive</span><span class="body"><a href="https://seeing-theory.brown.edu/">Seeing Theory &mdash; Brown University</a><span class="why">Visual, interactive probability. The chapters on Bayesian inference and distributions do in twenty minutes what a textbook does in a chapter.</span></span></li>
+    <li><span class="kind">Video</span><span class="body"><a href="https://www.youtube.com/c/joshstarmer">StatQuest &mdash; Josh Starmer</a><span class="why">The clearest explanations available of ROC/AUC, precision vs recall, cross-entropy and Naive Bayes. Start with "ROC and AUC, clearly explained".</span></span></li>
+    <li><span class="kind">Video</span><span class="body"><a href="https://www.youtube.com/watch?v=HZGCoVF3YvM">3Blue1Brown &mdash; Bayes theorem</a><span class="why">The geometric picture of Bayes that makes the base-rate trap obvious rather than surprising.</span></span></li>
+    <li><span class="kind">Course</span><span class="body"><a href="https://www.khanacademy.org/math/statistics-probability">Khan Academy &mdash; Statistics &amp; Probability</a><span class="why">Complete and free. Use the confidence-interval and significance-testing units specifically &mdash; they are the part engineers most often lack.</span></span></li>
+    <li><span class="kind">Book</span><span class="body"><a href="https://mml-book.github.io/">Mathematics for Machine Learning &mdash; Chapter 6</a><span class="why">Free PDF. Probability and distributions, written for exactly this audience: enough rigour to be correct, no more than needed.</span></span></li>
+    <li><span class="kind">Book</span><span class="body"><a href="https://www.inference.org.uk/mackay/itila/">Information Theory, Inference, and Learning Algorithms &mdash; MacKay</a><span class="why">Free PDF. The definitive treatment of entropy and KL divergence, and unusually well written for a book of its depth.</span></span></li>
+    <li><span class="kind">Reference</span><span class="body"><a href="https://scikit-learn.org/stable/modules/model_evaluation.html">scikit-learn &mdash; Metrics and scoring</a><span class="why">Every metric with its exact definition and function name. Check your from-scratch implementations against it.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 1.2 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

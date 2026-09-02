@@ -1,0 +1,418 @@
+<title>The Data Pipeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 20 &middot; Capstone Project</span>
+    <span class="sep">/</span>
+    <span>Capstone build</span>
+  </div>
+
+  <header class="head">
+    <span class="num">20.2</span>
+    <h1>The Data Pipeline</h1>
+    <p class="lede">Nothing works without the data. This chapter builds Atlas's offline data pipeline &mdash; loading the raw document
+corpus, cleaning it, chunking it for retrieval, and carving out both a fine-tuning set and an evaluation set. Code,
+the reasoning behind each choice, and the maths of chunking and deduplication.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">The end-to-end build &middot; where this chapter sits</div>
+    <ol>
+      <li><span class="lvl lvl-b">Stage 1</span><b>Data &amp; Retrieval</b><span class="who">Ch. 20.2&ndash;20.4 &mdash; corpus, embeddings, the RAG core.</span></li>
+      <li><span class="lvl lvl-i">Stage 2</span><b>The Model</b><span class="who">Ch. 20.5&ndash;20.6 &mdash; fine-tune Llama, run it in llama.cpp.</span></li>
+      <li><span class="lvl lvl-a">Stage 3</span><b>The Application</b><span class="who">Ch. 20.7&ndash;20.8 &mdash; the agent, the serving API.</span></li>
+      <li><span class="lvl lvl-p">Stage 4</span><b>Operations</b><span class="who">Ch. 20.9&ndash;20.11 &mdash; eval, efficiency, deploy &amp; safety.</span></li>
+    </ol>
+  </div>
+
+  <div class="note java">
+    <span class="tag">How to read a capstone chapter</span>
+    <p>This is not a tutorial page &mdash; it is a build log. Every section shows <strong>code</strong>, the <strong>reason</strong> for it, and the <strong>maths or algorithm</strong> underneath, and closes with a <strong>&ldquo;Topics used here&rdquo;</strong> box linking the Phase&nbsp;1&ndash;19 pages it draws on. The goal is to see the whole handbook working as one system &mdash; chapter 20.1 gives the architecture, 20.12 indexes every topic.</p>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#load">Load &amp; clean the corpus</a></li><li><a href="#chunk">Chunk for retrieval</a></li><li><a href="#splits">Build the training &amp; eval sets</a></li><li><a href="#synth">Synthesising instruction data</a></li></ol>
+  </nav>
+
+<h2 id="load"><span class="kicker">Step 01</span>Load &amp; clean the corpus</h2>
+
+<p>Atlas's corpus is the company's documents &mdash; wikis, PDFs, runbooks. The first job is to get them into a uniform, clean form. Raw documents are messy: mixed encodings, boilerplate headers, duplicates, empty pages. Every defect here becomes a defect the model inherits (Topic 18.1).</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Ingest to a clean, uniform record</span></div>
+<pre><code>import pandas as pd, hashlib
+
+def load_corpus(paths) -&gt; pd.DataFrame:
+    rows = []
+    for p in paths:
+        text = extract_text(p)                 <span class="cm"># pdf/html/md -&gt; plain text</span>
+        text = normalise(text)                 <span class="cm"># unicode NFC, strip boilerplate</span>
+        if len(text.split()) &lt; 20:             <span class="cm"># drop near-empty docs</span>
+            continue
+        rows.append({"doc_id": p.stem, "source": str(p), "text": text})
+    df = pd.DataFrame(rows)
+    <span class="cm"># Deduplicate: identical docs waste index space and skew retrieval.</span>
+    df["hash"] = df["text"].map(lambda t: hashlib.md5(t.encode()).hexdigest())
+    df = df.drop_duplicates("hash").drop(columns="hash")
+    return df</code></pre>
+</div>
+
+<div class="note">
+  <p>The validation instinct from Topic 18.1 applies: assert what you expect (non-empty text, a valid source, no duplicate <code>doc_id</code>) and fail loudly rather than let a corrupt record slip into the index. A clean corpus is not glamorous, but it is the single biggest lever on final quality &mdash; the &ldquo;data-centric&rdquo; principle in action.</p>
+</div>
+
+<h2 id="chunk"><span class="kicker">Step 02</span>Chunk for retrieval</h2>
+
+<p>A retriever cannot return a whole 40-page document &mdash; it must return the <em>relevant passage</em>. So we split each document into <strong>chunks</strong>: pieces small enough to be specific, large enough to be self-contained. This is the most consequential parameter in a RAG system (Topic 4.5).</p>
+
+<div class="math">
+  <span class="lbl">Chunking with overlap &mdash; the arithmetic</span>
+  <span class="row">chunks per doc &asymp; <span class="frac"><span><i>L</i> &minus; <i>o</i></span><span><i>c</i> &minus; <i>o</i></span></span></span>
+  <span class="note"><i>L</i> = document length in tokens, <i>c</i> = chunk size, <i>o</i> = overlap. Overlap (<i>o</i>) repeats a little text between neighbours so a sentence split across a boundary is still fully present in one chunk. Too small a <i>c</i> loses context; too large dilutes the embedding (Topic 20.3). A common start: <i>c</i> &asymp; 500 tokens, <i>o</i> &asymp; 50.</span>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Token-aware chunking with overlap</span></div>
+<pre><code>def chunk(text, size=500, overlap=50, tok=tokenizer):
+    ids = tok.encode(text)
+    step = size - overlap
+    for start in range(0, len(ids), step):
+        piece = ids[start:start + size]
+        if len(piece) &lt; 20:                    <span class="cm"># drop a tiny tail</span>
+            break
+        yield tok.decode(piece)
+
+records = [{"doc_id": r.doc_id, "chunk_id": f"{r.doc_id}#{i}", "text": ch}
+           for r in df.itertuples()
+           for i, ch in enumerate(chunk(r.text))]</code></pre>
+</div>
+
+<div class="note trap">
+  <span class="tag">Why not just split every 500 tokens blindly?</span>
+  <p>Fixed-size splitting cuts sentences and tables in half, producing chunks that embed poorly. Better splitters respect structure &mdash; break on paragraph and heading boundaries first, only falling back to a token cap. The rule of thumb: <strong>a chunk should be a coherent unit of meaning</strong>, because the embedding in the next chapter can only capture what the chunk actually contains. Chunking quality quietly sets the ceiling on retrieval quality.</p>
+</div>
+
+<h2 id="splits"><span class="kicker">Step 03</span>Build the training &amp; eval sets</h2>
+
+<p>The same pipeline produces two more datasets. For <strong>fine-tuning</strong> (Topic 20.5) we need instruction&ndash;response pairs in the company's voice. For <strong>evaluation</strong> (Topic 20.9) we need questions with known-good answers &mdash; the ruler we measure every future change against.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Two datasets from the corpus</span></div>
+<pre><code><span class="cm"># Eval set: real questions + a reference answer + the source chunk.</span>
+<span class="cm"># Hand-write ~100 from real user queries; quality &gt; quantity (Topic 19.1).</span>
+eval_set = [
+  {"q": "How do I rotate the API signing key?",
+   "answer": "Run `atlas keys rotate`; the old key stays valid 24h.",
+   "source_chunk": "runbook-keys#3"},
+  <span class="cm"># ... ~100 cases spanning the real query distribution ...</span>
+]
+
+<span class="cm"># Fine-tuning set: instruction/response pairs in the house style.</span>
+<span class="cm"># Some hand-written, most synthesised from the corpus then audited (Topic 18.2).</span>
+train_set = build_instruction_pairs(df, style="atlas-support")
+
+<span class="cm"># NEVER let training and eval share documents -- that is leakage (Topic 2.3).</span>
+assert not (docs(train_set) &amp; docs(eval_set)), "train/eval overlap!"</code></pre>
+</div>
+
+<div class="note key">
+  <span class="tag">The leakage rule, again</span>
+  <p>The one non-negotiable: the documents behind your <strong>eval</strong> set must not appear in your <strong>training</strong> set. If the model was fine-tuned on the very passage a test question comes from, your eval score measures memorisation, not capability &mdash; and it will lie to you (Topics 2.3, 19.1). The assertion above is cheap insurance. This is the same discipline that runs through the whole handbook: measure against data the system has never seen.</p>
+</div>
+
+<h2 id="synth"><span class="kicker">Step 04</span>Synthesising instruction data</h2>
+
+<p>Hand-writing thousands of training pairs is infeasible, so we synthesise most of them with a strong model &mdash; carefully (Topic 18.2).</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Generate, then audit</span></div>
+<pre><code>def build_instruction_pairs(df, style):
+    pairs = []
+    for r in df.itertuples():
+        prompt = f"""From this document, write 3 realistic support Q&amp;A pairs
+in a concise, helpful tone. Ground every answer ONLY in the text.
+Vary the phrasing. Return JSONL.\n\nDOCUMENT:\n{{r.text[:3000]}}"""
+        pairs += parse_jsonl(strong_llm(prompt, temperature=0.8))
+    pairs = dedupe(pairs)                       <span class="cm"># LLMs repeat templates (Topic 18.2)</span>
+    return audit_sample(pairs, n=50)            <span class="cm"># a human checks 50 before trusting</span></code></pre>
+</div>
+
+<div class="note">
+  <p>Two safeguards make this safe rather than reckless: <strong>ground the generation in the real document</strong> (so the pairs teach true facts, not hallucinations) and <strong>audit a sample by hand</strong> before training on any of it. And remember the diversity trap &mdash; deduplicate aggressively, because an LLM asked for 3,000 examples tends to produce a few hundred templates with the words swapped (Topic 18.2). The synthetic set bootstraps; the real eval set keeps us honest.</p>
+</div>
+
+<div class="note key">
+  <span class="tag">Topics used here</span>
+  <ul>
+    <li><b>18.1 Data Engineering for AI</b> &mdash; the load / clean / validate / version discipline.</li>
+    <li><b>4.5 Ingestion &amp; Chunking</b> &mdash; the chunking strategy and overlap maths.</li>
+    <li><b>18.2 Synthetic Data Generation</b> &mdash; synthesising instruction pairs, and the diversity/audit safeguards.</li>
+    <li><b>2.2 NumPy &amp; Pandas</b> &mdash; the dataframe pipeline holding it all.</li>
+    <li><b>2.3 Classical ML / 19.1 Evaluation</b> &mdash; the train/eval split and the leakage rule.</li>
+    <li><b>13.1 NLP Fundamentals</b> &mdash; tokenisation underpinning the chunker.</li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Capstone 20.2 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

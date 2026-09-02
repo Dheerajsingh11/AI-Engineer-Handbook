@@ -1,0 +1,455 @@
+<title>MLOps Tooling</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 10 &middot; Cloud, Deploy &amp; MLOps</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">10.3</span>
+    <h1>MLOps Tooling</h1>
+    <p class="lede">The tools that make ML reproducible. This page covers experiment tracking, model registries, pipelines and
+data/model versioning &mdash; MLflow, Weights & Biases, DVC and the rest &mdash; explains the MLOps lifecycle
+they support, and maps where classic MLOps overlaps with the LLMOps you already met and where it differs.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#tracking">Experiment tracking</a></li><li><a href="#registry">Registry, versioning and pipelines</a></li><li><a href="#llmops">MLOps vs LLMOps &mdash; overlap and difference</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>The ML workflow (Topic 2.3), fine-tuning (Topic 3.5) and LLMOps (Topic 5.5). This page is the tooling that makes that work reproducible and operable.</p>
+</div>
+
+<p>Train a model in a notebook and you have a result nobody can reproduce: which data, which hyperparameters, which code version produced it? MLOps is the discipline &mdash; and this page is the tooling &mdash; that turns ad-hoc model building into an engineering process: tracked, versioned, reproducible, deployable.</p>
+
+<div class="tbl">
+  <table>
+    <caption>The four jobs MLOps tooling does</caption>
+    <thead><tr><th>Job</th><th>Answers</th><th>Tools</th></tr></thead>
+    <tbody>
+      <tr><td>Experiment tracking</td><td>What did I try, and how did each do?</td><td>MLflow, Weights &amp; Biases</td></tr>
+      <tr><td>Model registry</td><td>Which model is in production, and how was it made?</td><td>MLflow Registry, W&amp;B, SageMaker</td></tr>
+      <tr><td>Data / model versioning</td><td>Exactly which data and artefacts produced this?</td><td>DVC, LakeFS, Git-LFS</td></tr>
+      <tr><td>Pipelines / orchestration</td><td>How do I re-run the whole training flow reliably?</td><td>Kubeflow, Airflow, Metaflow, ZenML</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">The core problem: reproducibility</span>
+  <p>Everything MLOps tooling does serves one goal &mdash; <strong>any model you have should be reproducible</strong>: you can say exactly which code, data, and configuration produced it, and re-create it. Without that, you cannot debug a regression, satisfy an auditor, or safely roll back. Experiment tracking records the "what and how well"; the registry records "what is live"; versioning pins the data and artefacts; pipelines make the whole thing repeatable. Reproducibility is not bureaucracy &mdash; it is the difference between engineering and guessing.</p>
+</div>
+
+<h2 id="tracking"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>Experiment tracking</h2>
+
+<p>The most immediately useful tool. Instead of results scattered across notebook cells and memory, every run is logged: parameters, metrics, artefacts, code version &mdash; searchable and comparable.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Tracking a run with MLflow</span></div>
+<pre><code>import mlflow
+
+mlflow.set_experiment("support-classifier")
+
+with mlflow.start_run():
+    <span class="cm"># WHAT you tried</span>
+    mlflow.log_params({"model": "bge-small", "lr": 2e-4,
+                       "epochs": 3, "chunk_size": 700})
+
+    model = train(...)
+
+    <span class="cm"># HOW WELL it did (Topics 1.2, 4.7)</span>
+    mlflow.log_metrics({"f1": 0.87, "recall_at_5": 0.91,
+                        "cost_usd": 4.20})
+
+    <span class="cm"># The ARTEFACT itself, versioned and retrievable</span>
+    mlflow.log_artifact("./adapter")
+    mlflow.log_artifact("evals/golden.jsonl")   <span class="cm"># pin the eval set too</span>
+
+<span class="cm"># Now every run is comparable in the UI: sort by f1, see which</span>
+<span class="cm"># hyperparameters produced it, reproduce the best. No more</span>
+<span class="cm"># "which notebook had the good result?"</span></code></pre>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>MLflow vs Weights &amp; Biases</caption>
+    <thead><tr><th></th><th>MLflow</th><th>Weights &amp; Biases</th></tr></thead>
+    <tbody>
+      <tr><td>Hosting</td><td>Open-source, self-host or managed</td><td>Managed (free tier), rich UI</td></tr>
+      <tr><td>Strength</td><td>Tracking + registry + deployment, all-in-one</td><td>Best-in-class experiment UI, collaboration</td></tr>
+      <tr><td>Fits</td><td>You want to own the stack</td><td>You want the polished hosted experience</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="registry"><span class="kicker">Section 03 <span class="lvl lvl-a">Advanced</span></span>Registry, versioning and pipelines</h2>
+
+<p>Tracking captures experiments; the rest of MLOps captures the <em>lifecycle</em>.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>A model registry with stages</span></div>
+<pre><code>from mlflow import MlflowClient
+client = MlflowClient()
+
+<span class="cm"># Register a run's model, then promote it through stages -- the same</span>
+<span class="cm"># canary/rollback discipline as prompts in LLMOps (Topic 5.5).</span>
+mv = mlflow.register_model("runs:/&lt;run_id&gt;/model", "support-classifier")
+client.transition_model_version_stage(
+    "support-classifier", mv.version, stage="Staging")
+<span class="cm"># ... after it passes evaluation in staging ...</span>
+client.transition_model_version_stage(
+    "support-classifier", mv.version, stage="Production")
+
+<span class="cm"># The registry answers, at any moment: what is live, which version,</span>
+<span class="cm"># from which run, from which data. That is your rollback path.</span></code></pre>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>Data/model versioning and pipelines</caption>
+    <thead><tr><th>Need</th><th>Tool</th><th>Idea</th></tr></thead>
+    <tbody>
+      <tr><td>Version large data &amp; models with git</td><td>DVC</td><td>Git tracks pointers; data lives in object storage</td></tr>
+      <tr><td>Version a data lake</td><td>LakeFS</td><td>Git-like branches/commits over your lake</td></tr>
+      <tr><td>Orchestrate the training flow</td><td>Kubeflow / Airflow / Metaflow / ZenML</td><td>A DAG of steps: data &rarr; train &rarr; eval &rarr; register</td></tr>
+      <tr><td>Feature reuse &amp; consistency</td><td>Feast (feature store)</td><td>Same features in training and serving</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note trap">
+  <span class="tag">Data leakage hides in un-versioned data</span>
+  <p>A subtle reproducibility failure: your model looked great, you retrain a month later on "the same" data, and it is worse &mdash; because the data changed underneath you and nobody recorded which snapshot the good model used. Data versioning (DVC, LakeFS) pins the exact dataset to each model, which is also how you catch the leakage failures from Topic 2.3 after the fact. Version your data with the same seriousness as your code; "the data" is not a stable thing unless you make it one.</p>
+</div>
+
+<h2 id="llmops"><span class="kicker">Section 04 <span class="lvl lvl-p">Professional</span></span>MLOps vs LLMOps &mdash; overlap and difference</h2>
+
+<p>You met LLMOps in Topic 5.5. Classic MLOps and LLMOps share most of their DNA but diverge on a few axes worth being precise about.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Where they align and differ</caption>
+    <thead><tr><th></th><th>Classic MLOps</th><th>LLMOps (Topic 5.5)</th></tr></thead>
+    <tbody>
+      <tr><td>Core artefact</td><td>A model <em>you trained</em></td><td>Often a <em>prompt + a model you call</em></td></tr>
+      <tr><td>Versioning target</td><td>Model weights, data, features</td><td>Prompts, model versions, retrieval config</td></tr>
+      <tr><td>Evaluation</td><td>Metrics vs a labelled test set</td><td>Graded / statistical; LLM-as-judge (Topic 4.7)</td></tr>
+      <tr><td>Retraining trigger</td><td>Data drift, performance decay</td><td>Rarely retrain; iterate prompts / RAG</td></tr>
+      <tr><td>Cost model</td><td>Training compute, then cheap inference</td><td>Per-token inference &mdash; ongoing (Topic 9.1)</td></tr>
+      <tr><td>Shared</td><td colspan="2"><strong>Tracking, versioning, registries, pipelines, monitoring, CI/CD, reproducibility &mdash; all apply to both</strong></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note java">
+  <span class="tag">Which do you need?</span>
+  <p>If your work is mostly <em>calling</em> models with prompts and RAG (the common enterprise case), <strong>LLMOps (Topic 5.5) is your day-to-day</strong> &mdash; prompt versioning, eval suites, tracing, cost monitoring &mdash; and you will touch classic MLOps tooling mainly when you <em>fine-tune</em> (Topic 3.5) or train a classifier (Topic 2.3), where experiment tracking and a registry become essential. Learn experiment tracking (it is an afternoon and immediately useful the first time you fine-tune anything), understand what a registry and data versioning give you, and reach for the heavier pipeline orchestrators only when you have a real recurring training flow to automate.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly an evening</div>
+  <ol>
+    <li>Add MLflow tracking to a fine-tuning run (Topic 3.5). Log params, metrics and the adapter. Compare three runs in the UI.</li>
+    <li>Register your best model and promote it through Staging &rarr; Production. Then roll back to the previous version.</li>
+    <li>Version a dataset with DVC. Change the data, commit, and confirm you can restore the exact earlier snapshot a model used.</li>
+    <li>Reproduce a model from a tracked run using only what you logged. If you cannot, note what was missing &mdash; that gap is the lesson.</li>
+    <li>Sketch a training pipeline (data &rarr; train &rarr; eval &rarr; register) as a DAG. Implement it in ZenML or Airflow if you have time.</li>
+    <li>Write a one-paragraph comparison of what you would version for a fine-tuned model vs a prompt-and-RAG system.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://mlflow.org/docs/latest/index.html">MLflow documentation</a><span class="why">Tracking, Registry and Models. The all-in-one open-source option from Sections 02&ndash;03.</span></span></li>
+    <li><span class="kind">Course</span><span class="body"><a href="https://www.wandb.courses/courses/effective-mlops-model-development">W&amp;B &mdash; Effective MLOps</a><span class="why">Free course on experiment tracking and model development.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://dvc.org/doc">DVC documentation</a><span class="why">Data and model versioning with git &mdash; the Section 03 reproducibility layer.</span></span></li>
+    <li><span class="kind">Course</span><span class="body"><a href="https://madewithml.com/">Made With ML</a><span class="why">A free, end-to-end MLOps course covering the whole lifecycle with code.</span></span></li>
+    <li><span class="kind">Repo</span><span class="body"><a href="https://github.com/GokuMohandas/mlops-course">MLOps course (GitHub)</a><span class="why">Practical, code-first walkthrough of tracking, pipelines and deployment.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://ml-ops.org/">ml-ops.org</a><span class="why">A vendor-neutral map of MLOps principles and the tooling landscape.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 10.3 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

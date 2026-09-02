@@ -1,0 +1,435 @@
+<title>LLM Evaluation & Benchmarks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 19 &middot; Evaluation, Product &amp; Production</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">19.1</span>
+    <h1>LLM Evaluation &amp; Benchmarks</h1>
+    <p class="lede">The discipline that separates engineers from demo-builders. This page covers how to measure whether an LLM system
+actually works &mdash; benchmarks, LLM-as-judge, human evaluation, and offline vs online testing &mdash; why
+"it looked good in the playground" is not evidence, and how to build an eval you can trust a decision on.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#benchmarks">Benchmarks &amp; their limits</a></li><li><a href="#your-eval">Building your own eval</a></li><li><a href="#judge">LLM-as-judge &amp; human eval</a></li><li><a href="#production">Offline to online</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>Prompting (Topic 3.1) and a system worth measuring. This page is the general evaluation discipline; RAG evaluation (Topic 4.7) and agent evaluation (Topic 8.10) are the task-specific specialisations of it.</p>
+</div>
+
+<p>You cannot improve what you cannot measure, and with LLMs this is unusually hard: the output is open-ended text, "correct" is often a matter of degree, and the same prompt can give different answers. <strong>LLM evaluation</strong> is the set of methods for turning "does this system work?" into a number you can track, compare and defend.</p>
+
+<div class="note key">
+  <span class="tag">Why this is the skill that gets you hired</span>
+  <p>Everyone can wire up an LLM and get a plausible-looking answer. Far fewer can say <em>how often</em> it is right, <em>where</em> it fails, and <em>whether</em> yesterday's prompt change helped or hurt. That gap &mdash; between a demo and a measured system &mdash; is the whole difference between a hobby project and production engineering, and it is exactly what interviewers and hiring managers screen for (Topic 17.4). Evaluation is not the boring part after the building; on a serious AI project it <em>is</em> the building.</p>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Eval set</dt><dd>A fixed collection of test cases with known-good answers or criteria.</dd>
+    <dt>Benchmark</dt><dd>A standard public eval set used to compare models (MMLU, HumanEval&hellip;).</dd>
+    <dt>LLM-as-judge</dt><dd>Using a strong model to score another model's outputs.</dd>
+    <dt>Offline eval</dt><dd>Testing against a fixed dataset before shipping.</dd>
+    <dt>Online eval</dt><dd>Measuring real user outcomes in production (A/B tests, feedback).</dd>
+    <dt>Regression</dt><dd>A change that quietly makes something that worked stop working.</dd>
+  </dl>
+</div>
+
+<h2 id="benchmarks"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>Benchmarks &amp; their limits</h2>
+
+<p>Public benchmarks are how the field compares models. They are useful for orientation and dangerous if over-trusted.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Benchmarks you will see quoted</caption>
+    <thead><tr><th>Benchmark</th><th>Measures</th></tr></thead>
+    <tbody>
+      <tr><td>MMLU</td><td>Broad knowledge across 57 subjects (multiple choice)</td></tr>
+      <tr><td>GPQA</td><td>Hard, graduate-level science reasoning</td></tr>
+      <tr><td>HumanEval / SWE-bench</td><td>Code generation; real GitHub issue fixing</td></tr>
+      <tr><td>MATH / GSM8K</td><td>Mathematical reasoning</td></tr>
+      <tr><td>MT-Bench / Chatbot Arena</td><td>Conversation quality; human preference at scale</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note trap">
+  <span class="tag">Why benchmarks lie to you</span>
+  <p>Three reasons to distrust a leaderboard. <strong>Contamination:</strong> a benchmark on the public web may be in the model's training data, so a high score can mean memorisation, not skill. <strong>Mismatch:</strong> MMLU tells you nothing about how the model handles <em>your</em> customers' insurance queries. <strong>Saturation &amp; gaming:</strong> once everyone optimises for a benchmark, it stops discriminating and models get tuned to it. Benchmarks are a rough first filter for picking candidate models &mdash; the real decision needs your own eval on your own task. <em>Your task is your benchmark.</em></p>
+</div>
+
+<h2 id="your-eval"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>Building your own eval</h2>
+
+<p>The eval that matters is the one built from your task. It does not need to be big to be transformative &mdash; even 50&ndash;100 good cases change how you work.</p>
+
+<ol class="steps">
+  <li><strong>Collect real cases.</strong> Pull actual inputs from logs or users, including the weird ones. Cover the range of what production will see.</li>
+  <li><strong>Define "good".</strong> For each case, write the expected answer or explicit criteria. This forces you to say what you actually want &mdash; usually the hardest, most clarifying step.</li>
+  <li><strong>Choose a scoring method.</strong> Exact match, or a rubric, or an LLM judge (Section 04) &mdash; matched to how open-ended the task is.</li>
+  <li><strong>Run &amp; record a baseline.</strong> Score the current system. Now you have a number.</li>
+  <li><strong>Change one thing, re-run.</strong> New prompt, new model, new retrieval &mdash; and see the number move instead of guessing.</li>
+  <li><strong>Guard against regressions.</strong> Keep the eval in CI so an "improvement" that breaks ten old cases is caught before it ships.</li>
+</ol>
+
+<div class="note java">
+  <span class="tag">The unit test analogy</span>
+  <p>For a Java engineer this is the most natural framing: <strong>an eval set is a test suite for a non-deterministic system.</strong> You would never refactor a payments service with no tests and ship on vibes; an LLM prompt is no different. The difference is that assertions are fuzzy (a rubric or a judge, not <code>assertEquals</code>) and you track a <em>pass rate</em> rather than green/red. But the discipline &mdash; write cases, run on every change, block regressions &mdash; is identical, and it is what turns prompt-tweaking from guesswork into engineering.</p>
+</div>
+
+<h2 id="judge"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>LLM-as-judge &amp; human eval</h2>
+
+<p>When outputs are open-ended, you cannot match strings. The two scalable answers are a model judge and human raters &mdash; each with a role.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>An LLM judge with a rubric</span></div>
+<pre><code><span class="cm"># Judge with EXPLICIT criteria and a scale. Vague prompts give vague scores.</span>
+judge_prompt = """You are grading a support answer. Score 1-5 on:
+- Correctness: are the facts right per the reference?
+- Completeness: does it fully answer the question?
+- Grounding: is every claim supported by the provided context?
+
+Question: {q}
+Reference: {ref}
+Answer to grade: {ans}
+
+Return JSON: {{"correctness": n, "completeness": n, "grounding": n,
+"reason": "..."}}"""
+
+<span class="cm"># Validate the judge against ~50 human-scored examples before trusting it.</span>
+<span class="cm"># Bias to watch: judges favour longer, more confident answers.</span></code></pre>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>Which scoring method, when</caption>
+    <thead><tr><th>Method</th><th>Good for</th><th>Watch out for</th></tr></thead>
+    <tbody>
+      <tr><td>Exact / rules</td><td>Closed answers, extraction, classification</td><td>Too rigid for open text</td></tr>
+      <tr><td>LLM-as-judge</td><td>Open-ended quality, scale, cheap iteration</td><td>Length/position bias; must be validated</td></tr>
+      <tr><td>Human eval</td><td>Ground truth, nuance, the gold standard</td><td>Slow, costly &mdash; use for calibration</td></tr>
+      <tr><td>A/B test (online)</td><td>Real outcomes: resolution rate, clicks</td><td>Needs traffic; slower signal</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">Validate the judge, then let it scale</span>
+  <p>An LLM judge is only trustworthy once you have <strong>checked it against humans</strong>: have people score ~50 examples, compare the judge's scores, and confirm they agree well enough. Then the judge scales the humans' judgement across thousands of cases cheaply. Known biases to correct for: judges tend to prefer <em>longer</em> and <em>more confident</em> answers, and to favour whichever response comes <em>first</em> in a pairwise comparison &mdash; so randomise order and control for length. Used this way, judge + periodic human calibration + online A/B on the metric that matters is the full evaluation stack.</p>
+</div>
+
+<h2 id="production"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>Offline to online</h2>
+
+<div class="note">
+  <p>Offline evals tell you whether to <em>ship</em> a change; online evals tell you whether it <em>worked</em>. The professional loop connects them: iterate fast against an offline eval set, ship the winner behind an A/B test, measure the real outcome (resolution rate, task success, thumbs-up, escalation rate), and feed the failures back into the offline set so it keeps getting harder and more representative (Topic 18.1). Beware the classic trap &mdash; a change that improves your offline number and hurts the real metric, which means your eval set has drifted from reality. Watch <strong>cost and latency as first-class metrics</strong> too (Topic 19.3): a "better" answer that doubles cost or latency may be a worse product. The eval set is a living asset, not a one-off; the teams that win are the ones whose evaluation compounds.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; the highest-leverage habit in the handbook</div>
+  <ol>
+    <li>Build a 50-case eval set for a real task from actual inputs. Writing the "expected answer" column is the exercise.</li>
+    <li>Score your current system to get a baseline number. Change the prompt, re-run, and watch it move.</li>
+    <li>Write an LLM judge with an explicit rubric. Grade the same outputs yourself and measure how well the judge agrees.</li>
+    <li>Demonstrate judge bias: feed it a short correct answer and a long waffly one. See which it prefers.</li>
+    <li>Put your eval in CI. Make a "clever" prompt change that improves new cases but breaks old ones, and catch the regression.</li>
+    <li>Design an online A/B test for the same feature: what real metric would prove it works? Contrast it with the offline score.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Article</span><span class="body"><a href="https://hamel.dev/blog/posts/evals/">Your AI Product Needs Evals &mdash; Hamel Husain</a><span class="why">The definitive practitioner argument for evals &mdash; the ethos of this whole page.</span></span></li>
+    <li><span class="kind">Guide</span><span class="body"><a href="https://huggingface.co/docs/evaluate/index">Hugging Face &mdash; Evaluate</a><span class="why">A library and guide to metrics and evaluation, hands-on.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2306.05685">Judging LLM-as-a-Judge (MT-Bench &amp; Chatbot Arena)</a><span class="why">The study of judge reliability and bias behind Section 04.</span></span></li>
+    <li><span class="kind">Tool</span><span class="body"><a href="https://github.com/openai/evals">OpenAI Evals</a><span class="why">A framework and registry for building and running evals like Section 03.</span></span></li>
+    <li><span class="kind">Leaderboard</span><span class="body"><a href="https://lmarena.ai/">LMArena (Chatbot Arena)</a><span class="why">Human-preference model ranking &mdash; and a live lesson in the limits of Section 02.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 19.1 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

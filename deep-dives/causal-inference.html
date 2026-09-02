@@ -1,0 +1,399 @@
+<title>Causal Inference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 14 &middot; Classical ML, Extended</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">14.8</span>
+    <h1>Causal Inference</h1>
+    <p class="lede">Telling correlation from causation. This page covers causal inference &mdash; the discipline of answering &ldquo;what
+happens if we intervene?&rdquo; rather than merely &ldquo;what predicts what?&rdquo; &mdash; why standard ML cannot answer it,
+the gold standard (experiments), the observational methods when you cannot experiment, and where it matters to you.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#fundamental">The fundamental problem</a></li><li><a href="#experiments">The gold standard: experiments</a></li><li><a href="#observational">When you can't experiment</a></li><li><a href="#production">Why an AI engineer should care</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>Probability &amp; statistics (Topic 1.2) and classical ML (Topic 2.3). This page is about a question ML normally does <em>not</em> answer: cause, not just prediction.</p>
+</div>
+
+<p>Machine learning is brilliant at <strong>prediction</strong> &mdash; "given these features, what is the likely outcome?" But businesses constantly ask a different, harder question: <strong>"if we <em>change</em> this, what will happen?"</strong> Will this feature increase retention? Does this drug work? Did the discount cause the sale, or would the customer have bought anyway? That is <strong>causal inference</strong>, and a model that only found correlations cannot answer it.</p>
+
+<div class="note key">
+  <span class="tag">The distinction that trips everyone up</span>
+  <p><strong>Correlation is not causation</strong> &mdash; you know the slogan, but the failure is subtle and expensive. Ice-cream sales correlate with drownings (both caused by hot weather, the <em>confounder</em>). A model predicting drownings from ice-cream sales would be accurate <em>and</em> useless for policy: banning ice cream saves no one. Prediction asks "what tends to occur together?"; causation asks "what happens if I intervene?" Most costly analytics mistakes come from answering the first while believing you answered the second.</p>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Confounder</dt><dd>A hidden cause of both the treatment and the outcome (weather, above).</dd>
+    <dt>Treatment</dt><dd>The intervention whose effect you want (a feature, a drug, a discount).</dd>
+    <dt>Counterfactual</dt><dd>What <em>would</em> have happened without the treatment &mdash; never directly observed.</dd>
+    <dt>ATE</dt><dd>Average Treatment Effect &mdash; the average causal impact of the treatment.</dd>
+    <dt>RCT</dt><dd>Randomised Controlled Trial &mdash; the gold-standard experiment.</dd>
+  </dl>
+</div>
+
+<h2 id="fundamental"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>The fundamental problem</h2>
+
+<p>Causal inference has one core difficulty: you can never observe both outcomes for the same unit. A customer either got the discount or did not; you never see the <em>same</em> customer in both worlds.</p>
+
+<div class="math">
+  <span class="lbl">The Average Treatment Effect &mdash; and why it's hard</span>
+  <span class="row">ATE = <i>E</i>[ <i>Y</i>(1) &minus; <i>Y</i>(0) ]</span>
+  <span class="note"><i>Y</i>(1) is the outcome <em>with</em> treatment, <i>Y</i>(0) <em>without</em>. For any individual you see only one of them &mdash; the other is the unobserved <strong>counterfactual</strong>. This is the "fundamental problem of causal inference." We can only estimate the ATE across a group, and only if the treated and untreated groups are otherwise <em>comparable</em> (Section 03).</span>
+</div>
+
+<div class="note trap">
+  <span class="tag">Simpson's paradox</span>
+  <p>A trend can <em>reverse</em> when you account for a confounder. A treatment can look better overall yet be worse within every subgroup (or vice versa), purely because the groups differ in some hidden variable. Simpson's paradox is the sharpest reminder that <strong>an aggregate correlation can point the opposite way to the truth</strong> &mdash; and why "we A/B tested it" beats "we looked at the historical data" almost every time.</p>
+</div>
+
+<h2 id="experiments"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>The gold standard: experiments</h2>
+
+<p>The cleanest way to get causation is to <strong>randomise</strong>. If you assign the treatment by a coin flip, the treated and untreated groups are &mdash; on average &mdash; identical in every other respect, so any outcome difference must be caused by the treatment.</p>
+
+<div class="note java">
+  <span class="tag">Why randomisation is magic</span>
+  <p>Randomisation breaks the link between the treatment and every confounder, known <em>and unknown</em>. That is what no amount of clever modelling on observational data can guarantee &mdash; you can only adjust for confounders you thought of and measured. This is exactly why the <strong>A/B test</strong> (Topic 19.1) is the backbone of product decisions: assign users randomly to variant A or B, measure the outcome, and the difference is causal. For an AI engineer, "ship it behind an A/B test" is not bureaucracy &mdash; it is the one method that actually answers "did my change help?"</p>
+</div>
+
+<h2 id="observational"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>When you can't experiment</h2>
+
+<p>Often you cannot run an experiment &mdash; it is unethical, too slow, or the data is already collected. Then you estimate causation from observational data by <em>emulating</em> a randomised comparison, adjusting for the confounders you can measure.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Observational causal methods</caption>
+    <thead><tr><th>Method</th><th>Idea</th></tr></thead>
+    <tbody>
+      <tr><td>Propensity-score matching</td><td>Pair each treated unit with an untreated one that was <em>equally likely</em> to be treated</td></tr>
+      <tr><td>Regression / covariate adjustment</td><td>Control for confounders as model features (only works if you measured them)</td></tr>
+      <tr><td>Difference-in-differences</td><td>Compare the <em>change</em> in treated vs untreated groups over time</td></tr>
+      <tr><td>Instrumental variables</td><td>Use a variable that affects treatment but not the outcome directly</td></tr>
+      <tr><td>Causal graphs (DAGs)</td><td>Draw the assumed cause arrows to decide <em>what</em> to adjust for (and what not to)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">Uplift modelling &mdash; where ML meets causation</span>
+  <p>The place these two worlds meet is <strong>uplift (treatment-effect) modelling</strong>: instead of predicting "who will buy," predict "whose behaviour will <em>change</em> because of the intervention." A customer who would buy anyway is wasted spend; a customer who buys <em>only if</em> targeted is the one to target. This reframes a marketing/retention problem from prediction to causation, and it is a genuinely valuable, under-used skill. The catch that never goes away: every observational method rests on the assumption that you measured all the important confounders &mdash; and you can never fully verify it. State the assumption, and prefer an experiment when you can run one.</p>
+</div>
+
+<h2 id="production"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>Why an AI engineer should care</h2>
+
+<div class="note">
+  <p>You will meet causation constantly, usually disguised. <strong>Evaluating a change</strong> (does the new model actually improve retention, or just correlate with a good week?) is a causal question &mdash; answer it with an A/B test (Topic 19.1), not an offline metric. <strong>Recommenders and pricing</strong> (Topic 14.6) are causal at heart: recommending what someone would have found anyway adds no value. <strong>Feature-importance</strong> from a model (Topic 16.3) tells you what <em>predicts</em> the outcome, not what would <em>change</em> it &mdash; confusing the two leads to acting on a confounder. And <strong>bias analysis</strong> (Topic 16.1) is often a causal question about <em>why</em> a disparity exists. You do not need to be a causal-inference specialist, but knowing when a question is causal &mdash; and that prediction alone cannot answer it &mdash; is what stops you from confidently shipping the wrong conclusion.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; think in counterfactuals</div>
+  <ol>
+    <li>Construct a Simpson's-paradox dataset (a treatment that helps overall but hurts in every subgroup). Feel how the confounder flips it.</li>
+    <li>Simulate an A/B test: randomly assign, compare outcomes, and recover the true treatment effect you built in.</li>
+    <li>Take the same data but assign treatment <em>non</em>-randomly (confounded). Show the naive comparison is now biased.</li>
+    <li>Fix that bias with propensity-score matching; compare your estimate to the true effect.</li>
+    <li>Draw a causal DAG for a real decision (e.g. "does our onboarding email increase retention?"). Identify the confounders you'd need to control.</li>
+    <li>Build a simple uplift model: predict who <em>changes</em> behaviour under treatment, not who converts. Contrast the targeting it suggests with a plain propensity model.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Book</span><span class="body"><a href="https://mixtape.scunning.com/">Causal Inference: The Mixtape</a><span class="why">A free, intuitive, code-first book on the whole toolkit &mdash; Sections 03&ndash;04.</span></span></li>
+    <li><span class="kind">Book</span><span class="body"><a href="https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/">Causal Inference: What If (Hern&aacute;n &amp; Robins)</a><span class="why">The rigorous free reference &mdash; potential outcomes and confounding.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://www.pywhy.org/dowhy/">DoWhy</a><span class="why">A Python library that makes the assumptions explicit and testable &mdash; hands-on Section 04.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://www.microsoft.com/en-us/research/group/alice/">Microsoft ALICE / EconML</a><span class="why">Treatment-effect &amp; uplift estimation with ML &mdash; the Section 04 aside in code.</span></span></li>
+    <li><span class="kind">Guide</span><span class="body"><a href="https://en.wikipedia.org/wiki/Simpson%27s_paradox">Simpson's paradox</a><span class="why">The canonical worked examples behind Section 02.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 14.8 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

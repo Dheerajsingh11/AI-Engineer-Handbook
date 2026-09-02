@@ -1,0 +1,411 @@
+<title>Structured Generation & Decoding</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 05 &middot; Agents &amp; Ops</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">5.7</span>
+    <h1>Structured Generation &amp; Decoding</h1>
+    <p class="lede">Making an LLM return exactly the shape you asked for. This page covers structured generation and constrained
+decoding &mdash; getting reliable JSON, valid tool calls and schema-conforming output &mdash; why prompting alone
+is not enough, how constraining the decoder guarantees valid structure, and the math of masking the token choice.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#spectrum">The spectrum of reliability</a></li><li><a href="#how">How constrained decoding works</a></li><li><a href="#production">In production</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>Tool &amp; function calling (Topic 5.1) and how an LLM predicts the next token (Topic 1.3). This page is about making that output <em>machine-parseable and reliable</em>.</p>
+</div>
+
+<p>The moment you put an LLM inside a program, you stop wanting prose and start wanting <strong>structure</strong> &mdash; a JSON object, a specific field, a valid function call your code can act on. But a language model generates free text, and "mostly valid JSON" breaks a parser just as badly as no JSON. <strong>Structured generation</strong> is the set of techniques that make the output conform to a schema every time.</p>
+
+<div class="note key">
+  <span class="tag">Why "please return JSON" is not enough</span>
+  <p>You can ask a model for JSON in the prompt, and most of the time you will get it. But <em>most of the time</em> is a production nightmare: one response in fifty adds a chatty preamble, forgets a closing brace, or invents a field &mdash; and your pipeline crashes on the input you did not test. Prompting makes valid output <em>likely</em>; it cannot make it <em>guaranteed</em>. For anything downstream that must parse the output &mdash; agents calling tools (Topic 8.4), data extraction, API responses &mdash; "likely" is not good enough, and the fix is to constrain the generation itself rather than hope.</p>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Structured output</dt><dd>Output that conforms to a defined shape (a JSON schema, a type).</dd>
+    <dt>Constrained decoding</dt><dd>Forcing the model to only pick tokens that keep the output valid.</dd>
+    <dt>Schema</dt><dd>A formal description of the allowed structure (e.g. JSON Schema, a Pydantic model).</dd>
+    <dt>Grammar</dt><dd>A set of rules defining every valid string in a format.</dd>
+    <dt>Logit mask</dt><dd>Blocking disallowed next-tokens by setting their score to &minus;&infin;.</dd>
+  </dl>
+</div>
+
+<h2 id="spectrum"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>The spectrum of reliability</h2>
+
+<p>There are several ways to get structured output, trading simplicity for guarantee.</p>
+
+<div class="tbl">
+  <table>
+    <caption>From hopeful to guaranteed</caption>
+    <thead><tr><th>Approach</th><th>How</th><th>Guarantee</th></tr></thead>
+    <tbody>
+      <tr><td>Prompt &amp; hope</td><td>"Return JSON like&hellip;" plus a retry on parse failure</td><td>None &mdash; probabilistic</td></tr>
+      <tr><td>Few-shot examples</td><td>Show the exact format several times</td><td>Higher, still not certain</td></tr>
+      <tr><td>Provider JSON mode</td><td>An API flag that biases toward valid JSON</td><td>Valid JSON, not your schema</td></tr>
+      <tr><td>Provider structured outputs</td><td>Pass a schema; the API enforces it</td><td>Strong &mdash; schema-valid</td></tr>
+      <tr><td>Constrained decoding</td><td>Mask tokens against a grammar (Section 03)</td><td>Guaranteed valid by construction</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Define the shape once, get it back typed</span></div>
+<pre><code>from pydantic import BaseModel
+
+<span class="cm"># Describe the structure as a type -- this becomes the schema.</span>
+class Ticket(BaseModel):
+    category: str
+    urgency: int          <span class="cm"># 1-5</span>
+    summary: str
+
+<span class="cm"># Modern APIs and libraries accept the schema and RETURN a valid object.</span>
+<span class="cm"># The library handles schema -&gt; constraint -&gt; parsed result.</span>
+ticket = extract(model, prompt, schema=Ticket)   <span class="cm"># -&gt; Ticket(...) or raises</span>
+route(ticket.category, ticket.urgency)            <span class="cm"># safe: fields guaranteed present</span></code></pre>
+</div>
+
+<div class="note">
+  <p>The practical advice: <strong>reach for the strongest option your stack supports.</strong> If your provider offers schema-based structured outputs, use them &mdash; they are close to free and remove a whole class of bugs. If you self-host or need formats beyond JSON, a constrained-decoding library (Outlines, guidance, llama.cpp grammars) gives you the hard guarantee. Keep "prompt and retry" only as a last resort, and always validate the parsed result against your schema even when you think it is guaranteed &mdash; defence in depth.</p>
+</div>
+
+<h2 id="how"><span class="kicker">Section 03 <span class="lvl lvl-a">Advanced</span></span>How constrained decoding works</h2>
+
+<p>The guarantee comes from the one place it can: the model's <strong>token-by-token</strong> generation. At each step the model produces scores (logits) over every possible next token; constrained decoding simply forbids the ones that would break the structure.</p>
+
+<div class="math">
+  <span class="lbl">Constrained next-token distribution &mdash; mask, then softmax</span>
+  <span class="row"><i>P</i>(token | context) = softmax( <i>logits</i> + <i>mask</i> )</span>
+  <span class="row">where <i>mask<sub>t</sub></i> = 0 if token <i>t</i> is allowed, &minus;&infin; if it is not</span>
+  <span class="note">Adding &minus;&infin; to a disallowed token's logit drives its probability to exactly 0 after the softmax (Topic 1.2). The model still chooses &mdash; but only among tokens that keep the output valid. Structure becomes impossible to violate, not merely unlikely.</span>
+</div>
+
+<div class="note key">
+  <span class="tag">A state machine walks alongside the model</span>
+  <p>The engine tracks a <strong>grammar as a state machine</strong>. After the model has emitted <code>{"urgency":</code>, the grammar knows the next token must be a digit &mdash; so at that step every non-digit token is masked to &minus;&infin;, and the model can only produce a number. After <code>{"category": "</code> it allows string characters until a closing quote. Because the mask is computed from the grammar's current state at <em>every</em> step, the output <em>cannot</em> leave the valid set &mdash; a malformed brace or a missing field is literally unreachable. The cost is a little bookkeeping per token; the payoff is a categorical guarantee that prompting can never give.</p>
+</div>
+
+<div class="note trap">
+  <span class="tag">The subtle costs</span>
+  <p>Constraining is powerful but not free. <strong>Over-constraining can hurt quality:</strong> if you force a rigid schema on a task the model wants to reason through, you can cut off the "thinking" tokens that would have produced a better answer &mdash; which is why letting the model reason first and emit structure last (or using a two-step call) often wins. <strong>The schema must match reality:</strong> forcing a field the model has no basis to fill just yields a confident fabrication in the right shape. And <strong>a valid shape is not a correct value</strong> &mdash; constrained decoding guarantees the JSON parses, never that its contents are true. Structure and correctness are different problems; this page solves only the first.</p>
+</div>
+
+<h2 id="production"><span class="kicker">Section 04 <span class="lvl lvl-p">Professional</span></span>In production</h2>
+
+<div class="note">
+  <p>In a real system, structured generation is the glue that makes LLMs safe to program against. It underpins <strong>tool calling</strong> (the model must emit a valid function name and arguments, Topic 5.1), <strong>agents</strong> (each step's action must parse, Topic 8.4), and <strong>data extraction</strong> (turning documents into rows). The professional pattern: define the schema as a typed object once (Pydantic), let the strongest available mechanism enforce it, validate the result anyway, and design the schema to <em>permit</em> reasoning where the task needs it &mdash; a "reasoning" string field before the answer, or a separate reasoning call. Do this and an entire category of "the model returned garbage" incidents simply disappears. It is one of the highest-reliability-per-effort techniques in applied LLM work.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; an afternoon</div>
+  <ol>
+    <li>Ask a model for JSON by prompt alone across 100 varied inputs. Count the parse failures &mdash; feel why "likely" is not enough.</li>
+    <li>Switch to your provider's structured-outputs / schema mode. Re-run and confirm the failures vanish.</li>
+    <li>Use a constrained-decoding library (Outlines or llama.cpp grammars) to force a schema on a local model. Try to make it emit invalid output &mdash; you cannot.</li>
+    <li>Over-constrain a reasoning task (force a bare answer with no room to think). Measure the quality drop, then add a reasoning field and re-measure.</li>
+    <li>Build an extraction pipeline: documents in, validated typed objects out. Add schema validation even though generation is constrained.</li>
+    <li>Explain the logit mask to a colleague using the &minus;&infin; formula. If they get why the output cannot be invalid, you understand Section 03.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Library</span><span class="body"><a href="https://github.com/dottxt-ai/outlines">Outlines</a><span class="why">Constrained decoding in Python &mdash; schemas, regex and grammars, Section 03 in code.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://json-schema.org/learn/getting-started-step-by-step">JSON Schema &mdash; getting started</a><span class="why">The schema language most structured-output systems speak.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.pydantic.dev/latest/">Pydantic</a><span class="why">Define structure as typed Python and validate it &mdash; the Section 02 pattern.</span></span></li>
+    <li><span class="kind">Guide</span><span class="body"><a href="https://github.com/ggml-org/llama.cpp/blob/master/grammars/README.md">llama.cpp GBNF grammars</a><span class="why">Grammar-constrained generation for local models &mdash; the guarantee, self-hosted.</span></span></li>
+    <li><span class="kind">Tool</span><span class="body"><a href="https://github.com/guidance-ai/guidance">guidance</a><span class="why">Interleave generation and control to enforce structure as you go.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 5.7 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

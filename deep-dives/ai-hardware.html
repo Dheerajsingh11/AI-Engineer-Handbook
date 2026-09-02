@@ -1,0 +1,433 @@
+<title>AI Hardware & Accelerators</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 06 &middot; Production</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">6.5</span>
+    <h1>AI Hardware &amp; Accelerators</h1>
+    <p class="lede">The chips AI runs on, and how to choose and pay for them. This page covers the AI hardware landscape &mdash; GPUs,
+TPUs, NPUs and inference ASICs &mdash; why VRAM is the constraint that governs everything, the economics of renting
+versus buying compute, and how to size the hardware for a model without guessing.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#landscape">The accelerator landscape</a></li><li><a href="#training-inference">Training vs inference hardware</a></li><li><a href="#economics">Rent vs buy, and sizing</a></li><li><a href="#production">Making the call</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>GPU computing (Topic 2.6) and serving/quantisation (Topic 6.1). This page is the <em>landscape and economics</em> layer above the CUDA mechanics.</p>
+</div>
+
+<p>Every AI system runs on physical chips that someone rents or buys, and those choices dominate the cost and feasibility of a project. You do not need to design silicon &mdash; but you do need to answer, credibly, "what hardware does this need, and what will it cost?" This page gives you that literacy.</p>
+
+<div class="note key">
+  <span class="tag">The one number that governs everything: VRAM</span>
+  <p>Before FLOPS, before price, ask: <strong>does the model fit in memory?</strong> A model's weights, its activations, and (for training) its gradients and optimiser state must all fit in the accelerator's VRAM, or it simply will not run. This single constraint decides which chip you need, whether you must quantise (Topic 18.3), and whether one device suffices or you need many (Topic 9.6). A rough rule: <em>a model needs about 2&nbsp;GB of VRAM per billion parameters at 16-bit for inference</em> (so a 7B model &asymp; 14&nbsp;GB), and several times that to train. Memory, not raw speed, is the wall you hit first &mdash; so hardware selection starts there.</p>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>GPU</dt><dd>The general-purpose AI workhorse (NVIDIA dominates via CUDA, Topic 2.6).</dd>
+    <dt>TPU</dt><dd>Google's custom AI chip, offered through its cloud.</dd>
+    <dt>NPU</dt><dd>A small AI accelerator built into phones and laptops (Topic 19.4).</dd>
+    <dt>ASIC</dt><dd>A chip built for one job &mdash; e.g. inference-only accelerators.</dd>
+    <dt>VRAM</dt><dd>The accelerator's memory. The hard limit on model size.</dd>
+    <dt>FLOPS</dt><dd>Floating-point operations per second &mdash; raw compute throughput.</dd>
+  </dl>
+</div>
+
+<h2 id="landscape"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>The accelerator landscape</h2>
+
+<div class="tbl">
+  <table>
+    <caption>The main classes of AI hardware</caption>
+    <thead><tr><th>Type</th><th>Examples</th><th>Where it fits</th></tr></thead>
+    <tbody>
+      <tr><td>Data-centre GPU</td><td>NVIDIA H100/H200, B200; AMD MI300</td><td>Training &amp; large-scale inference &mdash; the default</td></tr>
+      <tr><td>Consumer GPU</td><td>NVIDIA RTX 4090 / 5090</td><td>Local dev, fine-tuning small models, hobby serving</td></tr>
+      <tr><td>TPU</td><td>Google TPU v5/v6</td><td>Large training/inference on Google Cloud</td></tr>
+      <tr><td>Cloud inference ASIC</td><td>AWS Inferentia, Google, Groq</td><td>Cheap/fast inference at scale</td></tr>
+      <tr><td>Training ASIC</td><td>AWS Trainium, Cerebras</td><td>Cost-efficient large-scale training</td></tr>
+      <tr><td>Edge NPU</td><td>Apple Neural Engine, Qualcomm</td><td>On-device inference (Topic 19.4)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note">
+  <p><strong>Why NVIDIA is the default.</strong> The hardware matters, but the <em>software ecosystem</em> matters more: NVIDIA's CUDA (Topic 2.6), cuDNN and the entire stack of libraries and frameworks built on them is why almost everything "just works" on NVIDIA and is a porting effort elsewhere. This is the real "moat." Alternatives (TPUs, Trainium, AMD) can be cheaper or faster for specific workloads, but you pay in ecosystem friction &mdash; fewer libraries, more debugging, less community. For most teams the pragmatic default is NVIDIA GPUs, reaching for alternatives only when scale makes the cost saving worth the friction.</p>
+</div>
+
+<h2 id="training-inference"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>Training vs inference hardware</h2>
+
+<p>The two workloads have different appetites, and conflating them wastes money.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Different jobs, different chips</caption>
+    <thead><tr><th></th><th>Training</th><th>Inference</th></tr></thead>
+    <tbody>
+      <tr><td>Runs</td><td>Once (or occasionally), for a long time</td><td>Constantly, per request, forever</td></tr>
+      <tr><td>Memory need</td><td>Huge &mdash; weights + gradients + optimiser + activations</td><td>Modest &mdash; weights + activations only</td></tr>
+      <tr><td>Precision</td><td>bf16 / fp16 mixed (Topic 2.6)</td><td>int8 / int4 quantised (Topics 6.1, 18.3)</td></tr>
+      <tr><td>Scale pattern</td><td>Many chips, tightly connected (Topic 9.6)</td><td>Many independent replicas</td></tr>
+      <tr><td>Cost lives in</td><td>A big one-off bill</td><td>The per-request bill that never stops</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">For most teams, inference is the real bill</span>
+  <p>Training a model is a dramatic, visible cost &mdash; but most companies do not train foundation models; they <em>serve</em> them. And inference cost, paid on every single request forever, quietly dwarfs a one-off fine-tune over a product's life. This reframes hardware strategy: the high-leverage work is usually making <em>inference</em> cheap &mdash; quantise aggressively (Topic 18.3), pick inference-optimised chips, batch and cache (Topic 19.3) &mdash; not chasing the biggest training rig. Match the chip to the workload: rent a monster briefly to train or fine-tune, then serve on the cheapest hardware that meets your latency bar.</p>
+</div>
+
+<h2 id="economics"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>Rent vs buy, and sizing</h2>
+
+<p>Almost everyone <strong>rents</strong> compute from a cloud, and for good reasons &mdash; but knowing the trade-off, and how to size, is what keeps the bill sane.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Rent vs buy</caption>
+    <thead><tr><th>Rent (cloud)</th><th>Buy (own hardware)</th></tr></thead>
+    <tbody>
+      <tr><td>No upfront cost; pay by the hour</td><td>Large upfront capital</td></tr>
+      <tr><td>Scale up and down instantly</td><td>Fixed capacity</td></tr>
+      <tr><td>Latest chips as they appear</td><td>Ages; you maintain it</td></tr>
+      <tr><td>Expensive at sustained high use</td><td>Cheaper <em>if</em> utilised near 100%</td></tr>
+      <tr><td>Right for spiky / early-stage / most</td><td>Right for steady, heavy, at-scale</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Text</span><span>Sizing a model to hardware &mdash; the back-of-envelope</span></div>
+<pre><code>Inference VRAM  &asymp;  params &times; bytes_per_param  &times;  ~1.2 (overhead)
+  7B model, fp16  :  7e9 &times; 2  &asymp;  14 GB   -&gt; fits one 24 GB GPU
+  7B model, int4  :  7e9 &times; 0.5 &asymp;  3.5 GB -&gt; fits a laptop GPU (Topic 18.3)
+  70B model, fp16 :  70e9 &times; 2 &asymp; 140 GB  -&gt; needs 2x 80 GB, or quantise
+
+Training VRAM   &asymp;  inference &times; ~4-6   (gradients + optimiser + activations)
+  -&gt; 7B full fine-tune needs ~80 GB+;  LoRA/QLoRA (Topic 3.5) fits far less
+
+Also add: KV cache grows with context length &times; batch (Topics 1.3, 18.4)</code></pre>
+</div>
+
+<div class="note java">
+  <span class="tag">The sizing instinct</span>
+  <p>These estimates are what let you answer the interview and planning question &mdash; "what will it take to run this?" &mdash; without guessing. Start from parameters and precision to get inference VRAM; multiply for training; add the KV cache for long contexts. The result tells you the chip, the count, and whether quantisation is mandatory. It also reveals the cheapest path: <em>a smaller or quantised model that fits one commodity GPU is often far more economical than a marginally better model that needs two expensive ones.</em> Hardware sizing is where model choice, compression and cost meet &mdash; and doing it in your head is a mark of an engineer who has shipped.</p>
+</div>
+
+<h2 id="production"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>Making the call</h2>
+
+<div class="note">
+  <p>In practice the decision flows the same way each time: <strong>estimate VRAM</strong> from the model and precision; <strong>decide train vs serve</strong> and match the chip class; <strong>rent by default</strong>, buy only for steady heavy load; and <strong>drive inference cost down</strong> with quantisation, batching and caching before reaching for bigger hardware. Keep an eye on the moving parts &mdash; new chips and cheaper inference options appear constantly &mdash; but anchor on the fundamentals, which do not change: memory is the constraint, inference is the recurring bill, the ecosystem is a real cost, and the smallest model that meets the bar on the cheapest hardware that fits is almost always the right answer. This is systems economics applied to AI, and it is squarely part of the engineer's job (Topics 10.1, 19.3).</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; think in VRAM and dollars</div>
+  <ol>
+    <li>Size three models (a 7B, a 13B, a 70B) for inference at fp16 and int4. Say which hardware each needs.</li>
+    <li>Estimate the VRAM to full-fine-tune a 7B model, then to QLoRA it. Explain the gap (Topics 3.5, 2.6).</li>
+    <li>Price one week of a rented H100 vs the amortised cost of owning one. Find the utilisation where buying wins.</li>
+    <li>For a product doing 1M requests/day, estimate the monthly inference bill, then halve it with quantisation and caching.</li>
+    <li>Pick a real workload and choose the chip class end to end, justifying VRAM, train-vs-serve, and rent-vs-buy.</li>
+    <li>Add a long context (say 128k) to a sizing estimate and account for the KV cache. See how it changes the hardware.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Blog</span><span class="body"><a href="https://blog.eleuther.ai/transformer-math/">Transformer Math 101</a><span class="why">The definitive memory-and-compute sizing math behind Section 04.</span></span></li>
+    <li><span class="kind">Tool</span><span class="body"><a href="https://huggingface.co/spaces/hf-accelerate/model-memory-usage">Model Memory Calculator</a><span class="why">Estimate VRAM for any model &mdash; the Section 04 rules, automated.</span></span></li>
+    <li><span class="kind">Guide</span><span class="body"><a href="https://timdettmers.com/2023/01/30/which-gpu-for-deep-learning/">Which GPU for Deep Learning?</a><span class="why">A practitioner's deep guide to choosing GPUs &mdash; Sections 02&ndash;03.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://cloud.google.com/tpu/docs/intro-to-tpu">Google &mdash; Intro to TPUs</a><span class="why">What TPUs are and when they beat GPUs &mdash; the Section 02 alternative.</span></span></li>
+    <li><span class="kind">Reference</span><span class="body"><a href="https://developer.nvidia.com/blog/nvidia-hopper-architecture-in-depth/">NVIDIA Hopper architecture</a><span class="why">Inside a modern data-centre GPU &mdash; tensor cores and memory, in depth.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 6.5 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

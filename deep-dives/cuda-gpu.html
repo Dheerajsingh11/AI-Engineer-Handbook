@@ -1,0 +1,448 @@
+<title>CUDA & GPU Computing for AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 02 &middot; Python &amp; Data</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">2.6</span>
+    <h1>CUDA &amp; GPU Computing for AI</h1>
+    <p class="lede">Why AI runs on GPUs, and what is actually happening when it does. This page covers GPU computing for AI from the
+ground up &mdash; why a graphics chip trains neural networks, the CUDA execution and memory model, tensor cores and
+mixed precision, how PyTorch quietly drives all of it, and the profiling and out-of-memory skills you will need.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#model">The CUDA execution model</a></li><li><a href="#memory">Memory: the real bottleneck</a></li><li><a href="#tensor-cores">Tensor cores &amp; mixed precision</a></li><li><a href="#production">PyTorch, profiling &amp; OOM</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>Neural network basics (Topic 2.4) and PyTorch (Topic 2.5). You have called <code>.to("cuda")</code>; this page explains what that actually does.</p>
+</div>
+
+<p>Almost all modern AI runs on GPUs &mdash; graphics processors originally built to draw video-game pixels. Understanding <em>why</em>, and how to use them well, is the difference between an engineer who waits hours for training and one who does not, and between a model that fits on the hardware and one that crashes with "out of memory."</p>
+
+<div class="note key">
+  <span class="tag">Why a graphics chip trains neural networks</span>
+  <p>A CPU has a few very fast cores optimised for doing one complicated thing after another. A GPU has <strong>thousands of simpler cores</strong> optimised for doing the <em>same</em> simple thing to a lot of data at once. Neural networks are, underneath, enormous piles of <strong>matrix multiplications</strong> (Topic 1.1) &mdash; millions of identical multiply-and-add operations with no dependency between them. That is the <em>perfect</em> job for thousands of parallel cores. The GPU did not get repurposed for AI by accident; AI's core operation happens to be exactly what a GPU was already built to do. This is why a training run can be 10&ndash;100&times; faster on a GPU than a CPU.</p>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>GPU</dt><dd>Graphics Processing Unit &mdash; a chip with thousands of parallel cores.</dd>
+    <dt>CUDA</dt><dd>NVIDIA's platform for running general (non-graphics) code on its GPUs.</dd>
+    <dt>Kernel</dt><dd>A small function that runs on the GPU, across many data elements at once.</dd>
+    <dt>VRAM</dt><dd>The GPU's own memory. The model and its data must fit in it.</dd>
+    <dt>Tensor core</dt><dd>Specialised hardware that does small matrix multiplies extremely fast.</dd>
+    <dt>Mixed precision</dt><dd>Using 16-bit numbers where possible for speed, 32-bit where accuracy matters.</dd>
+  </dl>
+</div>
+
+<h2 id="model"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>The CUDA execution model</h2>
+
+<p>CUDA lets you run your own code across the GPU's cores. The programming model is a hierarchy: you launch a <strong>kernel</strong>, which runs as a grid of <strong>blocks</strong>, each block a group of <strong>threads</strong>, and every thread does the same operation on its own slice of data.</p>
+
+<div class="tbl">
+  <table>
+    <caption>The parallel hierarchy</caption>
+    <thead><tr><th>Level</th><th>What it is</th></tr></thead>
+    <tbody>
+      <tr><td>Thread</td><td>One worker doing the kernel on one element</td></tr>
+      <tr><td>Warp</td><td>32 threads that execute in lockstep &mdash; the real unit of scheduling</td></tr>
+      <tr><td>Block</td><td>A group of threads that can share fast memory and cooperate</td></tr>
+      <tr><td>Grid</td><td>All the blocks launched for one kernel</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">CUDA C</span><span>A kernel: every thread adds one element</span></div>
+<pre><code><span class="cm">// Each thread computes ONE output element. Thousands run at once.</span>
+__global__ void add(float* a, float* b, float* c, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;  <span class="cm">// this thread's index</span>
+    if (i &lt; n) c[i] = a[i] + b[i];                   <span class="cm">// the actual work</span>
+}
+<span class="cm">// Launch: enough blocks of 256 threads to cover n elements.</span>
+add&lt;&lt;&lt;(n + 255) / 256, 256&gt;&gt;&gt;(a, b, c, n);</code></pre>
+</div>
+
+<div class="note">
+  <p>You will rarely write raw CUDA &mdash; but seeing it demystifies the whole stack. That <code>blockIdx * blockDim + threadIdx</code> pattern is how each of thousands of threads figures out which piece of data is "mine." When PyTorch runs <code>a + b</code> on a GPU tensor, it launches a kernel exactly like this one under the hood. Understanding the model tells you <em>why</em> GPUs love big, uniform, independent workloads and hate small, branchy, sequential ones &mdash; and that intuition guides every performance decision you make.</p>
+</div>
+
+<h2 id="memory"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>Memory: the real bottleneck</h2>
+
+<p>Here is the counter-intuitive truth of GPU performance: <strong>most AI code is limited by memory, not by maths.</strong> The cores can multiply far faster than data can be fetched, so moving data efficiently is usually what determines speed.</p>
+
+<div class="tbl">
+  <table>
+    <caption>The GPU memory hierarchy (fast &amp; small &rarr; slow &amp; large)</caption>
+    <thead><tr><th>Memory</th><th>Speed</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td>Registers</td><td>Fastest</td><td>Per-thread scratch</td></tr>
+      <tr><td>Shared memory</td><td>Very fast</td><td>Shared within a block &mdash; the key optimisation lever</td></tr>
+      <tr><td>Global (VRAM)</td><td>Slow(er)</td><td>The big pool &mdash; where your tensors live</td></tr>
+      <tr><td>Host (CPU) RAM</td><td>Slowest link</td><td>Across the PCIe bus &mdash; avoid moving data back and forth</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note trap">
+  <span class="tag">The two memory traps</span>
+  <p><strong>CPU&harr;GPU transfers:</strong> moving tensors across the PCIe bus is slow. Calling <code>.cpu()</code> or <code>.item()</code> inside a training loop, or printing a GPU tensor every step, silently kills performance &mdash; keep data on the GPU and sync rarely. <strong>Running out of VRAM:</strong> the entire model, its gradients, the optimiser state, <em>and</em> the activations for the current batch must all fit in VRAM at once. This is why "CUDA out of memory" is the most common training error, and why the fixes are always the same set of levers (Section 05). VRAM, not compute, is usually the wall you hit first.</p>
+</div>
+
+<h2 id="tensor-cores"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>Tensor cores &amp; mixed precision</h2>
+
+<p>Modern GPUs have <strong>tensor cores</strong> &mdash; dedicated units that do a small matrix multiply-and-accumulate in one step, far faster than the general cores. They only reach full speed at lower precision, which is why <em>mixed precision</em> became standard.</p>
+
+<div class="tbl">
+  <table>
+    <caption>The number formats you will meet</caption>
+    <thead><tr><th>Format</th><th>Bits</th><th>Use</th></tr></thead>
+    <tbody>
+      <tr><td>fp32</td><td>32</td><td>Full precision &mdash; the safe default, the slowest</td></tr>
+      <tr><td>fp16</td><td>16</td><td>Fast on tensor cores; narrow range &mdash; can overflow</td></tr>
+      <tr><td>bf16</td><td>16</td><td>Same range as fp32, less precision &mdash; the modern training default</td></tr>
+      <tr><td>fp8 / int8 / int4</td><td>8&ndash;4</td><td>Inference &amp; quantisation (Topics 6.1, 18.3)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">Why bf16 quietly won</span>
+  <p>Mixed-precision training does the heavy matrix multiplies in 16-bit (fast, on tensor cores) while keeping a 32-bit copy of the weights for the accumulation that needs accuracy &mdash; roughly 2&times; faster and half the memory for a negligible quality cost. The subtlety is <em>which</em> 16-bit. <strong>fp16</strong> has high precision but a narrow numeric range, so gradients can overflow to infinity &mdash; it needs "loss scaling" to survive. <strong>bf16</strong> keeps fp32's wide range at the cost of some precision, so it just works, no scaling needed. That robustness is why bf16 became the default format for training modern models. In PyTorch this is one context manager (<code>torch.autocast</code>) &mdash; but knowing what it does is what lets you debug it when a loss suddenly becomes NaN.</p>
+</div>
+
+<h2 id="production"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>PyTorch, profiling &amp; OOM</h2>
+
+<p>In practice PyTorch is your interface to all of this: it dispatches kernels, manages VRAM, and drives the tensor cores. Your job is to feed it well and to fix it when it runs out of memory.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Mixed precision, and the OOM toolkit</span></div>
+<pre><code>scaler = torch.cuda.amp.GradScaler()             <span class="cm"># for fp16; bf16 needs none</span>
+for x, y in loader:
+    x, y = x.cuda(non_blocking=True), y.cuda(non_blocking=True)
+    with torch.autocast("cuda", dtype=torch.bfloat16):   <span class="cm"># tensor cores</span>
+        loss = model(x, y)
+    scaler.scale(loss).backward()
+    scaler.step(opt); scaler.update(); opt.zero_grad()
+
+<span class="cm"># When VRAM runs out, these are the levers, in order:</span>
+<span class="cm">#  1. smaller batch size        3. gradient checkpointing (Topic 9.6)</span>
+<span class="cm">#  2. mixed precision (above)   4. a smaller / quantised model (Topic 18.3)</span>
+torch.cuda.memory_summary()                      <span class="cm"># see where VRAM went</span></code></pre>
+</div>
+
+<div class="note java">
+  <span class="tag">The mental model to keep</span>
+  <p>You do not need to write kernels to be effective &mdash; you need the instincts this page builds. <strong>Keep work on the GPU</strong> and batch it large and uniform. <strong>Minimise host&harr;device transfers</strong> and avoid syncing every step. <strong>Use mixed precision</strong> (bf16) by default. <strong>Watch VRAM</strong> as your primary constraint and know the four levers to reclaim it. And when you profile (with the PyTorch profiler or <code>nvidia-smi</code>), ask first "am I compute-bound or memory-bound?" &mdash; the answer points to the fix. This is the same systems intuition you already have, applied to a massively parallel machine; scaling it across <em>many</em> GPUs is the next page (Topic 9.6).</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; feel the hardware</div>
+  <ol>
+    <li>Time the same matrix multiply on CPU and GPU across growing sizes. Find where the GPU starts winning, and by how much.</li>
+    <li>Deliberately cause "CUDA out of memory," then fix it with each of the four levers in turn. Watch VRAM with <code>nvidia-smi</code>.</li>
+    <li>Turn on <code>torch.autocast</code> with bf16. Measure the speed and memory change, and confirm the accuracy holds.</li>
+    <li>Put a <code>.item()</code> call inside a hot training loop, then remove it. Measure how much the CPU&harr;GPU sync cost you.</li>
+    <li>Profile a training step with the PyTorch profiler. Decide whether it is compute-bound or memory-bound.</li>
+    <li>Write (or read) a tiny CUDA/Triton kernel for vector add. Map the thread-indexing back to Section 02.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Course</span><span class="body"><a href="https://github.com/gpu-mode/lectures">GPU MODE (CUDA) lectures</a><span class="why">A free, practitioner course on CUDA and GPU performance for deep learning.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://pytorch.org/tutorials/recipes/recipes/amp_recipe.html">PyTorch &mdash; Automatic Mixed Precision</a><span class="why">The autocast/GradScaler recipe of Section 05, from the source.</span></span></li>
+    <li><span class="kind">Blog</span><span class="body"><a href="https://horace.io/brrr_intro.html">Making Deep Learning Go Brrrr From First Principles</a><span class="why">The definitive intuition for compute-bound vs memory-bound &mdash; Section 03.</span></span></li>
+    <li><span class="kind">Guide</span><span class="body"><a href="https://docs.nvidia.com/cuda/cuda-c-programming-guide/">CUDA C++ Programming Guide</a><span class="why">The reference for the execution and memory model of Sections 02&ndash;03.</span></span></li>
+    <li><span class="kind">Tutorial</span><span class="body"><a href="https://triton-lang.org/main/getting-started/tutorials/index.html">Triton tutorials</a><span class="why">Write GPU kernels in Python &mdash; a gentler on-ramp than raw CUDA.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 2.6 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

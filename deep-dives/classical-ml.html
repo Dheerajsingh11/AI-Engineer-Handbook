@@ -1,0 +1,767 @@
+<title>Classical Machine Learning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 02 &middot; Python &amp; Data</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">2.3</span>
+    <h1>Classical Machine Learning</h1>
+    <p class="lede">The discipline that transfers to everything else. This page derives linear and logistic regression from their
+loss functions, builds gradient descent, k-means and a decision tree from scratch, explains why entropy is
+the right splitting criterion, and covers the evaluation rigour that separates engineers from demo-builders.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#paradigms">Types of learning</a></li><li><a href="#linear">Linear regression, derived twice</a></li><li><a href="#logistic">Logistic regression, and why cross-entropy</a></li><li><a href="#trees">Decision trees, and why entropy</a></li><li><a href="#kmeans">k-means &mdash; and why it is your vector index</a></li><li><a href="#workflow">The workflow discipline</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>Sections 01&ndash;02 need nothing. From Section 03 you will want gradient descent from <a href="#deeper">Topic 1.4</a> and basic NumPy from Topic 2.2.</p>
+</div>
+
+<p>Machine learning is a different way of writing programs. In ordinary programming you write the rules and the computer applies them to data. In machine learning you supply the data <em>and the answers</em>, and the computer works out the rules.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Two ways to build a spam filter</caption>
+    <thead><tr><th></th><th>Traditional programming</th><th>Machine learning</th></tr></thead>
+    <tbody>
+      <tr><td>You provide</td><td>Rules: "if it contains 'viagra', flag it"</td><td>10,000 emails labelled spam or not</td></tr>
+      <tr><td>Computer provides</td><td>The verdict on each email</td><td>The rules &mdash; as learned numbers</td></tr>
+      <tr><td>Adapting</td><td>You write more rules, forever</td><td>Add more labelled examples, retrain</td></tr>
+      <tr><td>Fails when</td><td>Spammers change tactics</td><td>New spam looks nothing like the training data</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">Why this is in an AI engineering roadmap</span>
+  <p>You will not train models like these in your job. You are here for three other reasons, and they are worth being explicit about.</p>
+  <ul>
+    <li><strong>The evaluation discipline is identical.</strong> Train/test splits, leakage, overfitting, confidence intervals &mdash; all of it applies unchanged to LLM evals, where it is far less commonly practised and therefore far more valuable.</li>
+    <li><strong>These algorithms are inside your RAG pipeline.</strong> k-means <em>is</em> the IVF vector index. k-NN <em>is</em> vector search. Logistic regression is how you build a query router.</li>
+    <li><strong>Often it is simply the right answer.</strong> Classifying support tickets into six categories does not need an LLM. Gradient boosting on 5,000 labelled examples will be more accurate, a thousand times cheaper, and deterministic.</li>
+  </ul>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Feature</dt><dd>One input column. "Number of exclamation marks" is a feature of an email.</dd>
+    <dt>Label / target</dt><dd>The answer you are trying to predict. Spam or not; the house price.</dd>
+    <dt>Training</dt><dd>The process of finding the numbers that make predictions accurate.</dd>
+    <dt>Model</dt><dd>The learned numbers, plus the rule for using them.</dd>
+    <dt>Classification / regression</dt><dd>Predicting a category vs predicting a number.</dd>
+    <dt>Overfitting</dt><dd>Memorising the training data instead of learning the pattern. Perfect on data you have seen, useless on data you have not.</dd>
+    <dt>Generalisation</dt><dd>Performing well on data never seen during training. The only thing that matters.</dd>
+    <dt>Hyperparameter</dt><dd>A setting you choose rather than learn: learning rate, tree depth, number of clusters.</dd>
+  </dl>
+</div>
+
+<h2 id="paradigms"><span class="kicker">Section 02 <span class="lvl lvl-b">Beginner</span></span>Types of learning</h2>
+
+<div class="tbl">
+  <table>
+    <caption>The five paradigms</caption>
+    <thead><tr><th>Paradigm</th><th>Data needed</th><th>Question</th><th>Example in your world</th></tr></thead>
+    <tbody>
+      <tr><td>Supervised</td><td>Inputs + correct outputs</td><td>Predict a known target</td><td>Route a query to the right index</td></tr>
+      <tr><td>Unsupervised</td><td>Inputs only</td><td>What structure is here?</td><td>Cluster documents; deduplicate chunks</td></tr>
+      <tr><td>Semi-supervised</td><td>Few labels, many unlabelled</td><td>Stretch scarce labels</td><td>Label 300 of 50,000 tickets</td></tr>
+      <tr><td><strong>Self-supervised</strong></td><td>Unlabelled; labels derived from the data itself</td><td>Learn representations</td><td><strong>LLM pre-training; embedding models</strong></td></tr>
+      <tr><td>Reinforcement</td><td>Reward signal from an environment</td><td>Which action sequence is best?</td><td>RLHF; agent policy tuning</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="linear"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>Linear regression, derived twice</h2>
+
+<p>Fit a straight line: <i>ŷ</i> = <i>Xw</i> + <i>b</i>. Choose <i>w</i> and <i>b</i> to minimise squared error. Two routes to the answer, and it is instructive that they agree.</p>
+
+<div class="math">
+  <span class="lbl">Mean squared error</span>
+  <i>L</i>(<i>w</i>) &nbsp;=&nbsp; <span class="frac"><span>1</span><span><i>n</i></span></span> &Sigma;<sub><i>i</i></sub> (<i>y<sub>i</sub></i> &minus; <i>x<sub>i</sub></i><sup>T</sup><i>w</i>)<sup>2</sup>
+  <span class="note">Why <em>squared</em> rather than absolute error? Three reasons: it is differentiable everywhere (absolute value is not, at zero), it penalises large errors disproportionately, and it has a closed-form solution. The cost is sensitivity to outliers &mdash; which is exactly when you switch to MAE or Huber loss.</span>
+</div>
+
+<div class="derive">
+  <div class="derive-top">Route 1 &mdash; the closed form (normal equations)</div>
+  <ol>
+    <li><i>L</i>(<i>w</i>) = (<i>y</i> &minus; <i>Xw</i>)<sup>T</sup>(<i>y</i> &minus; <i>Xw</i>)
+      <span class="why">Squared error in matrix form, dropping the 1/<i>n</i> which does not affect the minimiser.</span></li>
+    <li>= <i>y</i><sup>T</sup><i>y</i> &minus; 2<i>w</i><sup>T</sup><i>X</i><sup>T</sup><i>y</i> + <i>w</i><sup>T</sup><i>X</i><sup>T</sup><i>Xw</i>
+      <span class="why">Expand. The two cross terms are scalars and equal, hence the 2.</span></li>
+    <li>&nabla;<sub><i>w</i></sub><i>L</i> = &minus;2<i>X</i><sup>T</sup><i>y</i> + 2<i>X</i><sup>T</sup><i>Xw</i>
+      <span class="why">Differentiate with respect to <i>w</i>.</span></li>
+    <li>Set to zero: <i>X</i><sup>T</sup><i>Xw</i> = <i>X</i><sup>T</sup><i>y</i>
+      <span class="why">The minimum is where the gradient vanishes. These are the normal equations.</span></li>
+    <li><i>w</i> = (<i>X</i><sup>T</sup><i>X</i>)<sup>&minus;1</sup><i>X</i><sup>T</sup><i>y</i> &nbsp;&nbsp;&#9632;
+      <span class="why">Exact, in one step. Costs O(<i>d</i><sup>3</sup>) to invert, so it is impractical past a few thousand features &mdash; which is why route 2 exists.</span></li>
+  </ol>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Both routes, from scratch, compared</span></div>
+<pre><code>import numpy as np
+
+def fit_closed_form(X, y):
+    X = np.c_[np.ones(len(X)), X]                <span class="cm"># prepend a bias column</span>
+    <span class="cm"># lstsq, not inv(): numerically stable when X'X is near-singular</span>
+    w, *_ = np.linalg.lstsq(X, y, rcond=None)
+    return w
+
+def fit_gradient_descent(X, y, lr=0.05, epochs=2000):
+    X = np.c_[np.ones(len(X)), X]
+    n, d = X.shape
+    w = np.zeros(d)
+    for _ in range(epochs):
+        pred = X @ w
+        <span class="cm"># gradient of MSE: (2/n) X'(Xw - y)</span>
+        grad = (2 / n) * X.T @ (pred - y)
+        w -= lr * grad
+    return w
+
+rng = np.random.default_rng(0)
+X = rng.normal(size=(500, 3))
+true_w = np.array([4.0, -2.0, 0.5, 3.0])         <span class="cm"># bias + 3 weights</span>
+y = np.c_[np.ones(500), X] @ true_w + rng.normal(0, 0.3, 500)
+
+print("closed form:", fit_closed_form(X, y).round(3))
+print("grad descent:", fit_gradient_descent(X, y).round(3))
+print("truth       :", true_w)
+<span class="cm"># closed form:  [ 4.008 -2.013  0.494  2.998]</span>
+<span class="cm"># grad descent: [ 4.008 -2.013  0.494  2.998]   same answer</span></code></pre>
+</div>
+
+<h3>Regularisation, and what L1 versus L2 actually does</h3>
+
+<div class="math">
+  <span class="lbl">Ridge (L2) and Lasso (L1)</span>
+  <span class="row">Ridge:&emsp;<i>L</i> + &lambda;&Sigma;<i>w<sub>j</sub></i><sup>2</sup>&emsp;&emsp;Lasso:&emsp;<i>L</i> + &lambda;&Sigma;|<i>w<sub>j</sub></i>|</span>
+  <span class="note">Both add a penalty for large weights, discouraging the model from fitting noise. The difference in behaviour comes from the derivative. Ridge's penalty gradient is 2&lambda;<i>w</i> &mdash; it shrinks in proportion to the weight, so small weights are barely touched and never quite reach zero. Lasso's is &lambda;&middot;sign(<i>w</i>) &mdash; a <em>constant</em> pull regardless of size, which pushes small weights all the way to exactly zero. <strong>That is why Lasso performs feature selection and Ridge does not.</strong></span>
+</div>
+
+<h2 id="logistic"><span class="kicker">Section 04 <span class="lvl lvl-i">Intermediate</span></span>Logistic regression, and why cross-entropy</h2>
+
+<p>For classification you need a probability, not an unbounded number. Push the linear output through a sigmoid and it lands in (0,1). But that raises a question people rarely ask: why not just use squared error on the probability?</p>
+
+<div class="derive">
+  <div class="derive-top">Why cross-entropy is the right loss for classification</div>
+  <ol>
+    <li>Model: <i>p</i> = &sigma;(<i>x</i><sup>T</sup><i>w</i>), where &sigma;(<i>z</i>) = 1/(1+<i>e</i><sup>&minus;<i>z</i></sup>)
+      <span class="why">A probability that the label is 1.</span></li>
+    <li>Likelihood of one example: <i>p</i><sup><i>y</i></sup>(1&minus;<i>p</i>)<sup>1&minus;<i>y</i></sup>
+      <span class="why">A neat trick: for <i>y</i>=1 this is <i>p</i>; for <i>y</i>=0 it is 1&minus;<i>p</i>.</span></li>
+    <li>Log-likelihood over the dataset: &Sigma; [<i>y</i> log <i>p</i> + (1&minus;<i>y</i>) log(1&minus;<i>p</i>)]
+      <span class="why">Take logs so products become sums &mdash; numerically stable, as in Topic 1.2.</span></li>
+    <li>Loss = negative of that. This <em>is</em> binary cross-entropy.
+      <span class="why">Maximising likelihood equals minimising cross-entropy. The loss was not invented; it was derived.</span></li>
+    <li>&nabla;<sub><i>w</i></sub><i>L</i> = <i>X</i><sup>T</sup>(<i>p</i> &minus; <i>y</i>) / <i>n</i>
+      <span class="why">The remarkable part: the sigmoid derivative cancels perfectly, leaving the same clean form as linear regression. Prediction minus truth, times input.</span></li>
+  </ol>
+</div>
+
+<div class="note key">
+  <span class="tag">Why not squared error on probabilities</span>
+  <p>Because of the gradient. When the model is confidently wrong &mdash; predicting 0.001 for something that is actually 1 &mdash; squared error's gradient is <em>tiny</em>, because it gets multiplied by the sigmoid's derivative, which is near zero out there. The model barely learns from its worst mistakes. Cross-entropy's gradient in that case is large, precisely because the log blows up. <strong>Cross-entropy punishes confident errors; squared error shrugs at them.</strong> That is the whole reason it is the standard.</p>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Logistic regression from scratch</span></div>
+<pre><code>import numpy as np
+
+def sigmoid(z):
+    <span class="cm"># Split by sign to avoid exp() overflow on large |z|</span>
+    out = np.empty_like(z, dtype=float)
+    pos, neg = z &gt;= 0, z &lt; 0
+    out[pos] = 1 / (1 + np.exp(-z[pos]))
+    ez = np.exp(z[neg])
+    out[neg] = ez / (1 + ez)
+    return out
+
+def fit_logistic(X, y, lr=0.1, epochs=3000, l2=0.0):
+    X = np.c_[np.ones(len(X)), X]
+    w = np.zeros(X.shape[1])
+    n = len(y)
+    for _ in range(epochs):
+        p = sigmoid(X @ w)
+        grad = X.T @ (p - y) / n                  <span class="cm"># line (5) of the derivation</span>
+        grad[1:] += l2 * w[1:]                    <span class="cm"># never regularise the bias</span>
+        w -= lr * grad
+    return w
+
+def predict_proba(X, w):
+    return sigmoid(np.c_[np.ones(len(X)), X] @ w)
+
+rng = np.random.default_rng(0)
+X = np.vstack([rng.normal(-1, 1, (300, 2)), rng.normal(1.5, 1, (300, 2))])
+y = np.r_[np.zeros(300), np.ones(300)]
+
+w = fit_logistic(X, y)
+acc = ((predict_proba(X, w) &gt; 0.5) == y).mean()
+print(f"accuracy {acc:.3f}")                      <span class="cm"># ~0.94</span>
+
+<span class="cm"># The threshold is YOURS to choose, not fixed at 0.5.</span>
+<span class="cm"># Lower it to raise recall; raise it to raise precision.</span>
+for t in (0.3, 0.5, 0.7):
+    pred = predict_proba(X, w) &gt; t
+    tp = ((pred == 1) &amp; (y == 1)).sum()
+    print(f"t={t}  precision {tp/max(pred.sum(),1):.3f}  recall {tp/(y==1).sum():.3f}")</code></pre>
+</div>
+
+<h2 id="trees"><span class="kicker">Section 05 <span class="lvl lvl-a">Advanced</span></span>Decision trees, and why entropy</h2>
+
+<p>A tree asks yes/no questions about features and splits the data. The only real question is <em>which</em> question to ask at each node. The answer: the one that most reduces uncertainty about the label &mdash; which brings entropy from Topic 1.2 back with a concrete job.</p>
+
+<div class="math">
+  <span class="lbl">Information gain</span>
+  <span class="row">Gain = <i>H</i>(parent) &minus; &Sigma;<sub>children</sub> <span class="frac"><span><i>n<sub>c</sub></i></span><span><i>n</i></span></span> <i>H</i>(child)</span>
+  <span class="note">Uncertainty before the split, minus the weighted average uncertainty after. Try every feature and every threshold, and take the split with the largest gain. Gini impurity 1&minus;&Sigma;<i>p<sub>i</sub></i><sup>2</sup> is the common alternative &mdash; it avoids computing logarithms, gives near-identical trees, and is scikit-learn's default.</span>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>A decision tree in 50 lines</span></div>
+<pre><code>import numpy as np
+from collections import Counter
+
+def entropy(y):
+    if len(y) == 0:
+        return 0.0
+    counts = np.bincount(y.astype(int))
+    p = counts[counts &gt; 0] / len(y)
+    return float(-(p * np.log2(p)).sum())
+
+def best_split(X, y):
+    n, d = X.shape
+    parent_h = entropy(y)
+    best = (0.0, None, None)                     <span class="cm"># gain, feature, threshold</span>
+    for feature in range(d):
+        <span class="cm"># Candidate thresholds: midpoints between sorted unique values</span>
+        values = np.unique(X[:, feature])
+        for thr in (values[:-1] + values[1:]) / 2:
+            left = X[:, feature] &lt;= thr
+            if left.sum() == 0 or left.sum() == n:
+                continue
+            gain = parent_h - (left.mean() * entropy(y[left])
+                               + (1 - left.mean()) * entropy(y[~left]))
+            if gain &gt; best[0]:
+                best = (gain, feature, float(thr))
+    return best
+
+class Node:
+    def __init__(self, prediction=None, feature=None, thr=None, left=None, right=None):
+        self.prediction, self.feature, self.thr = prediction, feature, thr
+        self.left, self.right = left, right
+
+def build_tree(X, y, depth=0, max_depth=5, min_samples=5):
+    <span class="cm"># Stopping rules ARE the regularisation. Without them the tree</span>
+    <span class="cm"># grows until every leaf holds one sample -- perfect on training</span>
+    <span class="cm"># data, useless on anything else.</span>
+    if (depth &gt;= max_depth or len(y) &lt; min_samples or len(set(y)) == 1):
+        return Node(prediction=Counter(y).most_common(1)[0][0])
+
+    gain, feature, thr = best_split(X, y)
+    if feature is None or gain &lt;= 1e-9:
+        return Node(prediction=Counter(y).most_common(1)[0][0])
+
+    mask = X[:, feature] &lt;= thr
+    return Node(feature=feature, thr=thr,
+                left =build_tree(X[mask],  y[mask],  depth+1, max_depth, min_samples),
+                right=build_tree(X[~mask], y[~mask], depth+1, max_depth, min_samples))
+
+def predict_one(node, x):
+    while node.prediction is None:
+        node = node.left if x[node.feature] &lt;= node.thr else node.right
+    return node.prediction
+
+def show(node, depth=0, names=None):
+    pad = "  " * depth
+    if node.prediction is not None:
+        print(f"{pad}-&gt; class {node.prediction}")
+    else:
+        name = names[node.feature] if names else f"f{node.feature}"
+        print(f"{pad}if {name} &lt;= {node.thr:.3f}:")
+        show(node.left, depth + 1, names)
+        print(f"{pad}else:")
+        show(node.right, depth + 1, names)
+
+<span class="cm"># A tree is the only model that prints its own rules -- which is</span>
+<span class="cm"># why it is still chosen where a decision must be explained.</span></code></pre>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>From one tree to the algorithms that win</caption>
+    <thead><tr><th>Method</th><th>Idea</th><th>Trades</th></tr></thead>
+    <tbody>
+      <tr><td>Single tree</td><td>One set of rules</td><td>Interpretable; overfits badly</td></tr>
+      <tr><td>Random forest (bagging)</td><td>Many trees on random data <em>and</em> feature subsets; vote</td><td>Robust, parallel, few knobs. Excellent default</td></tr>
+      <tr><td><strong>Gradient boosting</strong></td><td>Each tree fits the <em>residual errors</em> of the previous ones</td><td><strong>Usually the best model on tabular data.</strong> Sequential; more tuning</td></tr>
+      <tr><td>XGBoost / LightGBM / CatBoost</td><td>Engineered boosting with regularisation and fast histograms</td><td>What actually wins Kaggle tabular competitions</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="kmeans"><span class="kicker">Section 06 <span class="lvl lvl-a">Advanced</span></span>k-means &mdash; and why it is your vector index</h2>
+
+<p>Worth building carefully, because IVF indexes in &sect;4.3 are k-means applied to embeddings. Cluster the vectors, then at query time search only the nearest few clusters instead of everything.</p>
+
+<ol class="steps">
+  <li><strong>Initialise</strong> <i>k</i> centroids. Random points is poor; <strong>k-means++</strong> picks them spread apart and converges far more reliably.</li>
+  <li><strong>Assign</strong> every point to its nearest centroid.</li>
+  <li><strong>Update</strong> each centroid to the mean of its assigned points.</li>
+  <li><strong>Repeat</strong> 2&ndash;3 until assignments stop changing. Guaranteed to converge, but only to a local optimum &mdash; so run it several times and keep the best.</li>
+</ol>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>k-means with k-means++ initialisation</span></div>
+<pre><code>import numpy as np
+
+def kmeans_plusplus(X, k, rng):
+    """Pick centroids far apart: each new one is chosen with
+    probability proportional to squared distance from the nearest
+    existing centroid. This is what makes k-means reliable."""
+    centroids = [X[rng.integers(len(X))]]
+    for _ in range(1, k):
+        d2 = np.min(((X[:, None, :] - np.array(centroids)[None]) ** 2).sum(-1), axis=1)
+        probs = d2 / d2.sum()
+        centroids.append(X[rng.choice(len(X), p=probs)])
+    return np.array(centroids)
+
+def kmeans(X, k=8, iters=100, n_init=5, seed=0):
+    rng = np.random.default_rng(seed)
+    best_inertia, best = np.inf, None
+
+    for _ in range(n_init):                       <span class="cm"># restarts escape bad local optima</span>
+        C = kmeans_plusplus(X, k, rng)
+        labels = np.zeros(len(X), dtype=int)
+        for _ in range(iters):
+            <span class="cm"># assign: ||x-c||^2 = ||x||^2 - 2x.c + ||c||^2</span>
+            <span class="cm"># ||x||^2 is constant per row, so it cannot change the argmin</span>
+            d = -2 * X @ C.T + (C ** 2).sum(1)
+            new_labels = d.argmin(1)
+            if np.array_equal(new_labels, labels):
+                break                             <span class="cm"># converged</span>
+            labels = new_labels
+            for j in range(k):
+                members = X[labels == j]
+                if len(members):
+                    C[j] = members.mean(0)
+        inertia = float(((X - C[labels]) ** 2).sum())
+        if inertia &lt; best_inertia:
+            best_inertia, best = inertia, (C.copy(), labels.copy())
+    return (*best, best_inertia)
+
+<span class="cm"># --- this is an IVF index -----------------------------------------</span>
+rng = np.random.default_rng(0)
+store = rng.normal(size=(50_000, 128))
+store /= np.linalg.norm(store, axis=1, keepdims=True)
+
+C, labels, _ = kmeans(store, k=224)               <span class="cm"># ~sqrt(n) clusters</span>
+
+def ivf_search(query, n_probe=8, k=10):
+    """Search only the n_probe nearest clusters."""
+    nearest_clusters = np.argsort(-(C @ query))[:n_probe]
+    candidate_ids = np.flatnonzero(np.isin(labels, nearest_clusters))
+    scores = store[candidate_ids] @ query
+    top = np.argsort(-scores)[:k]
+    return candidate_ids[top], len(candidate_ids)
+
+q = store[42]
+ids, scanned = ivf_search(q)
+print(f"scanned {scanned} of {len(store)} vectors ({scanned/len(store):.1%})")
+<span class="cm"># scanned 1837 of 50000 vectors (3.7%)  -- 27x less work</span>
+
+exact = np.argsort(-(store @ q))[:10]
+print(f"recall@10 = {len(set(ids) &amp; set(exact)) / 10:.1f}")   <span class="cm"># 0.9</span></code></pre>
+</div>
+
+<div class="note java">
+  <span class="tag">You have just built an approximate nearest neighbour index</span>
+  <p>Scanning 3.7% of the data and still retrieving 9 of the correct top 10 is the entire bargain of ANN search. Raising <code>n_probe</code> increases recall and cost; lowering it does the reverse. That single dial is the same trade-off as <code>ef_search</code> in HNSW, and now you have implemented the mechanism behind it rather than just configured it.</p>
+</div>
+
+<h2 id="workflow"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>The workflow discipline</h2>
+
+<p>This section matters more than any algorithm above, and it is the part that transfers directly to LLM evaluation.</p>
+
+<ol class="steps">
+  <li><strong>Split before you look.</strong> Train / validation / test, typically 60/20/20. The test set is opened <em>once</em>, at the very end. Every time you peek and adjust, you leak a little information into your model choices.</li>
+  <li><strong>Split correctly for your data.</strong> Random splits are wrong for time series (you would train on the future) and wrong when rows are grouped (all of one customer's rows must land in one fold, or the model recognises the customer rather than the pattern).</li>
+  <li><strong>Fit preprocessing inside the fold.</strong> Fitting a scaler on all the data before splitting leaks test statistics into training. Use a <code>Pipeline</code> and this becomes impossible by construction.</li>
+  <li><strong>Establish a dumb baseline.</strong> Majority class, or a simple heuristic. If your model does not clearly beat it, you have learned something important.</li>
+  <li><strong>Cross-validate</strong> for reliable estimates on small data. Stratified k-fold for imbalanced classes; time-series split for temporal data; group k-fold for clustered rows.</li>
+  <li><strong>Report an interval, not a point.</strong> "84% &plusmn; 3%" is a result. "84%" is a number that might be noise.</li>
+</ol>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>A leak-proof pipeline with honest evaluation</span></div>
+<pre><code>from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.impute import SimpleImputer
+from sklearn.ensemble import HistGradientBoostingClassifier
+from sklearn.model_selection import StratifiedKFold, cross_val_score
+from sklearn.metrics import classification_report
+import numpy as np
+
+numeric = ["age", "tenure_months", "monthly_spend"]
+categorical = ["plan", "region"]
+
+pre = ColumnTransformer([
+    ("num", Pipeline([("impute", SimpleImputer(strategy="median")),
+                      ("scale",  StandardScaler())]), numeric),
+    ("cat", OneHotEncoder(handle_unknown="ignore"), categorical),
+])
+
+pipe = Pipeline([("pre", pre),
+                 ("clf", HistGradientBoostingClassifier(random_state=0))])
+
+<span class="cm"># Every transformer is fitted separately inside each fold.</span>
+<span class="cm"># No test-set statistic can reach the training data.</span>
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=0)
+scores = cross_val_score(pipe, X_train, y_train, cv=cv, scoring="average_precision")
+
+mean, sd = scores.mean(), scores.std()
+print(f"PR-AUC {mean:.3f} +/- {1.96 * sd / np.sqrt(len(scores)):.3f} (95% CI)")
+
+pipe.fit(X_train, y_train)
+print(classification_report(y_test, pipe.predict(X_test)))   <span class="cm"># ONCE</span></code></pre>
+</div>
+
+<div class="note trap">
+  <span class="tag">Data leakage &mdash; the failure that looks like success</span>
+  <p>Leakage is when information unavailable at prediction time reaches the model during training. The symptom is always the same: <strong>excellent offline metrics, useless in production.</strong> The common forms are worth memorising because each looks innocent:</p>
+  <ul>
+    <li>Scaling or imputing before splitting &mdash; test statistics influence training.</li>
+    <li>A feature computed <em>after</em> the outcome. <code>days_since_last_login</code> is null exactly for customers who churned.</li>
+    <li>Duplicate rows spanning the split &mdash; the model has literally seen the test data.</li>
+    <li>Tuning hyperparameters against the test set, then reporting the test score.</li>
+    <li>Target encoding without doing it inside the fold.</li>
+  </ul>
+  <p>The check that catches most of it: if your model is surprisingly good, assume leakage and go looking, rather than celebrating.</p>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>Preprocessing choices</caption>
+    <thead><tr><th>Task</th><th>Options</th><th>Choose by</th></tr></thead>
+    <tbody>
+      <tr><td>Scaling numerics</td><td>Standard, MinMax, Robust</td><td>Standard by default; Robust when outliers are genuine. Trees need none</td></tr>
+      <tr><td>Encoding categories</td><td>One-hot, ordinal, target, embeddings</td><td>One-hot below ~50 levels; target encoding above (fitted inside the fold); embeddings for free text</td></tr>
+      <tr><td>Missing values</td><td>Median/mode impute, indicator column, native support</td><td>Add a "was missing" flag &mdash; missingness is often itself informative</td></tr>
+      <tr><td>Class imbalance</td><td>Class weights, resampling, SMOTE, threshold tuning</td><td>Start with <code>class_weight="balanced"</code> and judge on PR-AUC</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 08 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly a weekend</div>
+  <ol>
+    <li>Implement linear regression both ways and confirm they agree. Then add 5,000 features and watch the closed form become slow while gradient descent does not.</li>
+    <li>Fit Ridge and Lasso across a sweep of &lambda; and plot each coefficient against &lambda;. Watch Lasso's coefficients hit exactly zero and Ridge's merely shrink.</li>
+    <li>Implement logistic regression from scratch and check it against scikit-learn's coefficients.</li>
+    <li>Build the decision tree and print it on the Iris dataset. Set <code>max_depth=None</code> and observe perfect training accuracy with worse test accuracy &mdash; overfitting, visible.</li>
+    <li>Run the k-means IVF experiment. Plot recall@10 against <code>n_probe</code> from 1 to 50. Keep this plot; it is the same curve you will tune in &sect;4.3.</li>
+    <li>Deliberately introduce leakage: fit <code>StandardScaler</code> on all data before splitting. Measure how much the cross-validation score inflates.</li>
+    <li>Enter one Kaggle Playground competition. Establish a baseline, then improve it three times. Note which improvements survived cross-validation and which were noise.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 09 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Course</span><span class="body"><a href="https://www.coursera.org/specializations/machine-learning-introduction">Andrew Ng &mdash; Machine Learning Specialization</a><span class="why">Audit for free. Courses 1 and 2 cover exactly this page with more worked examples. The canonical grounding.</span></span></li>
+    <li><span class="kind">Course</span><span class="body"><a href="https://www.kaggle.com/learn/intro-to-machine-learning">Kaggle &mdash; Intro to ML and Intermediate ML</a><span class="why">Hands-on and short. The Intermediate course covers pipelines, leakage and cross-validation properly.</span></span></li>
+    <li><span class="kind">Book</span><span class="body"><a href="https://www.statlearning.com/">An Introduction to Statistical Learning</a><span class="why">Free PDF, now with a Python edition. The best balance of rigour and readability for everything on this page.</span></span></li>
+    <li><span class="kind">Video</span><span class="body"><a href="https://www.youtube.com/c/joshstarmer">StatQuest &mdash; Josh Starmer</a><span class="why">Watch the gradient boosting, random forest and regularisation series. Unusually clear on the parts that are usually hand-waved.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://scikit-learn.org/stable/user_guide.html">scikit-learn User Guide</a><span class="why">Not just API docs &mdash; a genuine textbook. The model-selection and preprocessing chapters especially.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://scikit-learn.org/stable/common_pitfalls.html">scikit-learn &mdash; Common pitfalls and recommended practices</a><span class="why">Short, official, and covers leakage and randomness precisely. Read it once a year.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://xgboost.readthedocs.io/en/stable/tutorials/model.html">XGBoost &mdash; Introduction to Boosted Trees</a><span class="why">The clearest derivation of gradient boosting, written by the library's authors.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 2.3 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

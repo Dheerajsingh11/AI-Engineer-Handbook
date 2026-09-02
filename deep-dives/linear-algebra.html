@@ -1,0 +1,817 @@
+<title>Linear Algebra</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 01 &middot; Fundamentals</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">1.1</span>
+    <h1>Linear Algebra</h1>
+    <p class="lede">Meaning becomes geometry. This page derives the dot product from the law of cosines, builds a working
+embedding space from a raw text corpus using nothing but Python and SVD, implements PCA by hand via
+power iteration, and shows exactly why 1536-dimensional space behaves so strangely.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#idea">The idea behind it</a></li><li><a href="#dot-product">The dot product, derived</a></li><li><a href="#norms">Norms, normalisation, and cosine</a></li><li><a href="#matrices">Matrices as functions</a></li><li><a href="#scratch">Build it from scratch</a></li><li><a href="#high-dim">Why high dimensions are strange</a></li><li><a href="#production">In production</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>None. If you can add and multiply numbers, you can read this section. School algebra helps from Section 03 onward, but nothing here requires you to have seen a matrix before.</p>
+</div>
+
+<p>Forget vectors and matrices for a moment. Start with a problem you already understand.</p>
+
+<p>Suppose you run a bookshop and you want to recommend books. You could describe every book by three numbers: how <em>romantic</em> it is, how <em>violent</em> it is, and how <em>funny</em> it is &mdash; each scored from 0 to 10.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Three books, described by three numbers each</caption>
+    <thead><tr><th>Book</th><th class="nc">Romance</th><th class="nc">Violence</th><th class="nc">Humour</th></tr></thead>
+    <tbody>
+      <tr><td>A quiet love story</td><td class="nc">9</td><td class="nc">1</td><td class="nc">2</td></tr>
+      <tr><td>A gentle romance</td><td class="nc">8</td><td class="nc">0</td><td class="nc">3</td></tr>
+      <tr><td>A war thriller</td><td class="nc">1</td><td class="nc">9</td><td class="nc">1</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<p>Look at the rows. The first two books have <em>similar numbers</em>, and they are also similar books. The third has very different numbers, and it is a very different book. You did not need any mathematics to notice that &mdash; but notice what just happened: <strong>you compared meanings by comparing numbers.</strong></p>
+
+<p>That list of three numbers, <code>[9, 1, 2]</code>, is a <strong>vector</strong>. That is the entire definition. A vector is an ordered list of numbers describing something.</p>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Vector</dt>
+    <dd>An ordered list of numbers. <code>[9, 1, 2]</code>. "Ordered" matters &mdash; the first slot always means romance, the second always violence. Swapping them would change the meaning.</dd>
+
+    <dt>Dimension</dt>
+    <dd>How many numbers are in the list. Our books are 3-dimensional. Real text embeddings are typically 768 or 1536-dimensional &mdash; the same idea, just with far more descriptive slots, and nobody chose what each slot means.</dd>
+
+    <dt>Embedding</dt>
+    <dd>A vector that a machine learning model produced to describe a piece of text. The word "embedding" just means "we embedded this text into a space of numbers".</dd>
+
+    <dt>Matrix</dt>
+    <dd>A grid of numbers &mdash; effectively a stack of vectors. The whole table above, without the labels, is a 3&times;3 matrix.</dd>
+
+    <dt>Dot product</dt>
+    <dd>A recipe for turning two vectors into a single number that says how alike they are. Multiply the matching slots together, then add up the results.</dd>
+
+    <dt>Norm</dt>
+    <dd>The length of a vector &mdash; how "big" the list of numbers is overall.</dd>
+
+    <dt>Cosine similarity</dt>
+    <dd>The dot product, adjusted so that length does not matter and only <em>direction</em> counts. Gives 1 for identical, 0 for unrelated, &minus;1 for opposite.</dd>
+  </dl>
+</div>
+
+<h3>Doing it by hand, once</h3>
+
+<p>Let us compare "A quiet love story" <code>[9, 1, 2]</code> with "A gentle romance" <code>[8, 0, 3]</code>. Multiply the matching slots, then add:</p>
+
+<div class="math">
+  <span class="lbl">A dot product, worked out in full</span>
+  <span class="row">(9 &times; 8) &nbsp;+&nbsp; (1 &times; 0) &nbsp;+&nbsp; (2 &times; 3)</span>
+  <span class="row">= &nbsp; 72 &nbsp;+&nbsp; 0 &nbsp;+&nbsp; 6 &nbsp; = &nbsp; <strong>78</strong></span>
+  <span class="note">Now the war thriller <code>[1, 9, 1]</code> against the same love story: (9&times;1) + (1&times;9) + (2&times;1) = 9 + 9 + 2 = <strong>20</strong>. The similar pair scored 78; the dissimilar pair scored 20. That is the entire mechanism behind semantic search, and you just performed it with arithmetic a ten-year-old could do.</span>
+</div>
+
+<p>Two things are worth noticing before you go further, because they are the seeds of everything that follows.</p>
+
+<ul>
+  <li><strong>Big numbers in the same slot make the score big.</strong> Both books score high on romance, so 9&times;8 = 72 dominates the total. Agreement in a slot is rewarded; disagreement contributes almost nothing, because one of the two numbers is small.</li>
+  <li><strong>Long books would cheat.</strong> If a book scored <code>[90, 10, 20]</code> &mdash; the same <em>proportions</em>, ten times bigger &mdash; its dot product with everything would be ten times larger, and it would win every comparison regardless of subject. Fixing that unfairness is exactly what <em>cosine similarity</em> does, and why it, rather than the raw dot product, is the default in search.</li>
+</ul>
+
+<div class="note key">
+  <span class="tag">The whole page in one paragraph</span>
+  <p>Text becomes lists of numbers. Similar text becomes similar lists. Comparing two lists is multiply-and-add. Everything else on this page &mdash; the proofs, the code, the strange behaviour at 1536 dimensions &mdash; is detail hanging off that sentence. If you only take one thing from Phase 1, take that.</p>
+</div>
+
+<h3>What changes in the real thing</h3>
+
+<p>Three differences separate the bookshop example from a production embedding:</p>
+
+<ol class="steps">
+  <li><strong>Nobody labels the slots.</strong> We chose "romance, violence, humour". A real model learns its own 1536 slots from data, and no individual slot has a name a human would recognise. This is fine &mdash; the geometry works regardless.</li>
+  <li><strong>The numbers come from a model, not a person.</strong> You feed text in, a neural network produces the vector. Section 06 of <a href="#scratch">this page</a> builds a simple version of that model so you can see there is no magic in it.</li>
+  <li><strong>There are a lot more slots.</strong> Three dimensions behave the way your intuition expects. Fifteen hundred do not, in ways that genuinely matter for engineering &mdash; which is what Section 07 is about.</li>
+</ol>
+
+
+<h2 id="idea"><span class="kicker">Section 02 <span class="lvl lvl-b">Beginner</span></span>The idea behind it</h2>
+
+<p>Computers cannot compare meanings. They can compare numbers. The whole of modern natural language processing rests on one bridge between those two facts, and it is worth stating precisely because everything else follows from it.</p>
+
+<p>The bridge is the <strong>distributional hypothesis</strong>, proposed by the linguist J.R. Firth in 1957: <em>a word is characterised by the company it keeps</em>. If two words appear in similar contexts, they mean similar things. "Doctor" and "physician" both appear near "patient", "hospital", "diagnosis". "Doctor" and "bicycle" do not.</p>
+
+<p>That is a testable, countable claim. And once you can count it, you can put it in a vector.</p>
+
+<div class="note key">
+  <span class="tag">The move that makes everything work</span>
+  <p>Represent each word as a list of numbers describing its context. Words used similarly get similar lists. Now "is X similar to Y?" &mdash; a question about meaning, which computers cannot answer &mdash; becomes "are these two lists of numbers pointing in the same direction?", which is arithmetic. <strong>Semantics has been converted into geometry.</strong></p>
+  <p>Linear algebra is the study of that geometry. That is the only reason it appears in this roadmap, and it is why you need the specific parts covered here and not a whole degree's worth.</p>
+</div>
+
+<h3>What a vector actually is</h3>
+
+<p>You will meet three definitions, and they describe the same object from different angles. Holding all three at once is what "having intuition for linear algebra" means.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Three views of a vector</caption>
+    <thead><tr><th>View</th><th>A vector is&hellip;</th><th>Useful when</th></tr></thead>
+    <tbody>
+      <tr><td>Computer science</td><td>An ordered list of numbers. <code>float[1536]</code></td><td>Writing code, reasoning about memory and cost</td></tr>
+      <tr><td>Physics / geometry</td><td>An arrow with direction and length, from the origin</td><td>Reasoning about similarity, angles, projection</td></tr>
+      <tr><td>Mathematics</td><td>An element of a space closed under addition and scaling</td><td>Understanding why the operations are the ones they are</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<p>The mathematical view is the one people skip, and it is the one that explains the rules. A <strong>vector space</strong> is any set where you can add two elements and scale an element by a number, and the results stay in the set. That is nearly the whole definition. It is why you can average embeddings and get something meaningful, and why every operation in a neural network is built from exactly those two moves.</p>
+
+<h2 id="dot-product"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>The dot product, derived</h2>
+
+<p>Almost every textbook states the dot product twice and never connects the two statements:</p>
+
+<div class="math">
+  <span class="lbl">The two definitions</span>
+  <span class="row"><i>a</i> &middot; <i>b</i> &nbsp;=&nbsp; <i>a</i><sub>1</sub><i>b</i><sub>1</sub> + <i>a</i><sub>2</sub><i>b</i><sub>2</sub> + &hellip; + <i>a<sub>n</sub>b<sub>n</sub></i> &nbsp;&nbsp;<span style="font-family:var(--f-body);font-size:.8em;color:var(--ink-2)">(algebraic)</span></span>
+  <span class="row"><i>a</i> &middot; <i>b</i> &nbsp;=&nbsp; &#8214;<i>a</i>&#8214; &#8214;<i>b</i>&#8214; cos&thinsp;&theta; &nbsp;&nbsp;<span style="font-family:var(--f-body);font-size:.8em;color:var(--ink-2)">(geometric)</span></span>
+  <span class="note">One is a sum of products of coordinates. The other is about lengths and an angle. That these are the same number is not obvious, and the proof is the single most clarifying thing in elementary linear algebra.</span>
+</div>
+
+<p>Here is why they are equal. Take the triangle formed by <i>a</i>, <i>b</i> and the vector <i>a</i>&minus;<i>b</i> joining their tips, and apply the <strong>law of cosines</strong> &mdash; the generalisation of Pythagoras to non-right triangles.</p>
+
+<div class="derive">
+  <div class="derive-top">Deriving the geometric form from the algebraic one</div>
+  <ol>
+    <li>&#8214;<i>a</i>&minus;<i>b</i>&#8214;<sup>2</sup> = &#8214;<i>a</i>&#8214;<sup>2</sup> + &#8214;<i>b</i>&#8214;<sup>2</sup> &minus; 2&#8214;<i>a</i>&#8214;&#8214;<i>b</i>&#8214; cos&thinsp;&theta;
+      <span class="why">Law of cosines applied to the triangle. Purely geometric &mdash; no coordinates yet.</span></li>
+    <li>&#8214;<i>a</i>&minus;<i>b</i>&#8214;<sup>2</sup> = &Sigma;<sub>i</sub> (<i>a<sub>i</sub></i> &minus; <i>b<sub>i</sub></i>)<sup>2</sup>
+      <span class="why">Now expand the same quantity in coordinates, using the definition of length.</span></li>
+    <li>= &Sigma;<sub>i</sub> <i>a<sub>i</sub></i><sup>2</sup> &minus; 2&Sigma;<sub>i</sub> <i>a<sub>i</sub>b<sub>i</sub></i> + &Sigma;<sub>i</sub> <i>b<sub>i</sub></i><sup>2</sup>
+      <span class="why">Multiply out the square, term by term.</span></li>
+    <li>= &#8214;<i>a</i>&#8214;<sup>2</sup> &minus; 2&Sigma;<sub>i</sub> <i>a<sub>i</sub>b<sub>i</sub></i> + &#8214;<i>b</i>&#8214;<sup>2</sup>
+      <span class="why">The first and third sums are exactly the squared lengths.</span></li>
+    <li>&#8214;<i>a</i>&#8214;<sup>2</sup> + &#8214;<i>b</i>&#8214;<sup>2</sup> &minus; 2&#8214;<i>a</i>&#8214;&#8214;<i>b</i>&#8214;cos&thinsp;&theta; &nbsp;=&nbsp; &#8214;<i>a</i>&#8214;<sup>2</sup> &minus; 2&Sigma;<sub>i</sub> <i>a<sub>i</sub>b<sub>i</sub></i> + &#8214;<i>b</i>&#8214;<sup>2</sup>
+      <span class="why">Set line 1 equal to line 4 &mdash; both describe &#8214;<i>a</i>&minus;<i>b</i>&#8214;<sup>2</sup>.</span></li>
+    <li>&#8214;<i>a</i>&#8214;&#8214;<i>b</i>&#8214; cos&thinsp;&theta; &nbsp;=&nbsp; &Sigma;<sub>i</sub> <i>a<sub>i</sub>b<sub>i</sub></i> &nbsp;&nbsp;&#9632;
+      <span class="why">Cancel the squared lengths, divide by &minus;2. The two definitions are the same number.</span></li>
+  </ol>
+</div>
+
+<div class="note">
+  <p><strong>Why this matters practically.</strong> The algebraic form is what your CPU computes &mdash; a multiply-accumulate loop, the single most optimised operation in computing. The geometric form is what it <em>means</em> &mdash; alignment of direction. Line 6 says you get the semantic quantity for free from the cheap arithmetic one. Every vector database on earth is an industrial exploitation of that equality.</p>
+</div>
+
+<h3>Reading the sign</h3>
+<ul>
+  <li><strong>Large positive</strong> &mdash; same direction, and both vectors are long. Strong agreement.</li>
+  <li><strong>Zero</strong> &mdash; perpendicular, <em>orthogonal</em>. In embedding space this means "unrelated".</li>
+  <li><strong>Negative</strong> &mdash; opposed directions. Rarer in practice than beginners expect, because most embedding models place unrelated things at roughly 90&deg;, not 180&deg;.</li>
+</ul>
+
+<h2 id="norms"><span class="kicker">Section 04 <span class="lvl lvl-i">Intermediate</span></span>Norms, normalisation, and cosine</h2>
+
+<p>A <strong>norm</strong> answers "how long is this vector?". The definition you know is one of an infinite family, all instances of the <em>p-norm</em>:</p>
+
+<div class="math">
+  <span class="lbl">The p-norm family</span>
+  &#8214;<i>a</i>&#8214;<sub><i>p</i></sub> &nbsp;=&nbsp; <big>(</big> &Sigma;<sub>i</sub> |<i>a<sub>i</sub></i>|<sup><i>p</i></sup> <big>)</big><sup>1/<i>p</i></sup>
+  <span class="note"><i>p</i>=1 gives Manhattan distance (sum of absolute values); <i>p</i>=2 gives ordinary Euclidean length; as <i>p</i>&rarr;&infin; only the largest component survives, giving the max norm. The choice of <i>p</i> decides which errors a model is punished for &mdash; L1 tolerates a few large deviations and pushes small ones to exactly zero, which is why Lasso regression produces sparse models.</span>
+</div>
+
+<p><strong>Normalising</strong> divides a vector by its own L2 norm, producing a vector of length exactly 1 pointing the same way. All information about magnitude is discarded; all information about direction is kept.</p>
+
+<div class="derive">
+  <div class="derive-top">Why cosine similarity is the dot product of normalised vectors</div>
+  <ol>
+    <li>cos&thinsp;&theta; = (<i>a</i> &middot; <i>b</i>) / (&#8214;<i>a</i>&#8214;&#8214;<i>b</i>&#8214;)
+      <span class="why">Rearranged directly from the geometric definition.</span></li>
+    <li>Let <i>â</i> = <i>a</i>/&#8214;<i>a</i>&#8214; and <i>b̂</i> = <i>b</i>/&#8214;<i>b</i>&#8214;, so &#8214;<i>â</i>&#8214; = &#8214;<i>b̂</i>&#8214; = 1
+      <span class="why">Normalise both.</span></li>
+    <li><i>â</i> &middot; <i>b̂</i> = (<i>a</i> &middot; <i>b</i>) / (&#8214;<i>a</i>&#8214;&#8214;<i>b</i>&#8214;) = cos&thinsp;&theta;
+      <span class="why">Scalars pull straight out of a dot product. So on normalised vectors, dot product <em>is</em> cosine similarity &mdash; the division is already done.</span></li>
+  </ol>
+</div>
+
+<div class="note java">
+  <span class="tag">The engineering consequence</span>
+  <p>Normalise once, at write time, and every subsequent query is a bare dot product: <i>n</i> multiplies and <i>n</i> adds, no square roots, no division. Over a hundred million stored vectors queried thousands of times per second, that is a substantial saving for zero loss of accuracy. This is why every vector database documentation page tells you to normalise on ingest and query with inner product.</p>
+</div>
+
+<h3>The relationship to Euclidean distance</h3>
+<p>There is one more identity worth knowing, because it explains why the metric choice sometimes does not matter at all. For normalised vectors:</p>
+
+<div class="math">
+  <span class="lbl">Squared Euclidean distance on the unit sphere</span>
+  &#8214;<i>â</i> &minus; <i>b̂</i>&#8214;<sup>2</sup> &nbsp;=&nbsp; 2 &minus; 2(<i>â</i> &middot; <i>b̂</i>)
+  <span class="note">Expand the square and use &#8214;<i>â</i>&#8214;<sup>2</sup> = &#8214;<i>b̂</i>&#8214;<sup>2</sup> = 1. Distance is a decreasing linear function of similarity, so <strong>ranking by Euclidean distance gives exactly the same order as ranking by cosine</strong> &mdash; provided the vectors are normalised. If they are not, the two metrics genuinely disagree, and that is where silent retrieval bugs come from.</span>
+</div>
+
+<h2 id="matrices"><span class="kicker">Section 05 <span class="lvl lvl-i">Intermediate</span></span>Matrices as functions</h2>
+
+<p>The standard presentation &mdash; "a matrix is a grid of numbers, and here is the rule for multiplying two of them" &mdash; makes matrix multiplication look arbitrary. It is not arbitrary. It is forced.</p>
+
+<p>A matrix is a <strong>linear transformation</strong>: a function that takes a vector and returns a vector, obeying two rules &mdash; <i>T</i>(<i>u</i>+<i>v</i>) = <i>T</i>(<i>u</i>)+<i>T</i>(<i>v</i>) and <i>T</i>(<i>cv</i>) = <i>cT</i>(<i>v</i>). Rotation, scaling, projection and shear all qualify.</p>
+
+<p>Here is the key fact: <em>a linear transformation is completely determined by what it does to the basis vectors.</em> Write <i>v</i> = <i>v</i><sub>1</sub><i>e</i><sub>1</sub> + <i>v</i><sub>2</sub><i>e</i><sub>2</sub>, apply linearity, and <i>T</i>(<i>v</i>) = <i>v</i><sub>1</sub><i>T</i>(<i>e</i><sub>1</sub>) + <i>v</i><sub>2</sub><i>T</i>(<i>e</i><sub>2</sub>). So if you store <i>T</i>(<i>e</i><sub>1</sub>) and <i>T</i>(<i>e</i><sub>2</sub>) as the columns of a grid, you can reconstruct <i>T</i> for any input.</p>
+
+<div class="note key">
+  <span class="tag">The one sentence to remember</span>
+  <p><strong>The columns of a matrix are the images of the basis vectors.</strong> That is what a matrix <em>is</em>: a lookup table of where the axes land. Everything else &mdash; the multiplication rule, why the inner dimensions must match, why <i>AB</i> &ne; <i>BA</i> &mdash; follows from this without further invention.</p>
+</div>
+
+<h3>Deriving the multiplication rule</h3>
+<p>If <i>A</i> and <i>B</i> are both transformations, <i>AB</i> should mean "do <i>B</i>, then do <i>A</i>" &mdash; function composition. Work out where the basis vectors land under that composition and the familiar formula falls out with no freedom of choice:</p>
+
+<div class="derive">
+  <div class="derive-top">Composition forces the multiplication rule</div>
+  <ol>
+    <li>(<i>AB</i>)(<i>e<sub>j</sub></i>) = <i>A</i>(<i>B</i>(<i>e<sub>j</sub></i>))
+      <span class="why">Definition of composition, applied to basis vector <i>j</i>.</span></li>
+    <li><i>B</i>(<i>e<sub>j</sub></i>) = column <i>j</i> of <i>B</i>, whose entries are <i>B<sub>kj</sub></i>
+      <span class="why">By the boxed fact above.</span></li>
+    <li>= &Sigma;<sub>k</sub> <i>B<sub>kj</sub> e<sub>k</sub></i>
+      <span class="why">Write that column back out in the basis.</span></li>
+    <li><i>A</i>(&Sigma;<sub>k</sub> <i>B<sub>kj</sub> e<sub>k</sub></i>) = &Sigma;<sub>k</sub> <i>B<sub>kj</sub> A</i>(<i>e<sub>k</sub></i>)
+      <span class="why">Linearity of <i>A</i> &mdash; this is the only property used.</span></li>
+    <li>= &Sigma;<sub>k</sub> <i>B<sub>kj</sub></i> &Sigma;<sub>i</sub> <i>A<sub>ik</sub> e<sub>i</sub></i> = &Sigma;<sub>i</sub> <big>(</big>&Sigma;<sub>k</sub> <i>A<sub>ik</sub>B<sub>kj</sub></i><big>)</big> <i>e<sub>i</sub></i>
+      <span class="why">Expand <i>A</i>(<i>e<sub>k</sub></i>) and swap the order of summation.</span></li>
+    <li>(<i>AB</i>)<sub><i>ij</i></sub> = &Sigma;<sub>k</sub> <i>A<sub>ik</sub>B<sub>kj</sub></i> &nbsp;&nbsp;&#9632;
+      <span class="why">The bracketed quantity is entry <i>i</i> of column <i>j</i> &mdash; the rule you were taught, now inevitable rather than arbitrary.</span></li>
+  </ol>
+</div>
+
+<p>Two consequences drop out immediately. The index <i>k</i> must range over the same set on both sides, so <strong>the inner dimensions must match</strong>. And "rotate then stretch" is a different function from "stretch then rotate", so <strong>matrix multiplication does not commute</strong>.</p>
+
+<h2 id="scratch"><span class="kicker">Section 06 <span class="lvl lvl-a">Advanced</span></span>Build it from scratch</h2>
+
+<p>Implement the primitives with no libraries first. This takes twenty minutes and permanently removes the sense that NumPy is doing something mysterious.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Step 1 &mdash; the primitives, pure Python</span></div>
+<pre><code>import math
+
+def dot(a, b):
+    if len(a) != len(b):
+        raise ValueError(f"dimension mismatch: {len(a)} vs {len(b)}")
+    total = 0.0
+    for x, y in zip(a, b):
+        total += x * y                <span class="cm"># multiply-accumulate: the whole operation</span>
+    return total
+
+def norm(a, p=2):
+    if p == 1:  return sum(abs(x) for x in a)
+    if p == 2:  return math.sqrt(sum(x * x for x in a))
+    return max(abs(x) for x in a)     <span class="cm"># p = infinity</span>
+
+def normalize(a):
+    n = norm(a)
+    if n == 0:
+        return list(a)                <span class="cm"># zero vector has no direction</span>
+    return [x / n for x in a]
+
+def cosine(a, b):
+    denom = norm(a) * norm(b)
+    return 0.0 if denom == 0 else dot(a, b) / denom
+
+def matmul(A, B):
+    n_rows, n_inner, n_cols = len(A), len(B), len(B[0])
+    if len(A[0]) != n_inner:
+        raise ValueError("inner dimensions must match")
+    <span class="cm"># Exactly line (6) of the derivation above.</span>
+    return [[sum(A[i][k] * B[k][j] for k in range(n_inner))
+             for j in range(n_cols)]
+            for i in range(n_rows)]
+
+<span class="cm"># Verify the identity we proved: cosine == dot on normalised vectors</span>
+a, b = [3.0, 4.0, 0.0], [1.0, 2.0, 2.0]
+assert abs(cosine(a, b) - dot(normalize(a), normalize(b))) &lt; 1e-12
+print(f"cos = {cosine(a, b):.4f}, angle = {math.degrees(math.acos(cosine(a,b))):.1f} deg")</code></pre>
+</div>
+
+<h3>Step 2 &mdash; build a real embedding space from raw text</h3>
+
+<p>This is the part almost nobody does, and it is the part that makes embeddings click. You are going to turn the distributional hypothesis into an actual vector space, with no neural network involved. The recipe predates deep learning and still works.</p>
+
+<ol class="steps">
+  <li><strong>Count co-occurrences.</strong> For every word, count how often each other word appears within a window of &plusmn;<i>k</i> positions. This gives a vocabulary&times;vocabulary matrix of raw counts.</li>
+  <li><strong>Reweight.</strong> Raw counts are dominated by "the" and "of". Positive Pointwise Mutual Information asks whether two words co-occur <em>more than chance would predict</em>, which is the actual signal.</li>
+  <li><strong>Reduce.</strong> The matrix is huge and mostly zeros. Truncated SVD compresses it to a few hundred dense dimensions, and &mdash; crucially &mdash; forces words with similar contexts to collapse onto similar vectors.</li>
+  <li><strong>Normalise and search.</strong> You now have embeddings. Cosine similarity between them is semantic similarity.</li>
+</ol>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Step 2 &mdash; embeddings from a corpus, no neural network</span></div>
+<pre><code>import numpy as np, re
+from collections import Counter, defaultdict
+
+def tokenize(text):
+    return re.findall(r"[a-z']+", text.lower())
+
+def build_embeddings(corpus, window=4, dims=64, min_count=3):
+    tokens = tokenize(corpus)
+
+    <span class="cm"># --- vocabulary -------------------------------------------------</span>
+    counts = Counter(tokens)
+    vocab  = [w for w, c in counts.most_common() if c &gt;= min_count]
+    index  = {w: i for i, w in enumerate(vocab)}
+    V      = len(vocab)
+
+    <span class="cm"># --- 1. co-occurrence counts ------------------------------------</span>
+    C = np.zeros((V, V), dtype=np.float64)
+    for pos, word in enumerate(tokens):
+        i = index.get(word)
+        if i is None:
+            continue
+        lo, hi = max(0, pos - window), min(len(tokens), pos + window + 1)
+        for other in tokens[lo:pos] + tokens[pos + 1:hi]:
+            j = index.get(other)
+            if j is not None:
+                C[i, j] += 1.0
+
+    <span class="cm"># --- 2. positive pointwise mutual information -------------------</span>
+    <span class="cm">#   PMI(i,j) = log[ P(i,j) / (P(i)P(j)) ]</span>
+    <span class="cm">#   "do these co-occur more than independence predicts?"</span>
+    total    = C.sum()
+    p_ij     = C / total
+    p_i      = C.sum(axis=1, keepdims=True) / total
+    p_j      = C.sum(axis=0, keepdims=True) / total
+    with np.errstate(divide="ignore", invalid="ignore"):
+        pmi = np.log(p_ij / (p_i * p_j))
+    ppmi = np.nan_to_num(pmi, nan=0.0, neginf=0.0, posinf=0.0)
+    ppmi[ppmi &lt; 0] = 0.0              <span class="cm"># keep only positive association</span>
+
+    <span class="cm"># --- 3. truncated SVD: V dims -&gt; `dims` dims --------------------</span>
+    <span class="cm">#   U holds left singular vectors; scaling by sqrt(S) is the</span>
+    <span class="cm">#   standard choice and behaves better than U or U@S alone.</span>
+    U, S, _ = np.linalg.svd(ppmi, full_matrices=False)
+    emb = U[:, :dims] * np.sqrt(S[:dims])
+
+    <span class="cm"># --- 4. normalise so dot product == cosine ----------------------</span>
+    emb /= np.linalg.norm(emb, axis=1, keepdims=True) + 1e-9
+    return emb, vocab, index
+
+def nearest(word, emb, vocab, index, k=5):
+    i = index[word]
+    scores = emb @ emb[i]             <span class="cm"># one matmul == every comparison</span>
+    scores[i] = -np.inf               <span class="cm"># exclude the word itself</span>
+    top = np.argpartition(-scores, k)[:k]
+    top = top[np.argsort(-scores[top])]
+    return [(vocab[j], round(float(scores[j]), 3)) for j in top]
+
+<span class="cm"># Feed it any large plain-text file -- Project Gutenberg works well.</span>
+<span class="cm"># text = open("book.txt", encoding="utf-8").read()</span>
+<span class="cm"># emb, vocab, index = build_embeddings(text)</span>
+<span class="cm"># print(nearest("king", emb, vocab, index))</span>
+<span class="cm">#   -&gt; [('queen', 0.71), ('prince', 0.68), ('throne', 0.64), ...]</span></code></pre>
+</div>
+
+<div class="note key">
+  <span class="tag">What you have just proved to yourself</span>
+  <p>Nothing in that code understands language. It counted words near other words, asked which pairings beat chance, and compressed the result. Yet the output places "king" near "queen" and "throne". <strong>The geometry emerged from the counting.</strong> Modern embedding models are enormously better at this &mdash; they use transformers, contrastive training and vastly more data &mdash; but they are doing a more sophisticated version of the same thing, and the vector space they produce is used in exactly the way you just used yours.</p>
+</div>
+
+<h3>Step 3 &mdash; PCA by hand, via power iteration</h3>
+
+<p>SVD above was a library call. Here is how the underlying machinery actually works, using an algorithm simple enough to write in ten lines: <strong>power iteration</strong>. It finds the direction of greatest variance by repeatedly applying the matrix and renormalising.</p>
+
+<p>Why it works: write any starting vector as a combination of the eigenvectors. Each application of <i>A</i> multiplies each component by its eigenvalue. The largest eigenvalue grows fastest, so after enough iterations it dominates everything else and the vector aligns with its eigenvector. Renormalising each round stops the numbers exploding.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Step 3 &mdash; PCA from scratch</span></div>
+<pre><code>import numpy as np
+
+def power_iteration(A, iters=500, tol=1e-10, seed=0):
+    """Dominant eigenvector of a symmetric matrix A."""
+    rng = np.random.default_rng(seed)
+    v = rng.normal(size=A.shape[0])
+    v /= np.linalg.norm(v)
+    for _ in range(iters):
+        w = A @ v                       <span class="cm"># stretch along eigen-directions</span>
+        n = np.linalg.norm(w)
+        if n == 0:
+            break
+        w /= n                          <span class="cm"># renormalise to stop overflow</span>
+        if np.linalg.norm(w - v) &lt; tol: <span class="cm"># converged</span>
+            v = w
+            break
+        v = w
+    eigenvalue = float(v @ A @ v)       <span class="cm"># Rayleigh quotient</span>
+    return v, eigenvalue
+
+def pca(X, k=2):
+    """Project X (n_samples, n_features) onto its top-k directions."""
+    X = np.asarray(X, dtype=float)
+    Xc = X - X.mean(axis=0)             <span class="cm"># 1. centre -- PCA is about variance</span>
+    C  = (Xc.T @ Xc) / (len(Xc) - 1)    <span class="cm"># 2. covariance matrix</span>
+
+    components, variances = [], []
+    for _ in range(k):
+        v, lam = power_iteration(C)
+        components.append(v)
+        variances.append(lam)
+        <span class="cm"># 3. DEFLATION: subtract this direction so the next</span>
+        <span class="cm">#    iteration finds the largest of what remains.</span>
+        C = C - lam * np.outer(v, v)
+
+    W = np.array(components)            <span class="cm"># (k, n_features)</span>
+    return Xc @ W.T, W, np.array(variances)
+
+<span class="cm"># Sanity check against NumPy's eigendecomposition</span>
+rng = np.random.default_rng(1)
+X = rng.normal(size=(400, 6)) @ rng.normal(size=(6, 6))
+proj, W, var = pca(X, k=3)
+reference = np.sort(np.linalg.eigvalsh(np.cov(X, rowvar=False)))[::-1][:3]
+print(np.allclose(var, reference, atol=1e-6))   <span class="cm"># True</span></code></pre>
+</div>
+
+<div class="note">
+  <p><strong>Where this shows up in your work.</strong> Deflation &mdash; find the dominant direction, subtract it, repeat &mdash; is the same idea as Maximal Marginal Relevance in retrieval, where you take the best result, discount everything similar to it, and take the next. And the fact that a few directions carry most of the variance is exactly what makes <em>Matryoshka embeddings</em> possible: train so the important directions come first, and truncation becomes cheap.</p>
+</div>
+
+<h2 id="high-dim"><span class="kicker">Section 07 <span class="lvl lvl-a">Advanced</span></span>Why high dimensions are strange</h2>
+
+<p>Your geometric intuition comes from three dimensions and is actively misleading at 1536. Three specific effects matter, and you should see them numerically rather than take them on faith.</p>
+
+<div class="tbl">
+  <table>
+    <caption>What changes as dimension grows</caption>
+    <thead><tr><th>Effect</th><th>What happens</th><th>Consequence for you</th></tr></thead>
+    <tbody>
+      <tr><td>Near-orthogonality</td><td>Two random vectors have cosine &asymp; 0 with variance 1/<i>n</i></td><td>Almost everything is "unrelated" by default, so a similarity of 0.3 can already be meaningful. Absolute thresholds do not transfer between models</td></tr>
+      <tr><td>Distance concentration</td><td>The ratio of farthest to nearest neighbour distance approaches 1</td><td>Nearest-neighbour search becomes less discriminating; exact search loses its advantage over approximate</td></tr>
+      <tr><td>Volume in the shell</td><td>Nearly all the volume of a high-dimensional ball sits near its surface</td><td>Normalised embeddings genuinely do live on a thin shell; intuitions about "clusters filling a region" fail</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>See it for yourself</span></div>
+<pre><code>import numpy as np
+rng = np.random.default_rng(0)
+
+print(f"{'dims':&gt;6} {'mean|cos|':&gt;10} {'near/far':&gt;10}")
+for d in (3, 10, 100, 768, 1536):
+    A = rng.normal(size=(2000, d))
+    A /= np.linalg.norm(A, axis=1, keepdims=True)
+
+    <span class="cm"># 1. how aligned are random pairs?</span>
+    cos = A[:1000] @ A[1000:].T
+    mean_abs = np.abs(cos).mean()
+
+    <span class="cm"># 2. do near and far neighbours still differ?</span>
+    q = A[0]
+    dists = np.linalg.norm(A[1:] - q, axis=1)
+    ratio = dists.min() / dists.max()
+
+    print(f"{d:&gt;6} {mean_abs:&gt;10.4f} {ratio:&gt;10.4f}")
+
+<span class="cm"># dims   mean|cos|   near/far</span>
+<span class="cm">#    3      0.5001     0.0384    <- geometry behaves as you expect</span>
+<span class="cm">#   10      0.2522     0.2338</span>
+<span class="cm">#  100      0.0798     0.5316</span>
+<span class="cm">#  768      0.0288     0.7856    <- nearest is 79% as far as farthest</span>
+<span class="cm"># 1536      0.0204     0.8352    <- distances have nearly collapsed</span></code></pre>
+</div>
+
+<p>That last column is the entire justification for Phase 4's approximate indexes. When the nearest neighbour is already 84% as far away as the farthest, insisting on the mathematically exact answer buys you very little &mdash; and costs a full scan. Trading 1% recall for a hundredfold speedup is not a compromise; it is the correct engineering decision, and now you can defend it with numbers.</p>
+
+<h2 id="production"><span class="kicker">Section 08 <span class="lvl lvl-p">Professional</span></span>In production</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Numerical and performance concerns</caption>
+    <thead><tr><th>Concern</th><th>What to do</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Precision</td><td><code>float32</code> for storage; <code>float64</code> only for accumulation if summing millions of terms</td><td>Halves memory and doubles throughput at no measurable recall cost. Embedding models emit fp32 anyway</td></tr>
+      <tr><td>Quantisation</td><td><code>int8</code> for a 4&times; saving, binary for 32&times; as a first-pass filter</td><td>Binary + Hamming as a coarse filter, then exact rescoring on the survivors, is a standard two-stage design</td></tr>
+      <tr><td>Batching</td><td>One <code>(n, d) @ (d,)</code> matmul, never a Python loop</td><td>BLAS uses SIMD, cache blocking and multiple cores. Expect 50&ndash;200&times; over a loop</td></tr>
+      <tr><td>Zero vectors</td><td>Guard before dividing</td><td>Empty or whitespace-only chunks produce zero embeddings and <code>NaN</code> similarities that poison a whole result set</td></tr>
+      <tr><td>Catastrophic cancellation</td><td>Prefer <code>math.fsum</code> or pairwise summation for very long vectors</td><td>Naive left-to-right summation of 10k floats loses precision; NumPy already uses pairwise summation</td></tr>
+      <tr><td>Storage sizing</td><td>bytes &asymp; <i>n</i> &times; <i>d</i> &times; 4, then add the index</td><td>10M chunks &times; 1536 dims &times; 4 bytes = 61&nbsp;GB before HNSW roughly doubles it. Size this <em>before</em> choosing a model</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note trap">
+  <span class="tag">The three bugs you will actually write</span>
+  <ul>
+    <li><strong>Comparing vectors from different models.</strong> Two embedding spaces are unrelated coordinate systems. Cosine between them returns a number, and the number is meaningless. Store the model ID beside every vector and assert on it.</li>
+    <li><strong>Forgetting to normalise, then using inner product.</strong> Retrieval silently starts favouring long documents, because their vectors are longer. Nothing errors. Quality just quietly degrades.</li>
+    <li><strong>Transposing the wrong operand.</strong> <code>A @ B.T</code> and <code>A.T @ B</code> both run without complaint when the matrix is square, and produce entirely different answers. Assert on <code>.shape</code> at every boundary.</li>
+  </ul>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 09 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly one evening</div>
+  <ol>
+    <li>Implement <code>dot</code>, <code>norm</code>, <code>cosine</code> and <code>matmul</code> in pure Python. Verify <code>cosine(a,b) == dot(normalize(a), normalize(b))</code> to within floating-point tolerance.</li>
+    <li>Time your pure-Python <code>matmul</code> against <code>numpy.matmul</code> on 200&times;200 matrices. Record the ratio. This number is why nobody writes the loop.</li>
+    <li>Run the co-occurrence embedding builder on a public-domain book. Inspect the nearest neighbours of ten words. Find one that is wrong and work out why &mdash; usually a window that is too wide, or too little data.</li>
+    <li>Try the analogy <code>king - man + woman</code> and find its nearest neighbour. It will probably not give <code>queen</code> on a small corpus. Understanding <em>why not</em> teaches more than a success would.</li>
+    <li>Implement <code>pca</code> with power iteration and check your eigenvalues against <code>numpy.linalg.eigvalsh</code>.</li>
+    <li>Reproduce the dimensionality table. Then plot recall against <code>ef_search</code> for an HNSW index on the same data when you reach &sect;4.3 &mdash; the two results explain each other.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 10 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Video</span><span class="body"><a href="https://www.3blue1brown.com/topics/linear-algebra">3Blue1Brown &mdash; Essence of Linear Algebra</a><span class="why">Watch chapters 3, 4, 9 and 14 specifically: linear transformations, matrix multiplication as composition, the dot product, and eigenvectors. They animate exactly the derivations on this page.</span></span></li>
+    <li><span class="kind">Course</span><span class="body"><a href="https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/">MIT 18.06 &mdash; Gilbert Strang</a><span class="why">Full lecture videos, problem sets and exams. Lectures 1&ndash;3, 21 and 29 map onto this page. Strang's "column picture" is the framing used here.</span></span></li>
+    <li><span class="kind">Book</span><span class="body"><a href="https://mml-book.github.io/">Mathematics for Machine Learning</a><span class="why">Free PDF. Chapters 2 (linear algebra), 3 (analytic geometry) and 4 (matrix decompositions) with exercises and worked solutions.</span></span></li>
+    <li><span class="kind">Book</span><span class="body"><a href="https://web.stanford.edu/~boyd/vmls/">Introduction to Applied Linear Algebra &mdash; Boyd &amp; Vandenberghe</a><span class="why">Free PDF, application-first, minimal proof. The chapters on norms, clustering and least squares are directly relevant.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://web.stanford.edu/~jurafsky/slp3/6.pdf">Jurafsky &amp; Martin &mdash; Vector Semantics and Embeddings</a><span class="why">Free chapter from <em>Speech and Language Processing</em>. The authoritative treatment of PPMI, co-occurrence matrices and word2vec &mdash; the theory behind the builder above.</span></span></li>
+    <li><span class="kind">Practice</span><span class="body"><a href="https://numpy.org/doc/stable/user/basics.broadcasting.html">NumPy broadcasting rules</a><span class="why">Short and worth reading twice. Most NumPy bugs are broadcasting doing something reasonable that you did not intend.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://proceedings.neurips.cc/paper_files/paper/2014/hash/b78666971ceae55a8e87efb7cbfd9ad4-Abstract.html">Levy &amp; Goldberg &mdash; Neural Word Embedding as Implicit Matrix Factorization</a><span class="why">Proves that word2vec is implicitly factorising a shifted PPMI matrix &mdash; that is, the code you wrote above and the neural method are the same thing in disguise.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 1.1 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

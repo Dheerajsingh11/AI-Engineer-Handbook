@@ -1,0 +1,405 @@
+<title>Agent Infrastructure: Gateways & Durable Execution</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 08 &middot; Agent Engineering</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">8.12</span>
+    <h1>Agent Infrastructure: Gateways &amp; Durable Execution</h1>
+    <p class="lede">The plumbing that makes agents survive production. This page covers the two infrastructure layers a real agent needs
+beyond a request/response API &mdash; an AI gateway (unified access, fallback, budgets) in front of the models, and a
+durable execution engine (Temporal-style) underneath the agent loop for retries, replay and long-running state.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#gateway">The AI gateway</a></li><li><a href="#durable">Durable execution</a></li><li><a href="#state">State, checkpointing &amp; human-in-the-loop</a></li><li><a href="#production">The production agent stack</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>Building agents (Topics 8.1&ndash;8.3), event-driven AI (Topic 5.4), and cost/efficiency (Topic 19.3). This page is the production <em>infrastructure</em> around an agent.</p>
+</div>
+
+<p>A single LLM call fits the request/response model your web stack already knows. An <strong>agent run</strong> does not: it is a dozen steps, it calls several tools, it hits errors and retries, it may run for seconds, minutes, or hours, and it talks to multiple model providers. Two pieces of infrastructure make that reliable &mdash; a <strong>gateway</strong> in front of the models, and a <strong>durable execution engine</strong> underneath the agent loop.</p>
+
+<div class="note key">
+  <span class="tag">Why an agent breaks ordinary request/response infra</span>
+  <p>Standard serving assumes: one call, quick, stateless, one provider. An agent violates all four &mdash; <strong>many</strong> calls, <strong>slow</strong>, <strong>stateful</strong> (the plan and history matter), across <strong>providers</strong>. A network blip 12 steps in shouldn't lose 12 steps of work. A provider outage shouldn't kill the request. A run that needs a human approval shouldn't hold an HTTP connection open for an hour. The two layers on this page exist precisely to handle those realities &mdash; and without them, agents that work in a demo fall over in production.</p>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>AI gateway</dt><dd>A proxy all model calls pass through &mdash; one API, with fallback, limits and logging.</dd>
+    <dt>Fallback / failover</dt><dd>If one provider is down or slow, automatically try another.</dd>
+    <dt>Durable execution</dt><dd>An engine that runs your workflow so it survives crashes and resumes exactly where it left off.</dd>
+    <dt>Checkpointing</dt><dd>Saving the agent's state so it can be resumed, replayed, or paused for a human.</dd>
+    <dt>Human-in-the-loop (HITL)</dt><dd>Pausing for a person to approve an action, without blocking a live connection.</dd>
+  </dl>
+</div>
+
+<h2 id="gateway"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>The AI gateway</h2>
+
+<p>Instead of your code calling OpenAI, Anthropic and a self-hosted model directly, it calls <em>one</em> endpoint &mdash; the <strong>gateway</strong> &mdash; which routes onward. Centralising every model call in one place buys a lot.</p>
+
+<div class="tbl">
+  <table>
+    <caption>What an AI gateway gives you</caption>
+    <thead><tr><th>Capability</th><th>Why it matters for agents</th></tr></thead>
+    <tbody>
+      <tr><td>Unified API across providers</td><td>Swap models/providers without touching agent code</td></tr>
+      <tr><td>Cross-provider fallback</td><td>Failover from one provider to another on outage, rate limit or latency spike &mdash; the agent keeps running</td></tr>
+      <tr><td>Rate limits &amp; budget caps</td><td>Per-tenant, per-agent spend and request ceilings &mdash; one runaway loop can't bankrupt you</td></tr>
+      <tr><td>Load balancing</td><td>Spread traffic across self-hosted and managed endpoints</td></tr>
+      <tr><td>Central logging &amp; cost attribution</td><td>Every call logged and tagged in one place (feeds Topic 8.10)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note java">
+  <span class="tag">The tools, and the one-line reason to use them</span>
+  <p><strong>LiteLLM Proxy</strong> (open source), <strong>Portkey</strong>, and <strong>Cloudflare AI Gateway</strong> are the common choices &mdash; they present an OpenAI-compatible endpoint and add fallback, budgets, caching and observability as configuration. The reason to adopt one early is the same reason you put a gateway in front of any set of downstream services: <strong>one place to enforce policy.</strong> Rate limits, budget caps, provider failover, key management, and logging all live in the gateway instead of being re-implemented in every agent. Two capabilities from earlier phases plug in here too: <strong>semantic caching</strong> to short-circuit repeated sub-queries, and <strong>model cascading / routing</strong> &mdash; send trivial classification and tool-selection steps to a small fast model (Llama-3 8B, Haiku), reserve the frontier model for hard planning. Both are covered in depth in Topic 19.3; the gateway is simply where you apply them across every agent at once.</p>
+</div>
+
+<h2 id="durable"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>Durable execution</h2>
+
+<p>The harder problem: an agent loop is a <em>long, stateful workflow</em>, and long stateful workflows fail halfway. <strong>Durable execution engines</strong> solve exactly this, and they predate AI &mdash; they run mission-critical business workflows (payments, provisioning) reliably.</p>
+
+<div class="note key">
+  <span class="tag">Run the agent as a durable workflow</span>
+  <p>A durable execution engine (<strong>Temporal</strong>, <strong>Inngest</strong>, Cadence) runs your workflow so that its state is <em>persisted at every step</em>. If the process crashes, the machine dies, or a provider times out, the engine <strong>resumes from the last completed step</strong> &mdash; not from the beginning. It gives you, for free: <strong>automatic retries</strong> with backoff on any failing step (a flaky tool call just retries), <strong>deterministic replay</strong> (re-run the workflow's history to reproduce and debug exactly what happened &mdash; &ldquo;time-travel debugging&rdquo;), and <strong>durability across time</strong> (a workflow can sleep for an hour, or a week, waiting on something, without holding any resources open). For an agent that runs 15 steps and might hit an error at step 12, this is the difference between losing all the work and retrying just step 12.</p>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>Ordinary loop vs durable execution</caption>
+    <thead><tr><th></th><th>Plain agent loop</th><th>Durable engine</th></tr></thead>
+    <tbody>
+      <tr><td>Crash mid-run</td><td>Lose everything, start over</td><td>Resume from the last step</td></tr>
+      <tr><td>Flaky tool call</td><td>You hand-code retries</td><td>Automatic retry + backoff</td></tr>
+      <tr><td>Long wait / human approval</td><td>Hold an HTTP connection open</td><td>Suspend and resume later &mdash; no open connection</td></tr>
+      <tr><td>Debugging a bad run</td><td>Re-read logs, guess</td><td>Replay the exact history</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="state"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>State, checkpointing &amp; human-in-the-loop</h2>
+
+<p>Underneath durable execution is a simple idea you can also apply directly: <strong>persist the agent's state</strong> (its messages, plan, and step counter) after every step, in Redis or Postgres, so the run is recoverable and pausable.</p>
+
+<div class="note">
+  <p>This is what a <strong>checkpointer</strong> does in a graph-based agent (LangGraph, Topic 7.1): each node's output is saved, so the graph can be stopped and resumed at any node. Two big capabilities fall out. <strong>Human-in-the-loop approvals:</strong> when the agent reaches a sensitive action, checkpoint the state, return control to the user, and resume from that exact checkpoint when they approve &mdash; hours later, with no connection held open (this pairs with the human-approval gate on mutating tools from Topic 8.11). <strong>Time-travel debugging:</strong> because every state is stored, you can rewind to any step, change an input, and replay forward to see what would have happened. Persisted state turns an agent from a fragile in-memory loop into a resumable, auditable, inspectable workflow &mdash; which is what production demands.</p>
+</div>
+
+<h2 id="production"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>The production agent stack</h2>
+
+<div class="note">
+  <p>Put together, a production agent has four layers, each covered in this handbook. <strong>The gateway</strong> in front (this page) &mdash; unified access, fallback, budgets, caching/routing (19.3). <strong>Durable execution + persisted state</strong> underneath (this page) &mdash; retries, replay, HITL. <strong>Observability</strong> around it (Topic 8.10) &mdash; distributed tracing of every step, trajectory evaluation, cost attribution. And <strong>security/guardrails</strong> wrapping it (Topics 8.11, 16.6) &mdash; injection defence, least privilege, sandboxed execution. The honest caveat: <em>you do not need all of this on day one.</em> A simple in-process loop is right for a prototype; reach for the gateway when you have multiple providers or tenants to govern, and for durable execution when runs are long, valuable, or must survive failure and human approval. The skill is recognising <em>which</em> layer a given agent actually needs &mdash; and this is squarely distributed-systems engineering, the half of AI that people from a backend background already own (Topic 17.4).</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; make an agent survive production</div>
+  <ol>
+    <li>Put a gateway (LiteLLM Proxy) in front of two providers. Add a fallback so that killing the primary transparently fails over to the secondary.</li>
+    <li>Set a per-tenant budget cap in the gateway. Run an agent past it and confirm it is stopped, not silently overspending.</li>
+    <li>Add semantic caching at the gateway for repeated sub-queries; measure the call reduction (Topic 19.3).</li>
+    <li>Wrap an agent loop in Temporal (or Inngest). Kill the worker mid-run and watch it resume from the last step, not the start.</li>
+    <li>Add a checkpointer (LangGraph + Redis/Postgres). Pause at a sensitive action for human approval; resume from the checkpoint an hour later.</li>
+    <li>Reproduce a bad run by replaying its saved history. Change one tool result and replay forward &mdash; time-travel debugging.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.litellm.ai/docs/proxy/quick_start">LiteLLM Proxy</a><span class="why">An open AI gateway: unified API, fallback, budgets &mdash; Section 02.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://developers.cloudflare.com/ai-gateway/">Cloudflare AI Gateway</a><span class="why">A managed gateway with caching, rate limiting and analytics.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.temporal.io/">Temporal</a><span class="why">The durable-execution engine of Section 03 &mdash; retries, replay, long-running state.</span></span></li>
+    <li><span class="kind">Guide</span><span class="body"><a href="https://langchain-ai.github.io/langgraph/concepts/persistence/">LangGraph persistence &amp; checkpointing</a><span class="why">Persisted graph state and human-in-the-loop &mdash; Section 04.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://www.anthropic.com/engineering/building-effective-agents">Building Effective Agents</a><span class="why">When agents need this infrastructure &mdash; and when a simple loop is enough.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 8.12 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

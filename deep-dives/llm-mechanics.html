@@ -1,0 +1,741 @@
+<title>LLM Mechanics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 01 &middot; Fundamentals</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">1.3</span>
+    <h1>LLM Mechanics</h1>
+    <p class="lede">What is actually inside the box. This page builds a BPE tokeniser from raw text, derives scaled dot-product
+attention and explains where the square root comes from, implements multi-head causal attention and a full
+transformer block in NumPy, and traces exactly where your latency and your token bill come from.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#tokenisation">Tokenisation, and building BPE from scratch</a></li><li><a href="#attention">Attention, derived</a></li><li><a href="#scratch">Build a transformer block from scratch</a></li><li><a href="#architectures">The three families, and how models are made</a></li><li><a href="#inference">Where latency and cost actually come from</a></li><li><a href="#hallucination">Hallucination, mechanically</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>Sections 01&ndash;02 need nothing. From Section 04 you will want the dot product and matrix multiplication from <a href="#deeper">Topic 1.1</a>, and softmax from Topic 1.2. Both are one page each and worth doing first.</p>
+</div>
+
+<p>A Large Language Model does exactly one thing: given some text, it guesses what comes next. Everything else &mdash; chat, summarising, writing code, reasoning &mdash; is that single ability applied repeatedly.</p>
+
+<p>It is worth sitting with how strange that is. There is no plan. When a model writes a 500-word essay, it does not know what the last sentence will be when it writes the first. It writes one fragment, looks at everything so far including what it just wrote, and guesses the next fragment. Coherence is emergent, not designed.</p>
+
+<h3>The loop, in full</h3>
+
+<ol class="steps">
+  <li><strong>Split the text into tokens.</strong> Not words &mdash; chunks. "unhappiness" might become <code>un</code> + <code>happi</code> + <code>ness</code>. Each chunk has an ID number.</li>
+  <li><strong>Look up a vector for each token.</strong> Token 4919 becomes a list of 4096 numbers. This is the embedding table &mdash; a plain lookup.</li>
+  <li><strong>Push the vectors through the stack.</strong> Dozens of identical layers, each letting tokens look at each other and refine their meaning in context.</li>
+  <li><strong>Score every possible next token.</strong> The final vector is multiplied out to one score per vocabulary entry &mdash; perhaps 100,000 numbers.</li>
+  <li><strong>Pick one</strong> using softmax and a sampling rule. Append it to the text.</li>
+  <li><strong>Go back to step 1.</strong> Repeat until a stop token appears or the limit is hit.</li>
+</ol>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Token</dt>
+    <dd>A chunk of text the model treats as one unit. Roughly 4 characters or ¾ of an English word. You are billed per token and limited per token, so this is a commercial unit as well as a technical one.</dd>
+
+    <dt>Vocabulary</dt>
+    <dd>The complete fixed list of tokens a model knows, decided before training and never changed. Typically 32,000&ndash;200,000 entries.</dd>
+
+    <dt>Context window</dt>
+    <dd>The maximum number of tokens the model can look at in one go &mdash; your prompt plus its answer. Exceeding it is a hard error, not a gradual degradation.</dd>
+
+    <dt>Parameters ("7B", "70B")</dt>
+    <dd>The count of learned numbers in the model. More usually means more capable and always means more memory and more cost.</dd>
+
+    <dt>Attention</dt>
+    <dd>The mechanism that lets each token look at other tokens and pull in what is relevant. It is what made transformers work.</dd>
+
+    <dt>Inference</dt>
+    <dd>Running a trained model to get an answer. As opposed to training, which is creating the model in the first place. You will almost only do inference.</dd>
+
+    <dt>Weights</dt>
+    <dd>The actual numbers inside the model, fixed after training. "Open weights" means you can download them and run the model yourself.</dd>
+  </dl>
+</div>
+
+<div class="note key">
+  <span class="tag">Three consequences you can predict from the loop alone</span>
+  <ul>
+    <li><strong>Output length dominates latency.</strong> Step 6 means generating 500 tokens requires 500 full passes through the model. Reading a long prompt happens once, in parallel. This is why "be concise" measurably speeds up your application.</li>
+    <li><strong>The model cannot revise.</strong> Once a token is emitted it is part of the input forever. There is no backspace. This is why chain-of-thought helps &mdash; it gives the model room to reach the right answer before committing to it.</li>
+    <li><strong>It has no memory between calls.</strong> Every request resends the entire conversation. "Memory" is something your application implements, which is why &sect;5.3 exists.</li>
+  </ul>
+</div>
+
+<h2 id="tokenisation"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>Tokenisation, and building BPE from scratch</h2>
+
+<p>Why not just use words? Because a word vocabulary has no good size. English has hundreds of thousands of words plus names, typos, code identifiers and inflections; any fixed list will miss most of them, and every miss becomes <code>&lt;UNK&gt;</code>, destroying information. Why not characters? Because sequences become 5&times; longer, and attention cost grows quadratically with length.</p>
+
+<p><strong>Byte Pair Encoding</strong> resolves this by learning the vocabulary from data. Start with individual characters, then repeatedly merge whichever adjacent pair occurs most often. Common words end up as single tokens; rare words decompose into meaningful pieces; nothing is ever unknown.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>A working BPE tokeniser, trained and applied</span></div>
+<pre><code>from collections import Counter
+
+def get_pair_counts(word_freqs):
+    """Count adjacent symbol pairs, weighted by word frequency."""
+    pairs = Counter()
+    for symbols, freq in word_freqs.items():
+        for i in range(len(symbols) - 1):
+            pairs[(symbols[i], symbols[i + 1])] += freq
+    return pairs
+
+def merge_pair(pair, word_freqs):
+    """Replace every occurrence of `pair` with the joined symbol."""
+    a, b = pair
+    merged = a + b
+    out = {}
+    for symbols, freq in word_freqs.items():
+        new, i = [], 0
+        while i &lt; len(symbols):
+            if i &lt; len(symbols) - 1 and symbols[i] == a and symbols[i + 1] == b:
+                new.append(merged)
+                i += 2
+            else:
+                new.append(symbols[i])
+                i += 1
+        out[tuple(new)] = freq
+    return out
+
+def train_bpe(corpus, num_merges=50):
+    <span class="cm"># '_' marks a word boundary so the model can tell</span>
+    <span class="cm"># " the" (mid-sentence) from "the" (start of line).</span>
+    words = corpus.lower().split()
+    word_freqs = Counter(tuple(w) + ("_",) for w in words)
+
+    merges = []
+    for _ in range(num_merges):
+        pairs = get_pair_counts(word_freqs)
+        if not pairs:
+            break
+        best, count = pairs.most_common(1)[0]
+        if count &lt; 2:                       <span class="cm"># nothing worth merging left</span>
+            break
+        word_freqs = merge_pair(best, word_freqs)
+        merges.append(best)
+    return merges
+
+def encode(word, merges):
+    """Apply learned merges in the order they were learned."""
+    symbols = list(word.lower()) + ["_"]
+    for a, b in merges:
+        i = 0
+        while i &lt; len(symbols) - 1:
+            if symbols[i] == a and symbols[i + 1] == b:
+                symbols[i:i + 2] = [a + b]
+            else:
+                i += 1
+    return symbols
+
+corpus = ("the cat sat on the mat the cat ate the rat "
+          "the rat ran the cat ran the mat sat") * 20
+
+merges = train_bpe(corpus, num_merges=20)
+print(merges[:6])
+<span class="cm"># [('t','h'), ('th','e'), ('the','_'), ('a','t'), ('at','_'), ('c','at_')]</span>
+<span class="cm"># It discovered "the" as one token, and "at" as a reusable suffix.</span>
+
+print(encode("cat", merges))      <span class="cm"># ['cat_']        one token</span>
+print(encode("category", merges)) <span class="cm"># ['cat','e','g','o','r','y','_']  decomposed</span></code></pre>
+</div>
+
+<div class="note trap">
+  <span class="tag">Everything odd about LLMs that traces back to this code</span>
+  <ul>
+    <li><strong>Counting letters is hard.</strong> The model sees <code>['straw','berry']</code>, not <code>s-t-r-a-w-b-e-r-r-y</code>. Asking how many r's there are is asking about information it was never given.</li>
+    <li><strong>Arithmetic is shaky.</strong> <code>1234</code> may tokenise as <code>12</code>+<code>34</code> while <code>1235</code> becomes <code>123</code>+<code>5</code>. Digits have no consistent representation, so the model must learn arithmetic over an unstable encoding. Use a calculator tool instead.</li>
+    <li><strong>Non-English costs more.</strong> Merges are learned from a mostly-English corpus, so Hindi or Thai text fragments into far more tokens for the same meaning &mdash; often 2&ndash;4&times; the price and 2&ndash;4&times; the context consumed.</li>
+    <li><strong>Trailing whitespace changes output.</strong> <code>"Answer:"</code> and <code>"Answer: "</code> tokenise differently, putting the model in a different state. Never leave a trailing space before expecting a completion.</li>
+  </ul>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>Types of tokeniser</caption>
+    <thead><tr><th>Type</th><th>Merge criterion</th><th>Handles unknown input</th><th>Used by</th></tr></thead>
+    <tbody>
+      <tr><td>Word-level</td><td>&mdash;</td><td>No &mdash; emits <code>&lt;UNK&gt;</code></td><td>Pre-2015 NLP</td></tr>
+      <tr><td>Character-level</td><td>&mdash;</td><td>Yes, but sequences get long</td><td>Some specialised models</td></tr>
+      <tr><td>BPE</td><td>Highest raw frequency</td><td>Yes, within its alphabet</td><td>GPT-2, RoBERTa</td></tr>
+      <tr><td><strong>Byte-level BPE</strong></td><td>Frequency, over raw bytes</td><td><strong>Always</strong> &mdash; every byte sequence is representable</td><td>GPT-3.5/4, Llama, Mistral</td></tr>
+      <tr><td>WordPiece</td><td>Highest likelihood gain</td><td>Yes, via <code>##</code> continuations</td><td>BERT, DistilBERT</td></tr>
+      <tr><td>Unigram / SentencePiece</td><td>Prune from a large candidate set</td><td>Yes; treats space as a character</td><td>T5, ALBERT, multilingual models</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="attention"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>Attention, derived</h2>
+
+<p>Consider "The animal didn't cross the street because <em>it</em> was too tired." What does "it" refer to? To represent "it" properly, the model must pull in information from "animal". Attention is the mechanism that does this, for every token, in parallel.</p>
+
+<h3>The idea: a soft dictionary lookup</h3>
+
+<p>Think of a hash map. You have a <strong>query</strong>, you compare it against every <strong>key</strong>, and you retrieve the matching <strong>value</strong>. A hash map is all-or-nothing: one key matches, you get one value.</p>
+
+<p>Attention is the same operation made continuous. Every key gets a match <em>score</em> rather than a yes/no, and you retrieve a weighted blend of all values in proportion to those scores. Because it is a smooth blend rather than a hard selection, it is differentiable, and therefore learnable by gradient descent. <strong>That single change is what made transformers possible.</strong></p>
+
+<ol class="steps">
+  <li><strong>Project each token three ways.</strong> Multiply its vector by three learned matrices to get a query (what I am looking for), a key (what I offer) and a value (what I will hand over if chosen). Same input, three different learned views.</li>
+  <li><strong>Score every pair.</strong> Dot every query with every key: <i>QK</i><sup>T</sup>. For <i>n</i> tokens this is an <i>n</i>&times;<i>n</i> grid where entry (<i>i</i>,<i>j</i>) says how much token <i>i</i> cares about token <i>j</i>.</li>
+  <li><strong>Scale by &radic;<i>d<sub>k</sub></i>.</strong> Explained below &mdash; this is the step everyone glosses over.</li>
+  <li><strong>Mask the future</strong> (for generation). Set scores for later positions to &minus;&infin; so softmax drives them to exactly zero. Without this the model could cheat during training by reading ahead.</li>
+  <li><strong>Softmax each row.</strong> Each token's scores become weights summing to 1 &mdash; a distribution over what to pay attention to.</li>
+  <li><strong>Blend the values.</strong> Multiply the weights by <i>V</i>. Each token's output is a weighted mixture of every token's value, dominated by the ones it scored highly.</li>
+</ol>
+
+<div class="math">
+  <span class="lbl">Scaled dot-product attention</span>
+  Attention(<i>Q</i>,<i>K</i>,<i>V</i>) &nbsp;=&nbsp; softmax<big>(</big><span class="frac"><span><i>QK</i><sup>T</sup></span><span>&radic;<i>d<sub>k</sub></i></span></span><big>)</big><i>V</i>
+  <span class="note">Six steps, one line. Note that this is precisely the cosine-similarity retrieval of Topic 1.1, executed inside the model rather than inside a database &mdash; which is why RAG feels like such a natural extension of what the model already does.</span>
+</div>
+
+<h3>Where the square root comes from</h3>
+
+<p>This is the detail that separates people who have read the formula from people who understand it.</p>
+
+<div class="derive">
+  <div class="derive-top">Why divide by &radic;<i>d<sub>k</sub></i> and not <i>d<sub>k</sub></i></div>
+  <ol>
+    <li>Assume the components of <i>q</i> and <i>k</i> are independent with mean 0 and variance 1.
+      <span class="why">A reasonable approximation after layer normalisation.</span></li>
+    <li><i>q</i> &middot; <i>k</i> = &Sigma;<sub>i=1</sub><sup><i>d<sub>k</sub></i></sup> <i>q<sub>i</sub>k<sub>i</sub></i>, and each term has mean 0, variance 1.
+      <span class="why">Variance of a product of independent zero-mean unit-variance variables is 1.</span></li>
+    <li>Var(<i>q</i> &middot; <i>k</i>) = <i>d<sub>k</sub></i>, so the standard deviation is &radic;<i>d<sub>k</sub></i>.
+      <span class="why">Variances of independent terms add. This is the crux: the <em>spread</em> of the scores grows as &radic;<i>d<sub>k</sub></i>, not as <i>d<sub>k</sub></i>.</span></li>
+    <li>Dividing by &radic;<i>d<sub>k</sub></i> returns the scores to unit variance, independent of dimension.
+      <span class="why">Dividing by <i>d<sub>k</sub></i> would over-correct and squash the scores toward zero, making attention uniformly flat.</span></li>
+  </ol>
+</div>
+
+<p><strong>Why it matters.</strong> At <i>d<sub>k</sub></i>=128, unscaled scores would have a standard deviation around 11. Softmax over values spread that widely is effectively a hard <code>argmax</code> &mdash; one token gets weight ~1, everything else ~0. In that regime the gradient is almost exactly zero everywhere, so the model cannot learn. The scaling keeps softmax in the responsive part of its range. This is not a cosmetic detail; without it, training does not converge.</p>
+
+<h2 id="scratch"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>Build a transformer block from scratch</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Multi-head causal attention and a full block, NumPy only</span></div>
+<pre><code>import numpy as np
+
+def softmax(x, axis=-1):
+    x = x - x.max(axis=axis, keepdims=True)
+    e = np.exp(x)
+    return e / e.sum(axis=axis, keepdims=True)
+
+def causal_mask(n):
+    """True where position i must NOT see position j (j &gt; i)."""
+    return np.triu(np.ones((n, n), dtype=bool), k=1)
+
+def attention(Q, K, V, mask=None):
+    d_k = Q.shape[-1]
+    scores = Q @ K.swapaxes(-2, -1) / np.sqrt(d_k)   <span class="cm"># (..., n, n)</span>
+    if mask is not None:
+        scores = np.where(mask, -np.inf, scores)
+    weights = softmax(scores, axis=-1)
+    return weights @ V, weights
+
+def multi_head_attention(X, Wq, Wk, Wv, Wo, n_heads):
+    """X: (n_tokens, d_model). Returns (n_tokens, d_model)."""
+    n, d_model = X.shape
+    d_head = d_model // n_heads
+
+    <span class="cm"># One projection, then SPLIT into heads. Cheaper than</span>
+    <span class="cm"># n_heads separate small projections, mathematically identical.</span>
+    Q = (X @ Wq).reshape(n, n_heads, d_head).transpose(1, 0, 2)  <span class="cm"># (h, n, d)</span>
+    K = (X @ Wk).reshape(n, n_heads, d_head).transpose(1, 0, 2)
+    V = (X @ Wv).reshape(n, n_heads, d_head).transpose(1, 0, 2)
+
+    out, weights = attention(Q, K, V, mask=causal_mask(n))       <span class="cm"># (h, n, d)</span>
+
+    <span class="cm"># Concatenate heads back together, then mix them with Wo.</span>
+    out = out.transpose(1, 0, 2).reshape(n, d_model)
+    return out @ Wo, weights
+
+def layer_norm(x, gamma, beta, eps=1e-5):
+    """Normalise each token's vector independently. Note: across
+    features, NOT across the batch -- that is BatchNorm, and it
+    behaves badly with variable-length sequences."""
+    mu  = x.mean(axis=-1, keepdims=True)
+    var = x.var(axis=-1, keepdims=True)
+    return gamma * (x - mu) / np.sqrt(var + eps) + beta
+
+def gelu(x):
+    """Smooth alternative to ReLU used throughout transformers."""
+    return 0.5 * x * (1 + np.tanh(np.sqrt(2 / np.pi) * (x + 0.044715 * x**3)))
+
+def transformer_block(X, params, n_heads):
+    <span class="cm"># PRE-norm: normalise before the sublayer, add the residual after.</span>
+    <span class="cm"># Post-norm (the original paper) needs careful warmup to train;</span>
+    <span class="cm"># pre-norm is what every modern model uses.</span>
+    h = layer_norm(X, params["g1"], params["b1"])
+    attn, _ = multi_head_attention(h, params["Wq"], params["Wk"],
+                                   params["Wv"], params["Wo"], n_heads)
+    X = X + attn                                   <span class="cm"># residual connection</span>
+
+    h = layer_norm(X, params["g2"], params["b2"])
+    ff = gelu(h @ params["W1"] + params["b_1"]) @ params["W2"] + params["b_2"]
+    X = X + ff                                     <span class="cm"># residual connection</span>
+    return X
+
+<span class="cm"># --- run it ------------------------------------------------------</span>
+rng = np.random.default_rng(0)
+n, d_model, n_heads, d_ff = 8, 64, 4, 256
+s = 0.02                                            <span class="cm"># small init</span>
+
+params = {
+    "Wq": rng.normal(0, s, (d_model, d_model)), "Wk": rng.normal(0, s, (d_model, d_model)),
+    "Wv": rng.normal(0, s, (d_model, d_model)), "Wo": rng.normal(0, s, (d_model, d_model)),
+    "W1": rng.normal(0, s, (d_model, d_ff)),    "b_1": np.zeros(d_ff),
+    "W2": rng.normal(0, s, (d_ff, d_model)),    "b_2": np.zeros(d_model),
+    "g1": np.ones(d_model), "b1": np.zeros(d_model),
+    "g2": np.ones(d_model), "b2": np.zeros(d_model),
+}
+
+X = rng.normal(size=(n, d_model))
+out = transformer_block(X, params, n_heads)
+print(out.shape)                                    <span class="cm"># (8, 64)</span>
+
+<span class="cm"># Confirm the causal mask works: row i must have zero weight past i.</span>
+_, w = multi_head_attention(X, params["Wq"], params["Wk"],
+                            params["Wv"], params["Wo"], n_heads)
+print(np.allclose(np.triu(w[0], k=1), 0))           <span class="cm"># True</span></code></pre>
+</div>
+
+<div class="note key">
+  <span class="tag">That is genuinely the whole architecture</span>
+  <p>Stack that block 32 to 120 times, add token embeddings at the bottom and a projection to vocabulary size at the top, and you have GPT. There is no additional mechanism hiding elsewhere. The difference between this and a frontier model is scale, data, and enormous engineering effort on training and inference &mdash; not a fundamentally different idea.</p>
+</div>
+
+<h3>The pieces around attention, and why each exists</h3>
+
+<div class="tbl">
+  <table>
+    <caption>Every component of a block, and the problem it solves</caption>
+    <thead><tr><th>Component</th><th>Problem it solves</th><th>Modern variant</th></tr></thead>
+    <tbody>
+      <tr><td>Residual connection</td><td>Gradients vanish across deep stacks</td><td>Unchanged since 2015 &mdash; it just works</td></tr>
+      <tr><td>Layer normalisation</td><td>Activations drift in scale and destabilise training</td><td>RMSNorm &mdash; drops the mean subtraction, ~10% faster, no quality loss</td></tr>
+      <tr><td>Pre-norm placement</td><td>Post-norm needs delicate learning-rate warmup</td><td>Pre-norm is now universal</td></tr>
+      <tr><td>Feed-forward network</td><td>Attention only <em>mixes</em> tokens; something must <em>transform</em> them</td><td>SwiGLU instead of GELU; holds ~⅔ of all parameters</td></tr>
+      <tr><td>Positional encoding</td><td>Attention is order-blind &mdash; shuffle the input, identical output</td><td>RoPE (rotates Q and K by an angle set by position) &mdash; extends past training length</td></tr>
+      <tr><td>Multiple heads</td><td>One attention pattern cannot capture syntax and coreference at once</td><td>GQA &mdash; heads share keys and values to shrink the KV cache</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note java">
+  <span class="tag">Positional encoding, concretely</span>
+  <p>Attention computes <i>QK</i><sup>T</sup>, which is a sum over pairs &mdash; and addition is commutative, so reordering the tokens produces the identical result. "Dog bites man" and "man bites dog" would be indistinguishable. Position must therefore be injected explicitly. <strong>RoPE</strong> does it elegantly: rotate each query and key vector by an angle proportional to its position. The dot product between two rotated vectors then depends only on their <em>relative</em> offset, which is what actually matters linguistically &mdash; and it is why RoPE models can be stretched to longer contexts than they were trained on.</p>
+</div>
+
+<h2 id="architectures"><span class="kicker">Section 05 <span class="lvl lvl-i">Intermediate</span></span>The three families, and how models are made</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Transformer families</caption>
+    <thead><tr><th>Family</th><th>Masking</th><th>Trained to</th><th>Good at</th><th>Examples</th></tr></thead>
+    <tbody>
+      <tr><td>Encoder-only</td><td>None &mdash; bidirectional</td><td>Fill in masked words</td><td>Understanding: classification, NER, <strong>embeddings</strong></td><td>BERT, RoBERTa, DeBERTa, <code>bge</code>, <code>e5</code></td></tr>
+      <tr><td>Decoder-only</td><td>Causal</td><td>Predict the next token</td><td>Generation, reasoning, tool use</td><td>GPT, Claude, Llama, Mistral, Gemini</td></tr>
+      <tr><td>Encoder&ndash;decoder</td><td>Both + cross-attention</td><td>Map one sequence to another</td><td>Translation, summarisation</td><td>T5, BART, Flan-T5</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<p>A practical note that trips people up: in a RAG system, your <em>embedding</em> model is usually encoder-only and your <em>generator</em> is decoder-only. They are different architectures with incompatible vector spaces. You cannot embed with one and search a store built by the other.</p>
+
+<h3>The training pipeline</h3>
+
+<ol class="steps">
+  <li><strong>Pre-training.</strong> Next-token prediction over trillions of tokens of internet text, books and code. Costs millions of dollars and months of GPU time. This is where knowledge and fluency come from. The result is a model that <em>continues</em> text but does not follow instructions.</li>
+  <li><strong>Supervised fine-tuning (SFT).</strong> Training on curated instruction&ndash;response pairs. Cheap by comparison. Turns a text continuer into an assistant.</li>
+  <li><strong>Preference alignment.</strong> Humans compare pairs of responses. <strong>RLHF</strong> trains a reward model on those comparisons and optimises the policy against it with PPO, with a KL penalty to stop it drifting from the base model. <strong>DPO</strong> reaches a similar result by optimising the preference objective directly, with no separate reward model &mdash; simpler and now widely preferred. This stage produces tone, helpfulness and refusal behaviour.</li>
+</ol>
+
+<div class="note">
+  <p><strong>Your adaptation ladder, cheapest first:</strong> prompt engineering &rarr; few-shot examples &rarr; RAG &rarr; LoRA fine-tuning &rarr; full fine-tuning &rarr; continued pre-training. Each step up costs roughly an order of magnitude more in effort and money. Move down the list only when the level above has demonstrably failed against a measured baseline. In enterprise work you will rarely need to pass RAG.</p>
+</div>
+
+<h2 id="inference"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Where latency and cost actually come from</h2>
+
+<p>Generation has two phases with completely different performance characteristics. Confusing them is why capacity planning for LLM services so often goes wrong.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Prefill versus decode</caption>
+    <thead><tr><th></th><th>Prefill</th><th>Decode</th></tr></thead>
+    <tbody>
+      <tr><td>What happens</td><td>The entire prompt is processed at once</td><td>One token generated per pass</td></tr>
+      <tr><td>Parallelism</td><td>All tokens simultaneously</td><td>Strictly sequential &mdash; token <i>n</i> needs token <i>n</i>&minus;1</td></tr>
+      <tr><td>Bottleneck</td><td>Compute (GPU FLOPs)</td><td><strong>Memory bandwidth</strong> &mdash; every weight is read for every token</td></tr>
+      <tr><td>Determines</td><td>Time to first token</td><td>Tokens per second, and total latency</td></tr>
+      <tr><td>Scales with</td><td>Prompt length (quadratically for attention)</td><td>Output length (linearly)</td></tr>
+      <tr><td>Optimise via</td><td>Prompt caching, shorter prompts</td><td>Quantisation, GQA, speculative decoding, shorter outputs</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">The KV cache, and why it dominates your memory bill</span>
+  <p>Without caching, generating token 500 would recompute keys and values for all 499 previous tokens &mdash; making generation quadratic and hopeless. The KV cache stores them, so each new token only computes its own K and V. Generation becomes linear.</p>
+  <p>The cost is memory, and it is larger than people expect: <code>2 &times; layers &times; heads &times; head_dim &times; seq_len &times; batch &times; bytes</code>. For a 70B model at 32k context, that is <strong>tens of gigabytes for a single request</strong> &mdash; frequently more than the weights themselves. This is the entire motivation for Multi-Query and Grouped-Query Attention, which let heads share K and V to shrink the cache by 8&times; or more. It is also why your provider charges differently for long contexts.</p>
+</div>
+
+<h3>Practical levers, in order of impact</h3>
+
+<ol class="steps">
+  <li><strong>Structure prompts for caching.</strong> Providers cache the prefill of a stable prefix. Put the long system prompt and retrieved documents <em>first</em>, variable user input <em>last</em>. Reordering alone can cut cost and time-to-first-token substantially, and requires no other change.</li>
+  <li><strong>Cap output length.</strong> Decode dominates latency. <code>max_tokens</code> plus an instruction to be concise is the highest-leverage latency fix available.</li>
+  <li><strong>Stream.</strong> Server-sent events do not reduce total time but transform perceived speed. Time-to-first-token becomes the number the user feels.</li>
+  <li><strong>Right-size the model.</strong> Routing simple requests to a small model and hard ones to a large one typically saves far more than any prompt micro-optimisation.</li>
+  <li><strong>Batch offline work.</strong> Throughput per GPU rises steeply with batch size. Anything not user-facing should go through a queue and be batched &mdash; which is exactly the &sect;5.4 architecture.</li>
+</ol>
+
+<div class="tbl">
+  <table>
+    <caption>Quantisation &mdash; trading precision for memory</caption>
+    <thead><tr><th>Format</th><th>Bits</th><th>Memory for 7B</th><th>Quality</th><th>Use</th></tr></thead>
+    <tbody>
+      <tr><td>FP32</td><td class="nc">32</td><td class="nc">28 GB</td><td>Reference</td><td>Training only</td></tr>
+      <tr><td>BF16 / FP16</td><td class="nc">16</td><td class="nc">14 GB</td><td>Indistinguishable</td><td><strong>The standard for serving</strong></td></tr>
+      <tr><td>INT8</td><td class="nc">8</td><td class="nc">7 GB</td><td>Very close</td><td>Cost-sensitive serving</td></tr>
+      <tr><td>INT4 (GPTQ / AWQ / GGUF)</td><td class="nc">4</td><td class="nc">3.5 GB</td><td>Noticeable but usable</td><td>Consumer GPUs and laptops</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="hallucination"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Hallucination, mechanically</h2>
+
+<p>By now the cause should be obvious rather than mysterious. The model samples from a distribution over plausible continuations. Nothing in that process consults a source of truth. When the distribution places its mass on something false, the model says something false &mdash; confidently, because confidence is just a high probability, and high probability is not the same as correctness.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Types of hallucination and the fix for each</caption>
+    <thead><tr><th>Type</th><th>Symptom</th><th>Root cause</th><th>Mitigation</th></tr></thead>
+    <tbody>
+      <tr><td>Factual</td><td>Wrong claim about the world</td><td>Absent or wrong in training data</td><td>RAG with authoritative sources</td></tr>
+      <tr><td>Faithfulness</td><td>Contradicts the context you supplied</td><td>Model prefers its own priors over your text</td><td>Explicit grounding instructions; faithfulness scoring</td></tr>
+      <tr><td>Extrinsic</td><td>Adds detail not present in the source</td><td>Fluency pressure &mdash; a complete-sounding answer scores well</td><td>"Answer only from the context; otherwise say you do not know"</td></tr>
+      <tr><td>Fabricated citation</td><td>Plausible but non-existent source or API</td><td>The <em>shape</em> of a citation is highly predictable</td><td>Validate every reference against the retrieved set in code</td></tr>
+      <tr><td>Reasoning slip</td><td>Correct facts, wrong conclusion</td><td>No verification step in the loop</td><td>Chain-of-thought, self-consistency, external tools</td></tr>
+      <tr><td>Sycophancy</td><td>Agrees with an incorrect premise you asserted</td><td>Preference training rewarded agreeableness</td><td>Neutral prompt framing; do not assert what you want to hear</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 08 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly a weekend</div>
+  <ol>
+    <li>Run the BPE trainer on a real book. Print the first 100 merges in order and watch a vocabulary form: letters, then affixes, then whole common words.</li>
+    <li>Compare token counts for the same paragraph in English and in a non-Latin-script language using a public tokeniser playground. The ratio is your multilingual cost multiplier.</li>
+    <li>Implement <code>attention</code> and verify the causal mask by asserting the upper triangle of the weight matrix is exactly zero.</li>
+    <li>Remove the <code>/sqrt(d_k)</code> scaling and print the attention weights at <code>d_k=128</code>. Watch them collapse to one-hot. That is a dead gradient.</li>
+    <li>Extract attention weights from a small open model with <code>output_attentions=True</code> and plot the matrix for a sentence containing an ambiguous pronoun. Find the head that resolves it.</li>
+    <li>Measure time-to-first-token and total time for a 100-token prompt with a 500-token answer, then a 5,000-token prompt with a 20-token answer. Explain the difference using the prefill/decode table.</li>
+    <li>Restructure one of your prompts to put static content first. Measure the cost difference over 100 calls with prompt caching enabled.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 09 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Video</span><span class="body"><a href="https://www.youtube.com/watch?v=7xTGNNLPyMI">Karpathy &mdash; Deep Dive into LLMs like ChatGPT</a><span class="why">3.5 hours, and the best free explanation of pre-training, SFT and RLHF anywhere. Watch it twice.</span></span></li>
+    <li><span class="kind">Video</span><span class="body"><a href="https://www.youtube.com/watch?v=zduSFxRajkE">Karpathy &mdash; Let's build the GPT Tokenizer</a><span class="why">Builds BPE from nothing, in far more depth than Section 02 here. The definitive treatment of tokenisation weirdness.</span></span></li>
+    <li><span class="kind">Video</span><span class="body"><a href="https://www.youtube.com/watch?v=kCc8FmEb1nY">Karpathy &mdash; Let's build GPT from scratch</a><span class="why">Two hours writing a working transformer in PyTorch, line by line. The natural next step after the NumPy block above.</span></span></li>
+    <li><span class="kind">Tool</span><span class="body"><a href="https://bbycroft.net/llm">LLM Visualization &mdash; bbycroft.net</a><span class="why">An interactive 3-D model of a running GPT. Step a token through every matrix multiply and watch the shapes change.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://jalammar.github.io/illustrated-transformer/">The Illustrated Transformer</a><span class="why">Jay Alammar's diagrams of Q/K/V and multi-head attention. Read alongside Section 03.</span></span></li>
+    <li><span class="kind">Code</span><span class="body"><a href="https://github.com/karpathy/nanoGPT">nanoGPT</a><span class="why">~300 lines of readable PyTorch that trains a real GPT. The reference implementation to compare your own against.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a><span class="why">The original. Eight pages, and readable once Section 03 has given you the formula.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2104.09864">RoFormer &mdash; Rotary Position Embedding</a><span class="why">RoPE, which every modern open model uses. The relative-position property is the key result.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 1.3 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

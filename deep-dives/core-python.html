@@ -1,0 +1,659 @@
+<title>Core Python</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 02 &middot; Python &amp; Data</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">2.1</span>
+    <h1>Core Python</h1>
+    <p class="lede">Python for someone who already knows how to program. This page skips "what is a variable" and goes straight
+to the model that makes Python make sense &mdash; names bound to objects &mdash; then covers the idioms, the
+data model, async, packaging and typing, with the Java equivalent alongside at every step.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#data-model">The data model &mdash; why Python is consistent</a></li><li><a href="#idioms">The idioms that make Python worth using</a></li><li><a href="#typing">Types, dataclasses and Pydantic</a></li><li><a href="#async">Concurrency: the GIL, threads and asyncio</a></li><li><a href="#tooling">Environments, packaging and tooling</a></li><li><a href="#pitfalls">Pitfalls that produce silent wrong answers</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>You can program in some language. This page is written for a Java developer, but any C-family background works. If you have never programmed at all, work through the Kaggle Python course in Section 09 first, then come back &mdash; this page will still be useful.</p>
+</div>
+
+<p>Python's reputation as "easy" causes a specific problem for experienced developers: they learn the syntax in a weekend, write Java in Python for two years, and never find out why anyone likes the language. This page is about the second part.</p>
+
+<h3>The one model to internalise</h3>
+
+<p>In Java, a variable is a <em>box</em> that holds a value. <code>int x = 5</code> allocates space and puts 5 in it. Assignment copies into the box.</p>
+
+<p>In Python, a variable is a <em>label</em> tied to an object floating in memory. <code>x = 5</code> creates an integer object and attaches the name <code>x</code> to it. Assignment re-attaches the label. Nothing is copied.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Why this matters immediately</span></div>
+<pre><code>a = [1, 2, 3]
+b = a                 <span class="cm"># NOT a copy -- b is a second label on the same list</span>
+b.append(4)
+print(a)              <span class="cm"># [1, 2, 3, 4]  -- surprising if you think "box"</span>
+
+b = a.copy()          <span class="cm"># now it really is a separate list</span>
+b.append(5)
+print(a)              <span class="cm"># [1, 2, 3, 4]  -- unchanged</span>
+
+<span class="cm"># The classic trap this causes:</span>
+def add_item(item, basket=[]):        <span class="cm"># DANGER</span>
+    basket.append(item)
+    return basket
+
+print(add_item("apple"))   <span class="cm"># ['apple']</span>
+print(add_item("pear"))    <span class="cm"># ['apple', 'pear']  &lt;- the SAME list, still there</span>
+
+<span class="cm"># The default value is evaluated ONCE, when the function is defined.</span>
+<span class="cm"># Correct version:</span>
+def add_item(item, basket=None):
+    basket = [] if basket is None else basket
+    basket.append(item)
+    return basket</code></pre>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">Java word &rarr; Python word</div>
+  <dl>
+    <dt>Package / JAR &rarr; Module / Package</dt>
+    <dd>A <code>.py</code> file is a module; a directory of them is a package. <code>import</code> executes the file the first time it is imported, and caches it.</dd>
+
+    <dt>Maven / Gradle &rarr; pip, uv, Poetry</dt>
+    <dd>No single blessed tool. Dependencies are declared in <code>pyproject.toml</code>. Use <code>uv</code> for new projects.</dd>
+
+    <dt>Classpath &rarr; Virtual environment</dt>
+    <dd>An isolated directory holding one project's dependencies. Without one, every project shares a single global install and they conflict. This is not optional.</dd>
+
+    <dt>Interface &rarr; Protocol / duck typing</dt>
+    <dd>Python does not check that you implement an interface. If your object has the right methods, it works. <code>typing.Protocol</code> lets a type-checker verify this statically.</dd>
+
+    <dt>record &rarr; @dataclass / Pydantic BaseModel</dt>
+    <dd><code>@dataclass</code> generates <code>__init__</code>, <code>__eq__</code> and <code>__repr__</code>. Pydantic adds runtime validation and JSON Schema, which is what LLM tool definitions need.</dd>
+
+    <dt>Stream &rarr; Comprehension / generator</dt>
+    <dd><code>[f(x) for x in xs if p(x)]</code> replaces <code>.stream().filter().map().toList()</code>, and reads better.</dd>
+
+    <dt>Checked exception &rarr; (nothing)</dt>
+    <dd>All exceptions are unchecked. Nothing forces you to handle anything. Be deliberate at service boundaries.</dd>
+  </dl>
+</div>
+
+<h2 id="data-model"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>The data model &mdash; why Python is consistent</h2>
+
+<p>Python looks like it has many special syntaxes. It does not. Nearly every piece of syntax is sugar for calling a <em>dunder</em> (double-underscore) method, and once you know which, the language becomes predictable and extensible.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Syntax and the method it actually calls</caption>
+    <thead><tr><th>You write</th><th>Python calls</th><th>Implement it to get</th></tr></thead>
+    <tbody>
+      <tr><td><code>len(x)</code></td><td><code>x.__len__()</code></td><td>Your type works with <code>len</code></td></tr>
+      <tr><td><code>x[k]</code></td><td><code>x.__getitem__(k)</code></td><td>Indexing and slicing</td></tr>
+      <tr><td><code>a + b</code></td><td><code>a.__add__(b)</code></td><td>Operator overloading &mdash; how NumPy works</td></tr>
+      <tr><td><code>for i in x</code></td><td><code>x.__iter__()</code></td><td>Your type becomes iterable</td></tr>
+      <tr><td><code>with x:</code></td><td><code>x.__enter__()</code> / <code>__exit__()</code></td><td>try-with-resources behaviour</td></tr>
+      <tr><td><code>x(...)</code></td><td><code>x.__call__(...)</code></td><td>An object that behaves like a function</td></tr>
+      <tr><td><code>str(x)</code> / <code>repr(x)</code></td><td><code>__str__</code> / <code>__repr__</code></td><td>Readable output and useful debugging</td></tr>
+      <tr><td><code>a == b</code></td><td><code>a.__eq__(b)</code></td><td>Value equality (pair with <code>__hash__</code>)</td></tr>
+      <tr><td><code>await x</code></td><td><code>x.__await__()</code></td><td>Custom awaitables</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note java">
+  <span class="tag">Why this matters for AI work</span>
+  <p>This is why <code>a @ b</code> performs matrix multiplication on NumPy arrays &mdash; <code>ndarray</code> implements <code>__matmul__</code>. It is why a PyTorch <code>Module</code> is called like a function &mdash; it implements <code>__call__</code>. It is why the <code>Value</code> class in Topic 1.4 supports ordinary arithmetic. Libraries in this ecosystem lean heavily on the data model, and code that looks magical is usually just a dunder you have not met yet.</p>
+</div>
+
+<h2 id="idioms"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>The idioms that make Python worth using</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Comprehensions, generators, unpacking</span></div>
+<pre><code><span class="cm"># --- comprehensions: the default way to transform a collection ---</span>
+scores = [0.9, 0.4, 0.7, 0.2]
+passed = [s for s in scores if s &gt; 0.5]                 <span class="cm"># list</span>
+lookup = {f"doc{i}": s for i, s in enumerate(scores)}   <span class="cm"># dict</span>
+unique = {round(s, 1) for s in scores}                  <span class="cm"># set</span>
+
+<span class="cm"># --- generators: lazy, constant memory ---------------------------</span>
+<span class="cm"># Parentheses instead of brackets. Nothing is computed until asked.</span>
+big = (expensive(x) for x in range(10_000_000))
+first_ten = [next(big) for _ in range(10)]   <span class="cm"># only 10 calls happen</span>
+
+def read_chunks(path, size=8192):
+    """Stream a file of any size in constant memory."""
+    with open(path, encoding="utf-8") as f:
+        while chunk := f.read(size):        <span class="cm"># walrus: assign and test</span>
+            yield chunk
+
+<span class="cm"># --- unpacking ---------------------------------------------------</span>
+a, b = b, a                                 <span class="cm"># swap, no temp variable</span>
+first, *rest = [1, 2, 3, 4]                 <span class="cm"># first=1, rest=[2,3,4]</span>
+merged = {**defaults, **overrides}          <span class="cm"># right-hand side wins</span>
+
+<span class="cm"># --- enumerate and zip: never write an index loop -----------------</span>
+for i, (name, score) in enumerate(zip(names, scores), start=1):
+    print(f"{i}. {name}: {score:.2f}")
+
+<span class="cm"># --- pattern matching (3.10+) -- like Java's switch expressions ---</span>
+def handle(event):
+    match event:
+        case {"type": "tool_call", "name": str(name), "args": dict(args)}:
+            return dispatch(name, args)
+        case {"type": "text", "content": content}:
+            return content
+        case _:
+            raise ValueError(f"unknown event: {event}")</code></pre>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Decorators and context managers, written not just used</span></div>
+<pre><code>import functools, time, contextlib
+
+<span class="cm"># A decorator is a function that wraps a function.</span>
+<span class="cm"># @retry is sugar for: call_llm = retry(...)(call_llm)</span>
+def retry(times=3, backoff=1.0, exceptions=(Exception,)):
+    def decorator(fn):
+        @functools.wraps(fn)          <span class="cm"># preserve __name__, docstring</span>
+        def wrapper(*args, **kwargs):
+            last = None
+            for attempt in range(times):
+                try:
+                    return fn(*args, **kwargs)
+                except exceptions as e:
+                    last = e
+                    if attempt &lt; times - 1:
+                        time.sleep(backoff * (2 ** attempt))
+            raise last
+        return wrapper
+    return decorator
+
+@retry(times=4, backoff=0.5)
+def call_llm(prompt): ...
+
+<span class="cm"># A context manager guarantees cleanup, like try-with-resources.</span>
+@contextlib.contextmanager
+def timed(label):
+    start = time.perf_counter()
+    try:
+        yield                          <span class="cm"># the body of the `with` runs here</span>
+    finally:
+        print(f"{label}: {time.perf_counter() - start:.3f}s")
+
+with timed("embedding batch"):
+    embed(documents)                   <span class="cm"># timing printed even if this raises</span></code></pre>
+</div>
+
+<h2 id="typing"><span class="kicker">Section 04 <span class="lvl lvl-i">Intermediate</span></span>Types, dataclasses and Pydantic</h2>
+
+<p>Python's type hints are not enforced at runtime by the interpreter &mdash; they are annotations that tools read. Coming from Java this feels alarming; the resolution is to run a checker in CI so you get most of the guarantee back.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Three levels of structure</span></div>
+<pre><code>from dataclasses import dataclass, field
+from typing import Protocol, Literal
+from pydantic import BaseModel, Field, field_validator
+
+<span class="cm"># 1. Type hints -- documentation that mypy/pyright can check</span>
+def top_k(scores: list[float], k: int = 5) -&gt; list[int]:
+    return sorted(range(len(scores)), key=lambda i: -scores[i])[:k]
+
+<span class="cm"># 2. dataclass -- Java's record. No validation.</span>
+@dataclass(frozen=True, slots=True)      <span class="cm"># immutable + memory-efficient</span>
+class Chunk:
+    text: str
+    source: str
+    page: int = 0
+    metadata: dict = field(default_factory=dict)   <span class="cm"># NOT metadata={}</span>
+
+<span class="cm"># 3. Pydantic -- validates at runtime AND emits JSON Schema.</span>
+<span class="cm">#    This is what LLM structured output and tool defs are built on.</span>
+class SearchQuery(BaseModel):
+    query: str = Field(min_length=1, description="Natural language query")
+    top_k: int = Field(default=5, ge=1, le=100)
+    mode: Literal["dense", "sparse", "hybrid"] = "hybrid"
+
+    @field_validator("query")
+    @classmethod
+    def strip_query(cls, v: str) -&gt; str:
+        return v.strip()
+
+SearchQuery(query="  vector index  ", top_k=200)
+<span class="cm"># ValidationError: top_k -- Input should be less than or equal to 100</span>
+
+print(SearchQuery.model_json_schema())
+<span class="cm"># -&gt; the exact JSON Schema you hand to a model for tool calling</span>
+
+<span class="cm"># 4. Protocol -- structural typing. Any object with these methods</span>
+<span class="cm">#    satisfies it; no inheritance or registration required.</span>
+class Retriever(Protocol):
+    def search(self, query: str, k: int) -&gt; list[Chunk]: ...</code></pre>
+</div>
+
+<div class="note trap">
+  <span class="tag">Mutable default arguments &mdash; twice</span>
+  <p>It is worth repeating because it is the single most common Python bug written by experienced developers from other languages. <code>def f(x, items=[])</code> and <code>@dataclass</code> field <code>metadata: dict = {}</code> both create <em>one</em> object shared by every call or instance. Use <code>None</code> and construct inside, or <code>field(default_factory=dict)</code>. Linters catch this &mdash; enable <code>ruff</code> and it will.</p>
+</div>
+
+<h2 id="async"><span class="kicker">Section 05 <span class="lvl lvl-a">Advanced</span></span>Concurrency: the GIL, threads and asyncio</h2>
+
+<p>Python has a Global Interpreter Lock: only one thread executes Python bytecode at a time. For CPU-bound work this makes threads useless. For AI work, though, almost everything is <em>waiting on a network</em> &mdash; and the GIL is released during I/O, so concurrency works fine. You just need the right tool.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Choosing a concurrency model</caption>
+    <thead><tr><th>Approach</th><th>Parallel?</th><th>Use for</th><th>Java analogue</th></tr></thead>
+    <tbody>
+      <tr><td><code>asyncio</code></td><td>No, but concurrent</td><td><strong>Many API calls</strong> &mdash; the default for LLM work</td><td>Reactor / WebFlux</td></tr>
+      <tr><td><code>ThreadPoolExecutor</code></td><td>No (GIL)</td><td>I/O with blocking libraries that have no async version</td><td><code>ExecutorService</code></td></tr>
+      <tr><td><code>ProcessPoolExecutor</code></td><td>Yes</td><td>CPU-bound work: parsing, chunking, local embedding</td><td>Separate JVMs</td></tr>
+      <tr><td>NumPy / PyTorch ops</td><td>Yes</td><td>Array maths &mdash; the C layer releases the GIL</td><td>Native code via JNI</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Concurrent LLM calls with bounded parallelism</span></div>
+<pre><code>import asyncio, random
+
+async def embed_one(client, text, sem):
+    <span class="cm"># A semaphore bounds in-flight requests. Without it, 10,000</span>
+    <span class="cm"># documents means 10,000 simultaneous calls and instant 429s.</span>
+    async with sem:
+        for attempt in range(5):
+            try:
+                return await client.embed(text)
+            except RateLimitError:
+                <span class="cm"># exponential backoff WITH jitter -- without jitter,</span>
+                <span class="cm"># every retry fires at the same instant and re-limits.</span>
+                await asyncio.sleep(2 ** attempt + random.random())
+        raise RuntimeError("exhausted retries")
+
+async def embed_all(client, texts, concurrency=10):
+    sem = asyncio.Semaphore(concurrency)
+    tasks = [embed_one(client, t, sem) for t in texts]
+    <span class="cm"># return_exceptions keeps one failure from cancelling the batch</span>
+    return await asyncio.gather(*tasks, return_exceptions=True)
+
+<span class="cm"># results = asyncio.run(embed_all(client, documents))</span>
+<span class="cm"># ok = [r for r in results if not isinstance(r, Exception)]</span></code></pre>
+</div>
+
+<div class="note trap">
+  <span class="tag">The async rule that catches everyone</span>
+  <p><strong>One blocking call poisons the whole event loop.</strong> A single <code>time.sleep()</code>, <code>requests.get()</code> or synchronous database call inside an <code>async def</code> freezes every other coroutine, because they all share one thread. Use <code>asyncio.sleep</code>, <code>httpx.AsyncClient</code>, and async database drivers &mdash; or push the blocking call out with <code>await asyncio.to_thread(fn, ...)</code>. Symptoms are baffling: throughput collapses under load with no error anywhere.</p>
+</div>
+
+<h2 id="tooling"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Environments, packaging and tooling</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Shell</span><span>Project setup, the modern way</span></div>
+<pre><code><span class="cm"># uv: written in Rust, 10-100x faster than pip, handles Python versions too.</span>
+<span class="cm"># One tool replaces pip + venv + pyenv + pip-tools.</span>
+uv init my-rag-service
+cd my-rag-service
+
+uv add numpy pandas pydantic httpx
+uv add --dev pytest ruff mypy
+
+uv run python -m my_rag_service      <span class="cm"># auto-activates the environment</span>
+uv sync                              <span class="cm"># reproduce exactly from uv.lock</span>
+
+<span class="cm"># The classic route, always available with no extra install:</span>
+python -m venv .venv
+source .venv/bin/activate            <span class="cm"># Windows: .venv\Scripts\activate</span>
+pip install -r requirements.txt</code></pre>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>The tools worth adopting on day one</caption>
+    <thead><tr><th>Tool</th><th>Does</th><th>Java analogue</th></tr></thead>
+    <tbody>
+      <tr><td><code>uv</code></td><td>Dependency resolution, virtual envs, Python versions, lockfiles</td><td>Maven, but fast</td></tr>
+      <tr><td><code>ruff</code></td><td>Lint <em>and</em> format, in one very fast binary</td><td>Checkstyle + Spotless</td></tr>
+      <tr><td><code>mypy</code> / <code>pyright</code></td><td>Static type checking against your hints</td><td>The compiler you are missing</td></tr>
+      <tr><td><code>pytest</code></td><td>Testing. Fixtures, parametrisation, plain <code>assert</code></td><td>JUnit</td></tr>
+      <tr><td><code>pytest-asyncio</code></td><td>Testing coroutines</td><td>&mdash;</td></tr>
+      <tr><td><code>python-dotenv</code></td><td>Loads <code>.env</code> into the environment</td><td>Spring <code>application.properties</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note java">
+  <span class="tag">Habits worth carrying over from Java</span>
+  <p>Pin dependency versions and commit the lockfile. Fail CI on type errors and lint violations, not just tests. Keep a <code>pyproject.toml</code> as the single source of project configuration. Structure code as a package with an entry point rather than a pile of scripts. None of this is enforced by Python culture the way it is by Java tooling &mdash; which means the discipline you already have is a genuine advantage in a Python codebase.</p>
+</div>
+
+<h2 id="pitfalls"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Pitfalls that produce silent wrong answers</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Bugs Python will not warn you about</caption>
+    <thead><tr><th>Pitfall</th><th>What happens</th><th>Guard</th></tr></thead>
+    <tbody>
+      <tr><td>Mutable default argument</td><td>State leaks between calls</td><td><code>None</code> sentinel; <code>ruff</code> rule B006</td></tr>
+      <tr><td><code>is</code> vs <code>==</code></td><td><code>x is 1000</code> may be <code>False</code>; small ints are interned, large ones are not</td><td><code>is</code> only for <code>None</code>, <code>True</code>, <code>False</code></td></tr>
+      <tr><td>Late-binding closures</td><td><code>[lambda: i for i in range(3)]</code> all return 2</td><td>Bind with a default: <code>lambda i=i: i</code></td></tr>
+      <tr><td>Mutating while iterating</td><td>Items silently skipped</td><td>Iterate a copy: <code>for x in list(xs)</code></td></tr>
+      <tr><td>Float equality</td><td><code>0.1 + 0.2 != 0.3</code></td><td><code>math.isclose</code>; <code>Decimal</code> for money</td></tr>
+      <tr><td>Bare <code>except:</code></td><td>Swallows <code>KeyboardInterrupt</code> and <code>SystemExit</code></td><td>Catch <code>Exception</code>, or the specific type</td></tr>
+      <tr><td>Shadowing stdlib</td><td>A file named <code>json.py</code> breaks every import of <code>json</code></td><td>Never name a module after a stdlib module</td></tr>
+      <tr><td>Integer division</td><td><code>/</code> always yields float; <code>//</code> floors <em>toward negative infinity</em></td><td><code>-7 // 2 == -4</code>, not <code>-3</code> as in Java</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 08 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly two evenings</div>
+  <ol>
+    <li>Reproduce the mutable-default bug, then fix it. Enable <code>ruff</code> and confirm it flags the original.</li>
+    <li>Rewrite a Java stream pipeline you have written recently as a Python comprehension. Compare readability honestly.</li>
+    <li>Write a generator that streams a 1&nbsp;GB file in chunks. Confirm with a memory profiler that resident memory stays flat.</li>
+    <li>Write the <code>@retry</code> decorator from Section 03 yourself, without looking. Add jitter. Test it with a function that fails twice then succeeds.</li>
+    <li>Define a Pydantic model for a tool your service could expose. Print its JSON Schema &mdash; that is literally what you send to a model in &sect;5.1.</li>
+    <li>Write an async script that embeds 500 texts with a concurrency limit of 10. Then remove the semaphore and observe the rate limiting.</li>
+    <li>Set up a project with <code>uv</code>, add <code>ruff</code> and <code>mypy</code>, and make CI fail on a deliberate type error. This is the safety net you are used to.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 09 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Course</span><span class="body"><a href="https://www.kaggle.com/learn/python">Kaggle Learn &mdash; Python</a><span class="why">Five hours, in-browser, no setup. The fastest credible route to working fluency.</span></span></li>
+    <li><span class="kind">Book</span><span class="body"><a href="https://automatetheboringstuff.com/">Automate the Boring Stuff with Python</a><span class="why">Free online. Aimed at absolute beginners &mdash; the right recommendation if you are teaching someone else.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.python.org/3/tutorial/">The official Python Tutorial</a><span class="why">Underrated. Written for people who already program. Chapters 4&ndash;9 are the core.</span></span></li>
+    <li><span class="kind">Reference</span><span class="body"><a href="https://docs.python.org/3/reference/datamodel.html">The Python Data Model</a><span class="why">The specification behind Section 02. Dense, and the single most valuable document for understanding why libraries look the way they do.</span></span></li>
+    <li><span class="kind">Talk</span><span class="body"><a href="https://www.youtube.com/watch?v=OSGv2VnC0go">Raymond Hettinger &mdash; Transforming Code into Beautiful, Idiomatic Python</a><span class="why">The canonical talk on writing Python rather than translated Java. One hour, still the best thing on the subject.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.astral.sh/uv/">uv documentation</a><span class="why">The packaging tool to adopt. The "Working on projects" guide is all you need.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.pydantic.dev/">Pydantic documentation</a><span class="why">Essential rather than optional &mdash; structured LLM output, tool schemas and config all run through it.</span></span></li>
+    <li><span class="kind">Guide</span><span class="body"><a href="https://docs.python.org/3/library/asyncio.html">asyncio documentation</a><span class="why">Start with "Coroutines and Tasks", then "Streams". Skip the low-level transport API entirely.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 2.1 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

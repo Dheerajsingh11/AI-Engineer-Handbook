@@ -1,0 +1,440 @@
+<title>Synthetic Data Generation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 18 &middot; Data &amp; Model Efficiency</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">18.2</span>
+    <h1>Synthetic Data Generation</h1>
+    <p class="lede">Manufacturing the data you could not collect. This page covers synthetic data &mdash; using LLMs, simulation and
+statistical models to generate training and evaluation examples &mdash; why it became central to modern AI, where
+it genuinely helps, and the failure mode (model collapse) that punishes using it carelessly.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#methods">The main methods</a></li><li><a href="#uses">Where it genuinely helps</a></li><li><a href="#collapse">Quality, diversity &amp; model collapse</a></li><li><a href="#production">Using it responsibly</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>Data engineering (Topic 18.1) and a working sense of LLMs (Topic 1.3). Synthetic data is a way to <em>create</em> the datasets the previous page taught you to manage.</p>
+</div>
+
+<p>Sometimes you cannot get the data you need. It is too rare (fraud, defects, edge cases), too sensitive (medical records, personal data), too expensive to label, or it simply does not exist yet. <strong>Synthetic data</strong> is artificially generated data made to stand in for real data &mdash; produced by a model, a simulator or a statistical process rather than collected from the world.</p>
+
+<div class="note key">
+  <span class="tag">Why this went from niche to mainstream</span>
+  <p>Two things changed. First, LLMs became good enough to <em>write</em> convincing, varied, on-topic examples on demand &mdash; so generating a few thousand training or test cases costs a prompt, not a labelling budget. Second, the frontier labs ran low on high-quality human text and turned to synthetic and model-distilled data to keep improving. The result: synthetic data is now a standard tool for bootstrapping datasets, covering rare cases, and building evaluation sets &mdash; not a curiosity. But it comes with a sharp caveat this page builds towards (Section 05).</p>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Synthetic data</dt><dd>Data generated artificially rather than collected from reality.</dd>
+    <dt>Augmentation</dt><dd>Making more training data by perturbing existing real examples.</dd>
+    <dt>Distillation data</dt><dd>Outputs from a strong "teacher" model used to train a smaller one (Topic 18.3).</dd>
+    <dt>Simulation</dt><dd>A programmed environment that produces realistic data (e.g. a driving simulator).</dd>
+    <dt>Model collapse</dt><dd>The decay that happens when models train on their own generated output, repeatedly.</dd>
+  </dl>
+</div>
+
+<h2 id="methods"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>The main methods</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Ways to manufacture data</caption>
+    <thead><tr><th>Method</th><th>How it works</th><th>Best for</th></tr></thead>
+    <tbody>
+      <tr><td>LLM generation</td><td>Prompt a strong model to write examples to a spec</td><td>Text: Q&amp;A pairs, instructions, edge cases, evals</td></tr>
+      <tr><td>Data augmentation</td><td>Perturb real data: rotate/crop images, paraphrase text</td><td>Expanding a small real dataset cheaply</td></tr>
+      <tr><td>Simulation</td><td>A physics/rules engine emits labelled data</td><td>Robotics, autonomous driving, rare physical events</td></tr>
+      <tr><td>Generative models</td><td>GANs / diffusion (Topics 12.4, 12.5) synthesise samples</td><td>Realistic images, tabular data with structure</td></tr>
+      <tr><td>Statistical / SMOTE</td><td>Interpolate new minority-class points</td><td>Rebalancing imbalanced tabular data (Topic 14.7)</td></tr>
+      <tr><td>Privacy-preserving synth</td><td>Fit a generator, sample data with no real record</td><td>Sharing "like-real" data without exposing people</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Generating labelled examples with an LLM</span></div>
+<pre><code><span class="cm"># Bootstrapping a classification dataset when you have almost no data.</span>
+<span class="cm"># The craft is in the prompt: demand variety, realism, and the label.</span>
+prompt = """Generate 5 realistic customer support messages that express
+FRUSTRATION about late delivery. Vary the tone, length, product, and
+phrasing. Return JSONL: {"text": ..., "label": "frustrated"}.
+Avoid repeating sentence structures."""
+
+rows = []
+for _ in range(200):                      <span class="cm"># many small, varied batches</span>
+    rows += parse_jsonl(llm(prompt, temperature=0.9))   <span class="cm"># high temp = diversity</span>
+
+<span class="cm"># CRUCIAL: audit a real sample by hand before trusting any of it.</span>
+<span class="cm"># Deduplicate -- LLMs collapse toward a few templates (Section 04).</span>
+rows = dedupe(rows)</code></pre>
+</div>
+
+<h2 id="uses"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>Where it genuinely helps</h2>
+
+<p>Synthetic data is not a general replacement for real data. It shines in specific, identifiable situations.</p>
+
+<div class="tbl">
+  <table>
+    <caption>The high-value use cases</caption>
+    <thead><tr><th>Situation</th><th>Why synthetic helps</th></tr></thead>
+    <tbody>
+      <tr><td>Cold start</td><td>Bootstrap a first dataset before you have real users</td></tr>
+      <tr><td>Rare events</td><td>Manufacture the fraud/defect cases reality gives you too few of</td></tr>
+      <tr><td>Privacy walls</td><td>Generate "statistically real" data with no actual person in it</td></tr>
+      <tr><td>Evaluation sets</td><td>Author targeted, adversarial test cases fast (Topic 19.1)</td></tr>
+      <tr><td>Fine-tuning &amp; distillation</td><td>Create instruction/response pairs to teach a smaller model (Topics 3.5, 18.3)</td></tr>
+      <tr><td>Coverage gaps</td><td>Fill in demographics, languages or scenarios your real data misses</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note java">
+  <span class="tag">The pattern that works best</span>
+  <p>The reliable recipe is <strong>synthetic to bootstrap, real to finish</strong>. Generate synthetic data to get moving &mdash; a first model, a first eval set, coverage of a rare case &mdash; then replace or supplement it with real data as it arrives, always keeping a <em>real</em> held-out test set so your measured performance reflects reality, not your generator. Synthetic training data with a synthetic test set can look flawless and mean nothing.</p>
+</div>
+
+<h2 id="collapse"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>Quality, diversity &amp; model collapse</h2>
+
+<p>Two problems decide whether synthetic data helps or quietly poisons your model: it can lack <em>diversity</em>, and training on it recursively can cause <em>collapse</em>.</p>
+
+<div class="note trap">
+  <span class="tag">Model collapse</span>
+  <p>Train a model on data generated by models, whose data was generated by models, and quality degrades generation over generation: the distribution narrows, the tails (rare but real cases) vanish, and outputs converge toward a bland average. This is <strong>model collapse</strong>, and it is a genuine, measured phenomenon. The mechanism is simple &mdash; each generation samples from the last and loses a little of the true variance &mdash; and the defence is equally clear: <strong>keep real data in the mix</strong>, never train purely on your own outputs, and monitor diversity, not just accuracy.</p>
+</div>
+
+<div class="note key">
+  <span class="tag">Diversity is the metric that matters</span>
+  <p>The characteristic weakness of LLM-generated data is <em>mode collapse in miniature</em>: ask for 500 examples and you get five templates with the words swapped. A model trained on that learns the templates, not the task. So the quality bar for synthetic data is not "does each example look real?" but <strong>"is the set as varied as reality?"</strong> Measure it: cluster the examples and check the spread, compute embedding diversity (Topic 4.2), deduplicate aggressively, raise temperature and vary the prompt, and seed generation with different real examples. A smaller, more diverse synthetic set beats a large, repetitive one every time.</p>
+</div>
+
+<h2 id="production"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>Using it responsibly</h2>
+
+<div class="tbl">
+  <table>
+    <caption>The professional checklist</caption>
+    <thead><tr><th>Concern</th><th>Practice</th></tr></thead>
+    <tbody>
+      <tr><td>Realism</td><td>Human-audit a sample; compare distributions to real data</td></tr>
+      <tr><td>Diversity</td><td>Measure spread; dedupe; vary prompts and seeds (Section 04)</td></tr>
+      <tr><td>Bias</td><td>The generator's biases become your dataset's biases (Topic 16.1)</td></tr>
+      <tr><td>Evaluation</td><td>Always keep a <em>real</em> held-out test set</td></tr>
+      <tr><td>Licensing</td><td>Check terms &mdash; some model outputs restrict training competitors</td></tr>
+      <tr><td>Collapse</td><td>Keep real data in the loop; never train recursively on pure synth</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note">
+  <p>Used well, synthetic data is one of the highest-leverage tools in modern AI: it turns a labelling budget into a prompt and lets a small team cover cases a large one could not collect. Used carelessly &mdash; no real test set, no diversity check, recursive training &mdash; it produces models that ace synthetic benchmarks and fail in the world. The discipline is the same as all data work (Topic 18.1): <strong>generate deliberately, audit honestly, and measure against reality.</strong></p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly a weekend</div>
+  <ol>
+    <li>Generate a 500-example text classification set with an LLM. Then cluster it &mdash; count how few distinct templates you actually got.</li>
+    <li>Improve diversity: vary the prompt, raise temperature, seed with real examples. Re-measure the spread.</li>
+    <li>Train a model on synthetic data, evaluate on a <em>real</em> held-out set, and on a synthetic test set. Compare the two numbers.</li>
+    <li>Use SMOTE to rebalance an imbalanced tabular dataset (Topic 14.7). Check whether it helps or just inflates the minority class.</li>
+    <li>Simulate model collapse: train, generate, train on the generation, repeat. Watch the diversity shrink over rounds.</li>
+    <li>Build a small synthetic evaluation set of deliberately hard, adversarial cases for a task you care about (Topic 19.1).</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2305.15717">The Curse of Recursion: Training on Generated Data</a><span class="why">The original model-collapse result &mdash; the evidence behind Section 04.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2212.10560">Self-Instruct: Aligning LMs with Self-Generated Instructions</a><span class="why">The technique that popularised LLM-generated fine-tuning data (Section 03).</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://imbalanced-learn.org/stable/over_sampling.html">imbalanced-learn &mdash; SMOTE</a><span class="why">Statistical synthetic oversampling for tabular data, hands-on.</span></span></li>
+    <li><span class="kind">Guide</span><span class="body"><a href="https://huggingface.co/blog/synthetic-data-save-costs">Hugging Face &mdash; Synthetic data</a><span class="why">A practical walkthrough of generating data with open models.</span></span></li>
+    <li><span class="kind">Tool</span><span class="body"><a href="https://github.com/sdv-dev/SDV">SDV &mdash; Synthetic Data Vault</a><span class="why">An open library for synthesising tabular and relational data, with quality metrics.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 18.2 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

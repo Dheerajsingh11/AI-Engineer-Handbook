@@ -1,0 +1,473 @@
+<title>Types of Tools in AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 08 &middot; Agent Engineering</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">8.4</span>
+    <h1>Types of Tools in AI</h1>
+    <p class="lede">The full taxonomy of what an agent can be given. This page catalogues every kind of tool &mdash; function,
+retrieval, code-execution, computer-use, web, memory, sub-agent, human-in-the-loop, MCP &mdash; with what each
+is for, how to design it, its failure modes and its blast radius, so you can assemble an agent's capabilities
+deliberately rather than bolting on whatever is handy.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#catalogue">The full catalogue</a></li><li><a href="#design">Designing each type well</a></li><li><a href="#portfolio">Choosing an agent's tool set</a></li><li><a href="#mechanics">How tools are defined, across the stack</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>Tool calling mechanics (Topic 5.1) and the agent loop (Topic 8.1). This page is the catalogue; 8.1 is the machine that uses it.</p>
+</div>
+
+<p>An agent is only as capable as its tools. "Give it tools" sounds simple, but tools are not all one thing &mdash; they differ in what they touch, how much can go wrong, and how you must design and guard them. Treating them as one undifferentiated bag is how agents become unsafe and unreliable.</p>
+
+<p>The most useful first cut is by <strong>what a tool does to the world</strong>:</p>
+
+<div class="tbl">
+  <table>
+    <caption>The two axes that decide everything about a tool</caption>
+    <thead><tr><th></th><th>Reads only</th><th>Changes something</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Inside your system</strong></td><td>Query a DB, search docs &mdash; safe to auto-run</td><td>Update a record &mdash; needs idempotency + audit</td></tr>
+      <tr><td><strong>Outside your system</strong></td><td>Web search, fetch a URL &mdash; watch for injection</td><td>Send email, make payment &mdash; <strong>human gate</strong></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">The rule this axis gives you</span>
+  <p><strong>Reads can be automatic; writes need controls; outbound and destructive actions need a human.</strong> Before adding any tool to an agent, place it in that 2&times;2 grid &mdash; it tells you immediately how much guarding it needs (Topics 8.6, 5.6). An agent whose tools are all in the top-left is low-risk; one tool in the bottom-right changes the entire security posture.</p>
+</div>
+
+<h2 id="catalogue"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>The full catalogue</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Types of tool an agent can be given</caption>
+    <thead><tr><th>Type</th><th>What it does</th><th>Example</th><th>Main risk</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Function / API</strong></td><td>Call a typed function or REST endpoint</td><td><code>check_stock(sku)</code></td><td>Parameter injection</td></tr>
+      <tr><td><strong>Retrieval</strong></td><td>Search a knowledge base</td><td>RAG query engine (Topic 7.2)</td><td>Cross-tenant leakage</td></tr>
+      <tr><td><strong>Code execution</strong></td><td>Run generated code in a sandbox</td><td>Python for data analysis</td><td>Arbitrary code execution</td></tr>
+      <tr><td><strong>Web / browsing</strong></td><td>Search the web, fetch pages</td><td>Web search, URL fetch</td><td>Indirect prompt injection, SSRF</td></tr>
+      <tr><td><strong>Computer use</strong></td><td>Operate a screen: click, type</td><td>Browser automation (Topic 8.8)</td><td>Broad, hard-to-scope actions</td></tr>
+      <tr><td><strong>Memory</strong></td><td>Read/write the agent's own memory</td><td>Save a user fact (Topic 5.3)</td><td>Stale or poisoned memory</td></tr>
+      <tr><td><strong>Sub-agent</strong></td><td>Delegate a task to another agent</td><td>Research sub-agent</td><td>Runaway recursion, cost</td></tr>
+      <tr><td><strong>Human-in-the-loop</strong></td><td>Ask a person to decide or approve</td><td>Approve a refund</td><td>Latency; approval fatigue</td></tr>
+      <tr><td><strong>MCP</strong></td><td>Any tool exposed over the protocol</td><td>A GitHub MCP server (Topic 3.4)</td><td>Untrusted third-party tools</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="design"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>Designing each type well</h2>
+
+<h3>Function / API tools &mdash; the workhorse</h3>
+<p>The default and most common. The description is a prompt (Topic 5.1); the schema is your validation boundary. Return errors as data with a recovery hint. Make writes idempotent.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>A well-designed function tool</span></div>
+<pre><code>@tool
+def create_ticket(title: str, severity: int, team: str) -&gt; dict:
+    """Create a support ticket. Use ONLY after the user has confirmed
+    the details. Returns the ticket ID, or an error object.
+    - severity: 1 (trivial) to 5 (outage)
+    - team: one of engineering | billing | account
+    """
+    if severity not in range(1, 6):
+        return {"error": "severity must be 1-5"}      <span class="cm"># error as data</span>
+    if team not in {"engineering", "billing", "account"}:
+        return {"error": f"unknown team '{team}'"}
+    <span class="cm"># idempotency key so a retry does not double-create (Topic 5.1)</span>
+    return tickets.create_idempotent(title, severity, team,
+                                     key=hash((title, severity, team)))</code></pre>
+</div>
+
+<h3>Code-execution tools &mdash; the most powerful and most dangerous</h3>
+<p>Letting the model write and run code makes it dramatically more capable &mdash; and hands it arbitrary execution. The non-negotiable is the <strong>sandbox</strong>.</p>
+
+<div class="note trap">
+  <span class="tag">Sandboxing is mandatory, not optional</span>
+  <p>Generated code must run in an isolated environment with: no access to your network or secrets, a read-only or scratch-only filesystem, CPU/memory/time limits, and no ability to reach production. Use a container, a microVM (gVisor, Firecracker), or a hosted sandbox (E2B, Modal, the provider's own code-execution tool). <strong>Never <code>exec()</code> model output in your application process.</strong> A single unsandboxed code tool turns prompt injection (Topic 5.6) into remote code execution on your infrastructure.</p>
+</div>
+
+<h3>Retrieval tools</h3>
+<p>A RAG query engine (Topic 7.2) exposed as a tool. The agent decides <em>when</em> to search rather than searching every turn &mdash; which is more efficient and lets it combine retrieval with other actions. Enforce tenant filters inside the tool, never trust the agent to scope them.</p>
+
+<h3>Web and browsing tools</h3>
+<p>Search and URL-fetch open the widest attack surface: everything the tool returns is untrusted and may contain injected instructions (Topic 5.6). Allowlist destinations, block private IP ranges (SSRF), strip active content, and treat every returned page as data, never instruction.</p>
+
+<h3>Sub-agent tools</h3>
+<p>A tool whose implementation is <em>another agent</em>. The value is context isolation (Topic 5.3): a research sub-agent can read 200k tokens and return a 500-token summary, keeping the parent's context clean. The danger is unbounded recursion and cost &mdash; cap delegation depth explicitly.</p>
+
+<h3>Human-in-the-loop tools</h3>
+<p>Model a human decision as a tool the agent can call: "ask the user to approve." It pauses the run (Topic 7.1's <code>interrupt</code>), surfaces the request, and resumes with the answer. This is the clean way to gate everything in the bottom-right of the Section 01 grid.</p>
+
+<h2 id="portfolio"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>Choosing an agent's tool set</h2>
+
+<p>Which tools to give an agent is a design decision with real consequences. Two principles:</p>
+
+<ol class="steps">
+  <li><strong>Least privilege.</strong> Give the minimum set the task needs. A summarisation agent needs retrieval, not <code>delete_records</code>. Every tool you add widens the blast radius if the agent is compromised or confused (Topic 5.6).</li>
+  <li><strong>Few, well-differentiated tools.</strong> Past roughly 15&ndash;20 tools, selection accuracy drops &mdash; the model dithers or picks wrong. Group related tools, or route between tool sets by task, rather than exposing everything at once.</li>
+</ol>
+
+<div class="tbl">
+  <table>
+    <caption>Tool-set design by agent type</caption>
+    <thead><tr><th>Agent</th><th>Appropriate tools</th><th>Should NOT have</th></tr></thead>
+    <tbody>
+      <tr><td>Research / Q&amp;A</td><td>Retrieval, web search, memory-read</td><td>Any write or destructive tool</td></tr>
+      <tr><td>Data analysis</td><td>Sandboxed code, retrieval</td><td>Network access, production DB writes</td></tr>
+      <tr><td>Customer support</td><td>Read customer data, create ticket, human-gate for refunds</td><td>Direct refund/cancel without a human</td></tr>
+      <tr><td>Ops automation</td><td>Scoped API tools, human-gate for destructive ops</td><td>Unrestricted shell</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note java">
+  <span class="tag">Tools are how you separate privilege</span>
+  <p>The cleanest security architecture for multi-capability systems is to split by <em>agent</em>, each with a different tool set and permission scope (Topic 8.9): a read-only research agent that physically cannot write, and a separate action agent behind a human gate. Since the tool set defines what an agent <em>can</em> do, curating it is your primary access-control lever &mdash; more reliable than any instruction in the prompt, because an injected instruction cannot conjure a tool that was never registered.</p>
+</div>
+
+<h2 id="mechanics"><span class="kicker">Section 05 <span class="lvl lvl-a">Advanced</span></span>How tools are defined, across the stack</h2>
+
+<p>Every framework expresses the same thing &mdash; name, description, JSON-schema parameters, implementation &mdash; differently. Recognising the pattern makes them all readable.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python / Java</span><span>The same tool, four ways</span></div>
+<pre><code><span class="cm"># Raw API (any provider) -- the ground truth (Topic 5.1)</span>
+{"name": "get_weather", "description": "...",
+ "input_schema": {"type": "object", "properties": {...}}}
+
+<span class="cm"># LangChain / LangGraph -- decorator, docstring is the description</span>
+@tool
+def get_weather(city: str) -&gt; str:
+    """Current weather for a city."""
+    ...
+
+<span class="cm"># LlamaIndex -- FunctionTool wrapper</span>
+from llama_index.core.tools import FunctionTool
+weather_tool = FunctionTool.from_defaults(fn=get_weather)
+
+<span class="cm"># Spring AI (Java) -- annotation, for your existing stack (Topic 3.2)</span>
+<span class="cm">// @Tool(description = "Current weather for a city")</span>
+<span class="cm">// public Weather getWeather(@ToolParam String city) { ... }</span>
+
+<span class="cm"># MCP -- the same shape, exposed over a protocol so ANY host can</span>
+<span class="cm"># use it (Topic 3.4). One definition, many consumers.</span></code></pre>
+</div>
+
+<div class="note key">
+  <span class="tag">The unifying insight</span>
+  <p>Whatever the framework, a tool is always the same four things: <strong>a name, a description written for the model, a typed parameter schema, and an implementation your code controls.</strong> MCP (Topic 3.4) simply standardises the transport so one tool definition works across every host. Learn the shape once and every framework's tool API is just syntax.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly an evening</div>
+  <ol>
+    <li>Take an agent you are designing and place every one of its tools in the Section 01 2&times;2 grid. Note which need a human gate.</li>
+    <li>Build one tool of each of the first four types (function, retrieval, code, web). Give them all to one agent and observe how it chooses.</li>
+    <li>Set up a real sandbox (a container or E2B) for a code-execution tool. Then try to make the code escape it &mdash; confirm it cannot reach your network.</li>
+    <li>Build a web-fetch tool, then feed the agent a page containing an injected instruction. Watch what happens, then add an egress allowlist (Topic 5.6).</li>
+    <li>Give an agent 25 tools and measure selection accuracy. Then group them to 8 and measure again.</li>
+    <li>Implement a human-in-the-loop tool that pauses for approval before a destructive action.</li>
+    <li>Design two agents for the same system split by privilege (read-only vs action). Prove the read-only one has no write tool registered.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Article</span><span class="body"><a href="https://www.anthropic.com/engineering/writing-tools-for-agents">Anthropic &mdash; Writing tools for agents</a><span class="why">Tool design, descriptions and result shaping &mdash; the practical companion to Section 03.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.claude.com/en/docs/agents-and-tools/tool-use/code-execution-tool">Anthropic &mdash; Code execution tool</a><span class="why">A hosted, sandboxed code tool &mdash; the safe way to give an agent Python.</span></span></li>
+    <li><span class="kind">Tool</span><span class="body"><a href="https://e2b.dev/docs">E2B &mdash; sandboxes for AI</a><span class="why">Isolated runtime for code-execution tools. The sandbox pattern from Section 03, hosted.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://modelcontextprotocol.io/">Model Context Protocol</a><span class="why">The standard for portable tools across hosts (Topic 3.4).</span></span></li>
+    <li><span class="kind">Security</span><span class="body"><a href="https://genai.owasp.org/llm-top-10/">OWASP LLM Top 10</a><span class="why">Excessive Agency and Improper Output Handling map directly onto tool blast radius.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 8.4 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

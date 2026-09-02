@@ -1,0 +1,696 @@
+<title>Ingestion & Chunking</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 04 &middot; RAG &amp; Vectors</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">4.5</span>
+    <h1>Ingestion &amp; Chunking</h1>
+    <p class="lede">The unglamorous stage that decides everything. This page implements every chunking strategy from fixed-size
+to semantic and contextual, explains what makes PDFs so hostile, builds a production ingestion pipeline with
+incremental updates, and shows why chunk boundaries silently destroy retrieval quality.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#parsing">Parsing, and why PDFs are hostile</a></li><li><a href="#strategies">Every chunking strategy, implemented</a></li><li><a href="#pipeline">A production pipeline</a></li><li><a href="#tuning">Choosing parameters with measurements</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>The RAG skeleton from <a href="#deeper">Topic 4.1</a> and embedding input limits from Topic 4.2.</p>
+</div>
+
+<p>Ingestion turns documents into searchable chunks. Load, parse, clean, split, embed, store. Six steps, and it is where most of the real engineering time in a RAG project goes.</p>
+
+<h3>Why documents are split at all</h3>
+
+<p>Three independent reasons, and they push in different directions &mdash; which is why chunking is a trade-off rather than a setting.</p>
+
+<ol class="steps">
+  <li><strong>Embedding models have input limits.</strong> Most cap at 512 tokens. Text beyond the limit is silently truncated, so a 40-page document becomes an embedding of its first page.</li>
+  <li><strong>One vector cannot represent many topics.</strong> Embed a whole document covering pricing, shipping and returns and you get the average of three meanings &mdash; a vector that sits near nothing in particular and matches no specific query well.</li>
+  <li><strong>Context is a budget.</strong> Retrieving whole documents fills the window with mostly irrelevant text, which costs money and, per the "lost in the middle" effect, actively degrades the answer.</li>
+</ol>
+
+<div class="note key">
+  <span class="tag">The trade-off in one sentence</span>
+  <p><strong>Small chunks match precisely but lose context; large chunks preserve context but match vaguely.</strong> Everything in Section 03 is an attempt to get both, and the best techniques do so by decoupling <em>what you index</em> from <em>what you return</em>.</p>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Parsing</dt><dd>Extracting text from a file format. The hardest part for PDFs.</dd>
+    <dt>Chunk</dt><dd>A piece of a document that becomes one searchable unit.</dd>
+    <dt>Overlap</dt><dd>Repeating the tail of one chunk at the start of the next, so facts spanning a boundary survive.</dd>
+    <dt>Metadata</dt><dd>Structured fields attached to a chunk: source, page, tenant, date. Enables filtering and citation.</dd>
+    <dt>Incremental ingestion</dt><dd>Re-processing only what changed instead of everything.</dd>
+    <dt>OCR</dt><dd>Optical character recognition &mdash; reading text out of an image or a scanned page.</dd>
+  </dl>
+</div>
+
+<h2 id="parsing"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>Parsing, and why PDFs are hostile</h2>
+
+<p>PDF is a <em>page description</em> format. It stores instructions like "draw this glyph at these coordinates". It does not store paragraphs, reading order, table structure, or which text is a heading. All of that must be inferred from geometry.</p>
+
+<div class="tbl">
+  <table>
+    <caption>What breaks, and what to do</caption>
+    <thead><tr><th>Problem</th><th>Consequence</th><th>Mitigation</th></tr></thead>
+    <tbody>
+      <tr><td>Multi-column layout</td><td>Text extracted left-to-right across columns; sentences interleave into nonsense</td><td>Layout-aware parser (Unstructured, Docling) or vision model</td></tr>
+      <tr><td>Tables</td><td>Collapse into a stream of numbers with no row or column association</td><td>Table-specific extraction; convert to Markdown tables</td></tr>
+      <tr><td>Headers and footers</td><td>Repeat on every page, polluting every chunk</td><td>Detect and strip repeated lines across pages</td></tr>
+      <tr><td>Scanned pages</td><td>No text layer at all &mdash; extraction returns empty</td><td>OCR. <strong>Detect this case explicitly</strong> or you silently index nothing</td></tr>
+      <tr><td>Ligatures and hyphenation</td><td>"ﬁ" as one glyph; words split across lines</td><td>Normalise Unicode; rejoin hyphenated line breaks</td></tr>
+      <tr><td>Reading order</td><td>Sidebars and callouts inserted mid-sentence</td><td>Layout analysis</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>Parser options</caption>
+    <thead><tr><th>Tool</th><th>Runs on</th><th>Strength</th><th>Cost</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Apache Tika</strong></td><td>JVM</td><td>A thousand formats; native to your stack</td><td>Free</td></tr>
+      <tr><td>PyMuPDF</td><td>Python</td><td>Fast, good layout and coordinates</td><td>Free (AGPL &mdash; check licence)</td></tr>
+      <tr><td>pdfplumber</td><td>Python</td><td>Best free table extraction</td><td>Free</td></tr>
+      <tr><td>Unstructured</td><td>Python</td><td>Element-typed output: title, table, list</td><td>Free / hosted</td></tr>
+      <tr><td>Docling</td><td>Python</td><td>Strong on tables and document structure</td><td>Free</td></tr>
+      <tr><td>Vision model</td><td>API</td><td><strong>Best on complex layouts</strong> &mdash; send the page image</td><td>Per page; expensive at scale</td></tr>
+      <tr><td>Tesseract</td><td>Both</td><td>OCR for scans</td><td>Free</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note trap">
+  <span class="tag">Validate your parse before you trust your pipeline</span>
+  <p>A silently bad parse produces a RAG system that confidently retrieves garbage, and it is nearly invisible downstream. Add automatic checks at ingest: assert extracted text length is plausible relative to page count; flag documents where extraction yields under ~100 characters per page as probable scans needing OCR; detect and strip lines repeating on more than half the pages; and <strong>manually read the extracted text of five documents before building anything on top of it</strong>. That last step costs twenty minutes and routinely saves weeks.</p>
+</div>
+
+<h2 id="strategies"><span class="kicker">Section 03 <span class="lvl lvl-a">Advanced</span></span>Every chunking strategy, implemented</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Strategies, simplest to most sophisticated</caption>
+    <thead><tr><th>Strategy</th><th>Splits on</th><th>Pro</th><th>Con</th></tr></thead>
+    <tbody>
+      <tr><td>Fixed-size</td><td>Every <i>n</i> characters</td><td>Trivial, predictable</td><td>Cuts mid-word; destroys meaning</td></tr>
+      <tr><td>Fixed + overlap</td><td>As above, with 10&ndash;20% repeat</td><td>Cheap insurance against bad cuts</td><td>Index inflation from duplication</td></tr>
+      <tr><td>Sentence</td><td>Sentence boundaries, packed to size</td><td>Never splits a sentence</td><td>Ignores paragraph and section logic</td></tr>
+      <tr><td><strong>Recursive character</strong></td><td>Tries <code>\n\n</code>, <code>\n</code>, <code>. </code>, then characters</td><td><strong>The sensible default</strong></td><td>Structure-blind on tables and code</td></tr>
+      <tr><td>Document-structure</td><td>Markdown headings, HTML tags, code functions</td><td>Chunks align with authored meaning</td><td>Needs a reliable parse; sizes vary</td></tr>
+      <tr><td>Semantic</td><td>Where consecutive-sentence similarity drops</td><td>Topic-coherent chunks</td><td>Embedding cost at ingest; threshold tuning</td></tr>
+      <tr><td><strong>Parent-document</strong></td><td>Index small, return large</td><td><strong>Precise matching with full context</strong></td><td>Two-tier storage</td></tr>
+      <tr><td><strong>Contextual retrieval</strong></td><td>Prepend an LLM-written document summary to each chunk</td><td><strong>Large measured recall gains</strong></td><td>One LLM call per chunk at ingest</td></tr>
+      <tr><td>Late chunking</td><td>Embed the long document, then pool per chunk</td><td>Every chunk carries whole-document context</td><td>Needs a long-context embedding model</td></tr>
+      <tr><td>Propositional</td><td>LLM rewrites into standalone facts</td><td>Highest precision per unit</td><td>Most expensive; can lose nuance</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Recursive, structure-aware and semantic chunking</span></div>
+<pre><code>import re, numpy as np
+
+<span class="cm"># ---------- 1. Recursive character: the default ------------------</span>
+def recursive_chunk(text, size=800, overlap=100,
+                    separators=("\n\n", "\n", ". ", " ", "")):
+    """Try to split on the most meaningful separator that yields
+    pieces under `size`. Fall back to finer separators only where
+    a piece is still too large."""
+    if len(text) &lt;= size:
+        return [text] if text.strip() else []
+
+    sep = next((s for s in separators
+                if s and any(len(p) &lt;= size for p in text.split(s))), "")
+
+    if not sep:                                <span class="cm"># hard cut, last resort</span>
+        return [text[i:i + size] for i in range(0, len(text), size - overlap)]
+
+    chunks, current = [], ""
+    for piece in text.split(sep):
+        candidate = current + sep + piece if current else piece
+        if len(candidate) &lt;= size:
+            current = candidate
+        else:
+            if current:
+                chunks.append(current)
+            <span class="cm"># A piece bigger than `size` recurses with a finer separator</span>
+            if len(piece) &gt; size:
+                chunks.extend(recursive_chunk(piece, size, overlap,
+                                              separators[separators.index(sep) + 1:]))
+                current = ""
+            else:
+                current = (chunks[-1][-overlap:] + sep + piece) if chunks else piece
+    if current:
+        chunks.append(current)
+    return [c for c in chunks if c.strip()]
+
+
+<span class="cm"># ---------- 2. Structure-aware: respect the author's headings ----</span>
+def markdown_chunk(text, max_size=1200):
+    """Split on headings and carry the heading path into each chunk.
+    A chunk that says 'Refunds > Eligibility' matches far better
+    than an anonymous paragraph."""
+    sections, path, buffer = [], [], []
+
+    def flush():
+        if buffer:
+            body = "\n".join(buffer).strip()
+            if body:
+                sections.append({"heading_path": " &gt; ".join(path),
+                                 "text": " &gt; ".join(path) + "\n\n" + body})
+
+    for line in text.split("\n"):
+        m = re.match(r"^(#{1,6})\s+(.*)", line)
+        if m:
+            flush(); buffer = []
+            level = len(m.group(1))
+            path = path[:level - 1] + [m.group(2).strip()]
+        else:
+            buffer.append(line)
+    flush()
+
+    <span class="cm"># Split any oversized section, keeping its heading path</span>
+    out = []
+    for s in sections:
+        if len(s["text"]) &lt;= max_size:
+            out.append(s)
+        else:
+            for piece in recursive_chunk(s["text"], max_size, 100):
+                out.append({"heading_path": s["heading_path"], "text": piece})
+    return out
+
+
+<span class="cm"># ---------- 3. Semantic: split where the topic changes -----------</span>
+def semantic_chunk(text, embed_fn, percentile=90, max_size=2000):
+    """Embed each sentence, measure similarity between neighbours,
+    and cut where similarity drops sharply -- i.e. where the
+    subject changes."""
+    sentences = [s.strip() for s in re.split(r"(?&lt;=[.!?])\s+", text) if s.strip()]
+    if len(sentences) &lt; 3:
+        return [text]
+
+    vectors = np.array(embed_fn(sentences))
+    vectors /= np.linalg.norm(vectors, axis=1, keepdims=True)
+
+    <span class="cm"># distance between each consecutive pair</span>
+    distances = 1 - (vectors[:-1] * vectors[1:]).sum(axis=1)
+
+    <span class="cm"># A relative threshold adapts to the document; an absolute one</span>
+    <span class="cm"># would need retuning for every corpus.</span>
+    threshold = np.percentile(distances, percentile)
+    breakpoints = [i + 1 for i, d in enumerate(distances) if d &gt; threshold]
+
+    chunks, start = [], 0
+    for bp in breakpoints + [len(sentences)]:
+        chunk = " ".join(sentences[start:bp])
+        chunks.extend(recursive_chunk(chunk, max_size, 100)
+                      if len(chunk) &gt; max_size else [chunk])
+        start = bp
+    return [c for c in chunks if c.strip()]</code></pre>
+</div>
+
+<h3>The two techniques that actually move the numbers</h3>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Parent-document and contextual retrieval</span></div>
+<pre><code><span class="cm"># ---------- Parent-document: index small, return large -----------</span>
+<span class="cm"># Small chunks embed precisely. Large chunks give the model context.</span>
+<span class="cm"># Decouple them and you get both.</span>
+
+def build_parent_child(document, parent_size=3000, child_size=400):
+    parents = recursive_chunk(document, parent_size, 200)
+    records = []
+    for p_idx, parent in enumerate(parents):
+        for child in recursive_chunk(parent, child_size, 50):
+            records.append({
+                "embed_text": child,      <span class="cm"># what goes in the vector index</span>
+                "return_text": parent,    <span class="cm"># what the model actually sees</span>
+                "parent_id": p_idx,
+            })
+    return records
+
+def retrieve_parents(index, query, embed_fn, k=4):
+    hits = search(index, query, embed_fn, k=k * 3)
+    seen, out = set(), []
+    for hit in hits:                       <span class="cm"># deduplicate: several children</span>
+        pid = hit["parent_id"]             <span class="cm"># often share one parent</span>
+        if pid not in seen:
+            seen.add(pid)
+            out.append(hit["return_text"])
+        if len(out) == k:
+            break
+    return out
+
+
+<span class="cm"># ---------- Contextual retrieval ---------------------------------</span>
+<span class="cm"># A chunk saying "the limit is 30 days" is unretrievable -- what</span>
+<span class="cm"># limit? Prepend LLM-written context and it becomes findable.</span>
+
+CONTEXT_PROMPT = """&lt;document&gt;
+{document}
+&lt;/document&gt;
+
+Here is a chunk from that document:
+&lt;chunk&gt;
+{chunk}
+&lt;/chunk&gt;
+
+Give a short (1-2 sentence) context situating this chunk within the
+document, to improve search retrieval. Answer with the context only."""
+
+def contextualise(document, chunks, chat_fn):
+    out = []
+    for chunk in chunks:
+        <span class="cm"># The full document is a stable PREFIX across every chunk of</span>
+        <span class="cm"># this document -- so prompt caching makes this far cheaper</span>
+        <span class="cm"># than it looks. Order matters: document first, chunk last.</span>
+        context = chat_fn(CONTEXT_PROMPT.format(document=document, chunk=chunk))
+        out.append({"embed_text": f"{context}\n\n{chunk}",
+                    "return_text": chunk,
+                    "context": context})
+    return out
+
+<span class="cm"># Reported recall improvements from this technique are large --</span>
+<span class="cm"># frequently the single biggest ingestion-side win available.</span>
+<span class="cm"># Combine with BM25 over the same contextualised text for more.</span></code></pre>
+</div>
+
+<h2 id="pipeline"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>A production pipeline</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Java</span><span>Incremental, idempotent ingestion</span></div>
+<pre><code>@Service
+class IngestionPipeline {
+
+    private final VectorStore vectorStore;
+    private final DocumentStateRepository state;
+    private final EmbeddingCache cache;
+
+    @Transactional
+    public IngestResult ingest(Resource resource, long tenantId, String documentId) {
+
+        <span class="cm">// 1. CHANGE DETECTION -- skip unchanged documents entirely.</span>
+        <span class="cm">//    Re-embedding an unchanged corpus nightly is the most</span>
+        <span class="cm">//    common source of wasted spend in RAG systems.</span>
+        String hash = sha256(resource);
+        if (state.findByDocumentId(documentId)
+                 .map(s -&gt; s.contentHash().equals(hash)).orElse(false)) {
+            return IngestResult.unchanged(documentId);
+        }
+
+        <span class="cm">// 2. PARSE, with validation</span>
+        List&lt;Document&gt; docs = new TikaDocumentReader(resource).get();
+        String text = docs.stream().map(Document::getText)
+                          .collect(Collectors.joining("\n\n"));
+        if (text.strip().length() &lt; 100) {
+            <span class="cm">// Almost certainly a scan. Route to OCR rather than</span>
+            <span class="cm">// silently indexing an empty document.</span>
+            throw new UnparseableDocumentException(documentId);
+        }
+
+        <span class="cm">// 3. CLEAN -- strip headers/footers repeating across pages</span>
+        text = cleaner.stripRepeatedLines(text);
+
+        <span class="cm">// 4. CHUNK</span>
+        List&lt;Document&gt; chunks = TokenTextSplitter.builder()
+                .withChunkSize(700).withMinChunkSizeChars(350).build()
+                .apply(List.of(new Document(text)));
+
+        <span class="cm">// 5. ENRICH -- capture now what you cannot recover later</span>
+        for (int i = 0; i &lt; chunks.size(); i++) {
+            chunks.get(i).getMetadata().putAll(Map.of(
+                    "tenant_id", tenantId, "document_id", documentId,
+                    "chunk_index", i, "source", resource.getFilename(),
+                    "content_hash", hash,
+                    "ingested_at", Instant.now().toString()));
+        }
+
+        <span class="cm">// 6. DELETE THEN INSERT. Without the delete, stale chunks</span>
+        <span class="cm">//    from the previous version stay and compete with the new.</span>
+        vectorStore.delete("document_id == '" + documentId + "'");
+        vectorStore.add(chunks);
+
+        state.save(new DocumentState(documentId, hash, chunks.size(), Instant.now()));
+        return IngestResult.ingested(documentId, chunks.size());
+    }
+}</code></pre>
+</div>
+
+<div class="note java">
+  <span class="tag">Make it event-driven</span>
+  <p>Ingestion is embarrassingly parallel, latency-tolerant and failure-prone &mdash; the exact profile for a message-driven pipeline. Document lands in object storage &rarr; event to Kafka &rarr; parsing consumer &rarr; chunking consumer &rarr; embedding consumer (batching aggressively) &rarr; store. Each stage scales independently, retries independently, and a poison document lands in a dead-letter queue instead of stalling the batch. This is &sect;5.4, and your existing Kafka experience applies directly.</p>
+</div>
+
+<h2 id="tuning"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>Choosing parameters with measurements</h2>
+
+<div class="kv">
+  <div><dt>Starting point</dt><dd>Recursive, 500&ndash;800 tokens, 10&ndash;15% overlap</dd></div>
+  <div><dt>Dense technical docs</dt><dd>Smaller: 300&ndash;500 tokens</dd></div>
+  <div><dt>Narrative prose</dt><dd>Larger: 800&ndash;1200 tokens</dd></div>
+  <div><dt>Code</dt><dd>Split by function or class, not by size</dd></div>
+  <div><dt>FAQs</dt><dd>One question-answer pair per chunk</dd></div>
+  <div><dt>Tables</dt><dd>Keep whole; add a text description</dd></div>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Sweep the parameters against your golden set</span></div>
+<pre><code>results = []
+for strategy in ("fixed", "recursive", "markdown", "semantic", "parent"):
+    for size in (300, 500, 800, 1200):
+        for overlap_pct in (0, 0.1, 0.2):
+            index = build_index(documents, strategy, size, int(size * overlap_pct))
+            results.append({
+                "strategy": strategy, "size": size, "overlap": overlap_pct,
+                "recall@5":  evaluate(index, golden, k=5),
+                "recall@20": evaluate(index, golden, k=20),
+                "n_chunks":  len(index["chunks"]),
+                "index_mb":  index["vectors"].nbytes / 1e6,
+            })
+
+df = pd.DataFrame(results).sort_values("recall@20", ascending=False)
+print(df.head(10).to_string(index=False))
+
+<span class="cm"># Optimise recall@20, not recall@5. The re-ranker in 4.6 fixes</span>
+<span class="cm"># ordering within the candidate set -- it cannot recover a chunk</span>
+<span class="cm"># that was never retrieved. Recall first, precision second.</span></code></pre>
+</div>
+
+<div class="note trap">
+  <span class="tag">The metadata you cannot add later</span>
+  <p>Page number, section heading, document title, author, effective date, source URI, tenant, permission tags. Once a chunk is a bare string in a table, none of these are recoverable without re-parsing every document. Capture them during parsing, even if you have no immediate use &mdash; you will need them for citations, for filtering, and for the "why did it return this?" question that arrives the first week after launch.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly a weekend</div>
+  <ol>
+    <li>Parse ten of your own PDFs and <em>read</em> the extracted text. Count how many have column, table or header problems. This number will surprise you.</li>
+    <li>Implement <code>recursive_chunk</code> and compare its boundaries against fixed-size chunking on the same document. Look at where each cuts.</li>
+    <li>Implement <code>markdown_chunk</code> with heading paths. Measure recall with and without the heading prefix &mdash; it is usually a free win.</li>
+    <li>Implement semantic chunking. Plot the sentence-to-sentence distance curve for one document and see whether the breakpoints match where you would have split it.</li>
+    <li>Build parent-document retrieval. Compare answer quality against flat chunking at the same index size.</li>
+    <li>Implement contextual retrieval on 100 chunks. Measure recall before and after, and measure the ingestion cost with and without prompt caching.</li>
+    <li>Run the full parameter sweep. Plot recall@20 against chunk size for each strategy and pick your operating point from the chart.</li>
+    <li>Build change detection with content hashing. Re-run ingestion on an unchanged corpus and confirm zero embedding calls.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Article</span><span class="body"><a href="https://www.anthropic.com/news/contextual-retrieval">Anthropic &mdash; Introducing Contextual Retrieval</a><span class="why">The technique in Section 03, with measured recall improvements and a cookbook implementation. Read this one.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://research.trychroma.com/evaluating-chunking">Chroma &mdash; Evaluating Chunking Strategies for Retrieval</a><span class="why">A systematic empirical comparison. The right corrective to chunking advice based on intuition.</span></span></li>
+    <li><span class="kind">Guide</span><span class="body"><a href="https://www.pinecone.io/learn/chunking-strategies/">Pinecone &mdash; Chunking Strategies</a><span class="why">Clear vendor-neutral overview with worked examples of each approach.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.unstructured.io/">Unstructured documentation</a><span class="why">Element-typed parsing across many formats, with chunking that respects document structure.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://tika.apache.org/">Apache Tika</a><span class="why">The JVM-native parser. Integrates directly with Spring AI's <code>TikaDocumentReader</code>.</span></span></li>
+    <li><span class="kind">Course</span><span class="body"><a href="https://www.deeplearning.ai/short-courses/preprocessing-unstructured-data-for-llm-applications/">Preprocessing Unstructured Data for LLM Applications</a><span class="why">Free short course focused entirely on the parsing and chunking stage.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2409.04701">Late Chunking: Contextual Chunk Embeddings</a><span class="why">Embed the long document first, then pool per chunk &mdash; each chunk vector carries whole-document context.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 4.5 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

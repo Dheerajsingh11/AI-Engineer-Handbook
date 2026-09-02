@@ -1,0 +1,422 @@
+<title>AI System Design & Career</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 17 &middot; Applications &amp; Career</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">17.4</span>
+    <h1>AI System Design &amp; Career</h1>
+    <p class="lede">Landing the role and designing the systems. This page is the capstone: a framework for AI system-design
+interviews, the portfolio and positioning that actually get callbacks, how to talk about AI work credibly, and
+a grounded plan for the transition &mdash; turning everything in this handbook into a career.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#portfolio">The portfolio that works</a></li><li><a href="#system-design">The AI system-design interview</a></li><li><a href="#positioning">Positioning a transition</a></li><li><a href="#plan">A grounded plan</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>The handbook, broadly. This page is about converting what you have learned into a role &mdash; the last mile of the transition.</p>
+</div>
+
+<p>Knowing the material is necessary but not sufficient. Getting an AI-engineering role requires demonstrating that knowledge in two settings: <strong>a portfolio</strong> that proves you can ship, and <strong>interviews</strong> that test whether you can reason about systems. This page covers both, plus the honest positioning that turns a backend background into an advantage rather than a gap.</p>
+
+<div class="note key">
+  <span class="tag">What actually gets you hired (from Topic 9.1 recap)</span>
+  <p>The 2026 job market screens for <strong>evidence, not vocabulary.</strong> Every candidate lists "RAG", "LLMs", "agents" &mdash; those words are now table stakes and prove nothing. What gets callbacks is <em>shipped, quantified work</em>: "built a RAG system over 50k documents, improved answer accuracy from 60% to 85% measured on a 200-case eval set, deployed to 500 users." The difference between the two is the entire difference between an interview and a rejection. Everything below serves one goal: producing and communicating that kind of concrete evidence.</p>
+</div>
+
+<h2 id="portfolio"><span class="kicker">Section 02 <span class="lvl lvl-b">Beginner</span></span>The portfolio that works</h2>
+
+<div class="tbl">
+  <table>
+    <caption>What a strong AI portfolio shows</caption>
+    <thead><tr><th>Signal</th><th>How to demonstrate it</th></tr></thead>
+    <tbody>
+      <tr><td>You can ship</td><td>Deployed projects, not notebooks &mdash; a live URL or a real repo</td></tr>
+      <tr><td>You measure</td><td>Every project has an eval and a number (Topic 4.7)</td></tr>
+      <tr><td>You understand trade-offs</td><td>A README explaining <em>why</em> you chose each approach</td></tr>
+      <tr><td>You cover the stack</td><td>Projects spanning RAG, agents, deployment</td></tr>
+      <tr><td>Your differentiator</td><td>Something that uses your existing expertise (Section 04)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note">
+  <p><strong>The capstone projects from the hub are your portfolio</strong> &mdash; a semantic-search tool, an evaluation harness, a production RAG service, an event-driven agent, and (given a security or domain background) something that shows your differentiator. Build them publicly, and treat the <strong>README as the deliverable</strong>: it should explain the problem, your design decisions and their trade-offs, the evaluation and the numbers, and what you would do next. Hiring managers read READMEs; a project with a thoughtful write-up beats a cleverer project with none. Quality over quantity &mdash; three deep, deployed, measured projects beat ten notebooks.</p>
+</div>
+
+<h2 id="system-design"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>The AI system-design interview</h2>
+
+<p>Senior AI-engineering interviews increasingly include a system-design round: "design a RAG system for a company's documents," "design an AI customer-support agent." This is where the whole handbook pays off &mdash; you have built these systems, so you can reason about them. A framework for answering.</p>
+
+<ol class="steps">
+  <li><strong>Clarify requirements.</strong> Scale (documents, users, QPS)? Latency budget? Accuracy bar? Cost constraints? Data sensitivity? Do not start designing until you know these &mdash; asking shows seniority.</li>
+  <li><strong>Sketch the high-level architecture.</strong> Ingestion pipeline, retrieval, generation, serving &mdash; the shape from Phase 4, drawn out.</li>
+  <li><strong>Go deep on the hard parts.</strong> Chunking strategy, hybrid search + re-ranking (Topic 4.6), evaluation (Topic 4.7), the parts that actually determine quality.</li>
+  <li><strong>Address the cross-cutting concerns.</strong> Cost (routing, caching), latency (streaming), safety (Topic 5.6), evaluation and monitoring (Topic 5.5), failure modes.</li>
+  <li><strong>Discuss trade-offs.</strong> Every choice has alternatives &mdash; managed vs custom, open vs closed model, RAG vs fine-tuning. Naming the trade-off is what they are testing.</li>
+  <li><strong>Know the failure modes.</strong> Hallucination, poor retrieval, cost blow-ups, prompt injection &mdash; and how you would catch and handle each.</li>
+</ol>
+
+<div class="note key">
+  <span class="tag">What the interviewer is really assessing</span>
+  <p>They are not looking for one right answer &mdash; there isn't one. They are assessing whether you <strong>reason like someone who has built these systems</strong>: do you ask about requirements before designing, do you know that retrieval quality (not the model) usually determines RAG quality, do you bring up evaluation unprompted, do you name trade-offs instead of asserting one true way, do you know the failure modes? Every one of these instincts comes directly from having worked through this handbook &mdash; especially the "measure it" and "fix retrieval first" and "controls in code, not prompts" themes. The system-design interview is where reading pays off in a way that reciting definitions never could.</p>
+</div>
+
+<h2 id="positioning"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>Positioning a transition</h2>
+
+<p>If you are moving into AI from another engineering background, positioning that background correctly is the difference between "junior AI engineer" and "engineer who adds AI to real systems."</p>
+
+<div class="note key">
+  <span class="tag">Your background is an asset, not a deficit</span>
+  <p>The market is full of people who know how to call an LLM API but have never run a production system, handled scale, thought about security, or shipped something reliable. If you come from backend, data, security, or a specific domain, <strong>you already have the half of AI engineering that is hardest to teach</strong> &mdash; distributed systems, deployment, observability, data modelling, security, domain knowledge. The AI-specific skills (this handbook) are the faster half to acquire. So do not position yourself as a beginner competing with fresh ML grads; position yourself as <strong>an experienced engineer who now also builds AI systems</strong>. "I've run production services for years and I've built RAG and agent systems on top of that experience" is a far stronger story than "I'm learning AI." Lead with the combination.</p>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>Turning a background into a differentiator</caption>
+    <thead><tr><th>Your background</th><th>Your AI-engineering edge</th></tr></thead>
+    <tbody>
+      <tr><td>Backend / distributed systems</td><td>Production serving, event-driven AI, scale (Topics 5.4, 10.2)</td></tr>
+      <tr><td>Security</td><td>LLM security, safe agents &mdash; rare and valued (Topics 5.6, 16.2)</td></tr>
+      <tr><td>Data engineering</td><td>Ingestion, pipelines, data quality (Topics 4.5, 5.4)</td></tr>
+      <tr><td>A specific industry</td><td>Vertical AI depth &mdash; the durable moat (Topic 17.3)</td></tr>
+      <tr><td>Java / enterprise</td><td>Spring AI, enterprise integration (Phase 3)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="plan"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>A grounded plan</h2>
+
+<div class="tbl">
+  <table>
+    <caption>The transition, end to end</caption>
+    <thead><tr><th>Phase</th><th>Focus</th><th>Output</th></tr></thead>
+    <tbody>
+      <tr><td>Foundations</td><td>Maths, Python, LLM mechanics (Phases 1&ndash;2)</td><td>Understanding, not just usage</td></tr>
+      <tr><td>Core skills</td><td>Prompting, RAG, agents (Phases 3&ndash;8)</td><td>2&ndash;3 shipped, measured projects</td></tr>
+      <tr><td>Production</td><td>Serving, deployment, ops (Phases 6, 10)</td><td>A deployed system, not a demo</td></tr>
+      <tr><td>Differentiator</td><td>Your background applied (Section 04)</td><td>The project only you would build</td></tr>
+      <tr><td>Job search</td><td>Portfolio, positioning, interviews</td><td>Callbacks &rarr; offers</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note">
+  <p><strong>The habits that decide whether this works</strong> (a recap of the whole handbook's ethos): <strong>build in public</strong> &mdash; a GitHub repo per project with a real README is your actual CV. <strong>Measure everything</strong> &mdash; the evaluation discipline (Topics 4.7, 5.5) is what separates engineers from demo-builders, and it is rarer than it should be. <strong>Ship, don't just study</strong> &mdash; a deployed project teaches and proves more than any number of tutorials. <strong>Stay current</strong> &mdash; the field moves monthly; keep a maintenance loop (Topic 11.3). And <strong>lead with what you already have</strong> &mdash; you are not starting over, you are adding a layer to real experience. That framing, more than any single skill, is what makes the transition succeed.</p>
+</div>
+
+<div class="note java">
+  <span class="tag">A final word</span>
+  <p>You have reached the end of the knowledge base. The distance from here to a role is not more reading &mdash; it is <em>doing</em>: building the projects, measuring them, deploying them, writing them up, and telling the story of an experienced engineer who now builds AI. The material is complete; the differentiator is execution. Everything in these pages was chosen to make you effective, not just informed &mdash; so go build something real, measure it honestly, and ship it. That is the whole job.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; your actual job search</div>
+  <ol>
+    <li>Build and deploy the capstone projects. Write a strong README for each: problem, design, trade-offs, evaluation, numbers.</li>
+    <li>Do a mock AI system-design interview (design a RAG system, or a support agent) using the Section 03 framework. Record yourself; review it.</li>
+    <li>Write your positioning statement: one paragraph framing you as an experienced engineer who builds AI, leading with your background (Section 04).</li>
+    <li>Build the one project only <em>you</em> would build &mdash; your background plus AI. Make it your portfolio centrepiece.</li>
+    <li>Rewrite your CV to show shipped, quantified AI work &mdash; evidence, not vocabulary (Section 01).</li>
+    <li>Pick three real job descriptions. For each, map which handbook topics it requires and where your background is the edge.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Book</span><span class="body"><a href="https://www.oreilly.com/library/view/ai-engineering/9781098166298/">AI Engineering &mdash; Chip Huyen</a><span class="why">The definitive book on building AI applications end to end &mdash; the whole handbook, expanded.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://hamel.dev/blog/posts/evals/">Your AI Product Needs Evals</a><span class="why">The measurement discipline that gets you hired (Section 01, Topic 4.7).</span></span></li>
+    <li><span class="kind">Repo</span><span class="body"><a href="https://github.com/donnemartin/system-design-primer">System Design Primer</a><span class="why">The general system-design foundations the AI round builds on (Section 03).</span></span></li>
+    <li><span class="kind">Newsletter</span><span class="body"><a href="https://www.latent.space/">Latent Space</a><span class="why">The AI-engineering community and podcast &mdash; how practitioners talk about the work.</span></span></li>
+    <li><span class="kind">Guide</span><span class="body"><a href="https://github.com/ray-project/llm-applications">LLM applications guide (Ray)</a><span class="why">A practical, end-to-end reference for building and evaluating a production RAG app.</span></span></li>
+    <li><span class="kind">Hub</span><span class="body"><a href="../index.html">&larr; Back to the handbook</a><span class="why">The full 79-topic knowledge base this page is the capstone of. Go build.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 17.4 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

@@ -1,0 +1,509 @@
+<title>LLM APIs & Model Selection</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 09 &middot; Models &amp; Training</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">9.1</span>
+    <h1>LLM APIs &amp; Model Selection</h1>
+    <p class="lede">Working with models as a commodity you buy. This page maps the provider landscape, gives a real framework for
+choosing a model (capability, cost, latency, context, licence), covers the API mechanics that matter in
+production &mdash; streaming, rate limits, retries, caching, fallback &mdash; and shows how to stay
+provider-agnostic so a price change never rewrites your app.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#choosing">Choosing a model &mdash; a real framework</a></li><li><a href="#mechanics">The API mechanics that matter in production</a></li><li><a href="#agnostic">Staying provider-agnostic</a></li><li><a href="#production">Operating model APIs</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>How a model generates text and what tokens are (Topic 1.3). This page is about consuming models through APIs, which is how most production AI is built.</p>
+</div>
+
+<p>You will spend far more time <em>calling</em> models than training them. A model is, for most engineering purposes, a metered utility: text in, text out, billed per token. The skill is choosing the right one and calling it robustly &mdash; not building it.</p>
+
+<div class="tbl">
+  <table>
+    <caption>The provider landscape</caption>
+    <thead><tr><th>Kind</th><th>Examples</th><th>Trade-off</th></tr></thead>
+    <tbody>
+      <tr><td>Frontier closed APIs</td><td>Anthropic Claude, OpenAI GPT, Google Gemini</td><td>Most capable; per-token cost; data leaves your VPC</td></tr>
+      <tr><td>Open-weight models</td><td>Llama, Mistral, Qwen, Gemma, DeepSeek</td><td>Self-hostable; you run the infrastructure (Topic 9.2)</td></tr>
+      <tr><td>Model-hosting APIs</td><td>Together, Fireworks, Groq, Replicate</td><td>Open models as an API &mdash; no ops, pay per token</td></tr>
+      <tr><td>Cloud platform models</td><td>Bedrock, Azure OpenAI, Vertex AI</td><td>Enterprise governance, data residency (Topic 10.1)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">The commodity mindset</span>
+  <p>Models are commoditising fast: capabilities converge, prices fall, and the best model for a task changes every few months. Build so that <strong>which model you use is a configuration value, not an architectural commitment.</strong> The teams that hard-wire one provider's SDK throughout their code pay for it at every price change and every new release. Abstract the model behind your own interface and switching becomes a config edit plus a re-run of your evals.</p>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Context window</dt><dd>Max tokens per request (prompt + output). Bigger costs more and can be slower.</dd>
+    <dt>Input / output tokens</dt><dd>Billed separately; output is usually several times more expensive.</dd>
+    <dt>Rate limit</dt><dd>Requests or tokens per minute the provider allows you.</dd>
+    <dt>Streaming</dt><dd>Receiving the answer token by token as it is generated.</dd>
+    <dt>Prompt caching</dt><dd>The provider reuses computation for a stable prompt prefix &mdash; cheaper, faster.</dd>
+    <dt>Structured output</dt><dd>Forcing the reply into a schema you specify (Topic 3.1).</dd>
+  </dl>
+</div>
+
+<h2 id="choosing"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>Choosing a model &mdash; a real framework</h2>
+
+<p>"Use the best model" is not a strategy. Choose per task, on five axes:</p>
+
+<div class="tbl">
+  <table>
+    <caption>The five axes of model selection</caption>
+    <thead><tr><th>Axis</th><th>Question</th><th>How to decide</th></tr></thead>
+    <tbody>
+      <tr><td>Capability</td><td>Can it do the task well enough?</td><td>Test on <em>your</em> eval set (Topic 4.7), not a public benchmark</td></tr>
+      <tr><td>Cost</td><td>What does it cost at your volume?</td><td>Estimate tokens/request &times; requests/day &times; price</td></tr>
+      <tr><td>Latency</td><td>Fast enough for the use case?</td><td>Measure TTFT and total; output length dominates (Topic 1.3)</td></tr>
+      <tr><td>Context</td><td>Does your input fit?</td><td>Match to your longest realistic prompt</td></tr>
+      <tr><td>Licence / residency</td><td>Are you allowed to use it this way?</td><td>Data-handling terms; open-model licences; region</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">Route, don't standardise</span>
+  <p>The highest-leverage cost decision is usually <strong>model routing</strong>: send easy requests to a small cheap model and only the hard ones to a frontier model. A classifier or a rules check picks the tier (Topic 8.2). This routinely cuts cost by more than any prompt tweak, because most requests do not need the biggest model. Do not pay frontier prices for "reformat this JSON."</p>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Cost estimation and tier routing</span></div>
+<pre><code>PRICING = {  <span class="cm"># $ per million tokens (in, out) -- always verify current rates</span>
+    "small":    (0.25, 1.25),
+    "mid":      (3.00, 15.00),
+    "frontier": (15.00, 75.00),
+}
+
+def cost(tier, in_tokens, out_tokens):
+    pi, po = PRICING[tier]
+    return in_tokens / 1e6 * pi + out_tokens / 1e6 * po
+
+<span class="cm"># Route by difficulty -- a cheap gate, big savings.</span>
+def choose_tier(request):
+    if is_simple(request):          <span class="cm"># classification, formatting, extraction</span>
+        return "small"
+    if needs_deep_reasoning(request):
+        return "frontier"           <span class="cm"># or a reasoning model (Topic 9.4)</span>
+    return "mid"
+
+<span class="cm"># Daily cost projection before you ship, not after the invoice.</span>
+daily = sum(cost(choose_tier(r), 1500, 400) for r in sample) * (total / len(sample))
+print(f"projected: ${daily:,.2f}/day")</code></pre>
+</div>
+
+<h2 id="mechanics"><span class="kicker">Section 03 <span class="lvl lvl-a">Advanced</span></span>The API mechanics that matter in production</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>A robust model call &mdash; the things demos skip</span></div>
+<pre><code>import time, random
+from anthropic import Anthropic, APIStatusError, RateLimitError
+
+client = Anthropic()
+
+def call(messages, model="claude-opus-4-8", max_retries=5, **kw):
+    for attempt in range(max_retries):
+        try:
+            return client.messages.create(
+                model=model, messages=messages, max_tokens=1024, **kw)
+        except RateLimitError as e:
+            <span class="cm"># Respect Retry-After; add JITTER so retries do not sync up</span>
+            <span class="cm"># and re-trigger the limit in lockstep (Topic 5.4).</span>
+            wait = float(e.response.headers.get("retry-after", 2 ** attempt))
+            time.sleep(wait + random.random())
+        except APIStatusError as e:
+            if e.status_code &gt;= 500 and attempt &lt; max_retries - 1:
+                time.sleep(2 ** attempt + random.random())   <span class="cm"># transient</span>
+            else:
+                raise
+    raise RuntimeError("exhausted retries")
+
+<span class="cm"># --- STREAMING: total time is unchanged, perceived time drops -----</span>
+with client.messages.stream(model=model, messages=messages,
+                            max_tokens=1024) as stream:
+    for text in stream.text_stream:
+        yield text                  <span class="cm"># tokens to the UI as they arrive</span>
+
+<span class="cm"># --- PROMPT CACHING: mark a stable prefix as cacheable ------------</span>
+<span class="cm"># Put long, unchanging content (system prompt, documents) FIRST and</span>
+<span class="cm"># cache it; variable user input goes last. Big cost + TTFT win.</span>
+system = [{"type": "text", "text": LONG_SYSTEM_PROMPT,
+           "cache_control": {"type": "ephemeral"}}]</code></pre>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>Production concerns and the fix</caption>
+    <thead><tr><th>Concern</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>Rate limits (429)</td><td>Backoff with jitter; respect <code>Retry-After</code>; request a quota increase</td></tr>
+      <tr><td>Transient 5xx / timeouts</td><td>Retry with backoff; set a sane timeout</td></tr>
+      <tr><td>Provider outage</td><td>Circuit breaker &rarr; fall back to another provider or a cheaper model (Topic 5.4)</td></tr>
+      <tr><td>Cost spikes</td><td>Token caps per request/user; budget alerts; semantic cache</td></tr>
+      <tr><td>Slow responses</td><td>Cap <code>max_tokens</code>; stream; route long jobs async (Topic 5.4)</td></tr>
+      <tr><td>Non-determinism</td><td>Pin the model version; set a seed if offered; tolerant tests (Topic 1.2)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="agnostic"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>Staying provider-agnostic</h2>
+
+<p>The practical way to keep "which model" a config value: put a thin interface between your app and any provider. Several tools give you this for free.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>One interface, many providers</span></div>
+<pre><code><span class="cm"># Option A: a router library that speaks every provider's API.</span>
+<span class="cm"># LiteLLM exposes one OpenAI-style call for 100+ models.</span>
+from litellm import completion
+completion(model="anthropic/claude-opus-4-8", messages=msgs)
+completion(model="openai/gpt-...",            messages=msgs)   <span class="cm"># same call</span>
+completion(model="together_ai/meta-llama/...", messages=msgs)  <span class="cm"># open model</span>
+
+<span class="cm"># Option B: your own tiny interface, swapped by config.</span>
+class LLM:
+    def complete(self, messages, **kw) -&gt; str: ...
+
+<span class="cm"># Option C (Java): Spring AI's ChatModel is already this abstraction</span>
+<span class="cm"># -- swap the starter dependency, keep the code (Topic 3.2).</span>
+
+<span class="cm"># Whatever the mechanism: when you switch model, RE-RUN YOUR EVALS</span>
+<span class="cm"># (Topic 4.7). Prompts are tuned per model family; a swap can</span>
+<span class="cm"># change output length, format adherence and tool-call reliability.</span></code></pre>
+</div>
+
+<div class="note trap">
+  <span class="tag">Abstraction removes the mechanical cost of switching, not the evaluation cost</span>
+  <p>A router makes changing providers a one-line edit &mdash; but the model still behaves differently. Prompts tuned for one family can regress on another; structured-output and tool-calling reliability vary. Treat every model change as a deployment: run your golden set, diff the results, canary it (Topic 5.5). The abstraction buys you cheap <em>experiments</em>, which is exactly what lets you take advantage of a better or cheaper model when it appears.</p>
+</div>
+
+<h2 id="production"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>Operating model APIs</h2>
+
+<div class="kv">
+  <div><dt>Pin versions</dt><dd>Explicit dated model IDs</dd></div>
+  <div><dt>Secrets</dt><dd>Keys in a vault, never in code</dd></div>
+  <div><dt>Timeouts</dt><dd>Generous &mdash; models are slow</dd></div>
+  <div><dt>Budgets</dt><dd>Per request, user and tenant</dd></div>
+  <div><dt>Caching</dt><dd>Prompt cache + semantic cache</dd></div>
+  <div><dt>Fallback</dt><dd>A second provider on outage</dd></div>
+</div>
+
+<div class="note">
+  <p><strong>The build-vs-buy question in one line:</strong> use a hosted API until data residency, steady high volume, or a fine-tuned model pushes you to self-host (Topic 9.2) &mdash; and even then, keep the same interface so parts of your traffic can stay on an API. Most systems are best served by APIs for the frontier work and self-hosted small models for the high-volume, latency-sensitive, or private paths. It is rarely all-or-nothing.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly an evening</div>
+  <ol>
+    <li>Run the same task on a small, a mid and a frontier model. Compare quality (on your eval set), cost and latency. Decide which the task actually needs.</li>
+    <li>Implement tier routing with a cheap classifier. Measure the cost saving vs always using the frontier model.</li>
+    <li>Add retry-with-jitter and confirm it survives a simulated 429 storm without re-triggering the limit.</li>
+    <li>Enable prompt caching on a long stable prefix. Measure the cost and TTFT difference over 100 calls.</li>
+    <li>Wrap two providers behind one interface (or use LiteLLM). Swap between them with a config change and re-run your evals.</li>
+    <li>Add a circuit breaker that falls back to a second provider on outage. Simulate an outage and confirm the fallback.</li>
+    <li>Project daily cost for a real workload before building it. Compare to actuals after.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.claude.com/en/api/overview">Anthropic API</a><span class="why">Messages API, streaming, prompt caching and tool use &mdash; the mechanics of Section 03.</span></span></li>
+    <li><span class="kind">Tool</span><span class="body"><a href="https://docs.litellm.ai/">LiteLLM</a><span class="why">One OpenAI-style interface over 100+ models &mdash; the provider-agnostic layer of Section 04.</span></span></li>
+    <li><span class="kind">Leaderboard</span><span class="body"><a href="https://lmarena.ai/">LMArena (Chatbot Arena)</a><span class="why">Human-preference model rankings. A starting filter &mdash; then test on your own data.</span></span></li>
+    <li><span class="kind">Reference</span><span class="body"><a href="https://artificialanalysis.ai/">Artificial Analysis</a><span class="why">Side-by-side cost, latency and quality across providers. Useful for the Section 02 axes.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.spring.io/spring-ai/reference/api/chatmodel.html">Spring AI &mdash; ChatModel</a><span class="why">The provider abstraction in your Java stack (Topic 3.2).</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 9.1 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

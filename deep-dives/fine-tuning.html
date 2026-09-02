@@ -1,0 +1,691 @@
+<title>Fine-Tuning & PEFT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 03 &middot; Java AI Stack</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">3.5</span>
+    <h1>Fine-Tuning &amp; PEFT</h1>
+    <p class="lede">When prompting and RAG genuinely are not enough. This page derives LoRA from the low-rank hypothesis, shows
+the arithmetic that makes a 70B model fit on one GPU, walks a complete fine-tuning run end to end, and is
+blunt about the fact that most fine-tuning projects should not have happened.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#lora">LoRA, derived</a></li><li><a href="#peft">The PEFT family</a></li><li><a href="#data">The data is the whole job</a></li><li><a href="#run">A complete fine-tuning run</a></li><li><a href="#pitfalls">How fine-tuning goes wrong</a></li><li><a href="#serving">Serving a fine-tuned model</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>Gradient descent (Topic 1.4), matrix rank (Topic 1.1), and the PyTorch training loop (Topic 2.5). This is the most mathematically demanding page in Phase 3.</p>
+</div>
+
+<p>Fine-tuning means continuing to train an already-trained model on your own data, so it adapts to your task. The concept is simple. The judgement about <em>whether to do it</em> is where most of the value lies.</p>
+
+<div class="note key">
+  <span class="tag">Read this before you fine-tune anything</span>
+  <p><strong>RAG teaches a model facts. Fine-tuning teaches it behaviour.</strong></p>
+  <p>If the complaint is "it doesn't know our products", that is retrieval &mdash; and fine-tuning is a poor way to inject facts, because the model will still confuse them, cannot cite them, and needs retraining whenever they change. If the complaint is "it won't reliably produce our XML format", or "it doesn't sound like us", or "it can't handle our domain's terminology" &mdash; that is behaviour, and fine-tuning may genuinely be the answer.</p>
+  <p>Most fine-tuning projects are attempts to solve a retrieval problem with training. They cost weeks and produce a model that is worse at everything else.</p>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>The adaptation ladder &mdash; exhaust each rung before climbing</caption>
+    <thead><tr><th>Rung</th><th>Effort</th><th>Fixes</th><th>Try next if&hellip;</th></tr></thead>
+    <tbody>
+      <tr><td>1. Better prompt</td><td>Hours</td><td>Most format and tone problems</td><td>Output is still inconsistent</td></tr>
+      <tr><td>2. Few-shot examples</td><td>Hours</td><td>Format, edge cases, style</td><td>You need more examples than fit the context</td></tr>
+      <tr><td>3. Structured output</td><td>A day</td><td>Schema conformance entirely</td><td>Content quality is the problem, not shape</td></tr>
+      <tr><td>4. RAG</td><td>Weeks</td><td>Missing knowledge, freshness, citations</td><td>Retrieval is good but behaviour is wrong</td></tr>
+      <tr><td>5. <strong>LoRA fine-tune</strong></td><td>Days&ndash;weeks</td><td>Style, format, domain vocabulary, task specialisation</td><td>LoRA plateaus below requirement</td></tr>
+      <tr><td>6. Full fine-tune</td><td>Weeks</td><td>Deeper behavioural change</td><td>Rare. Usually the data is the problem</td></tr>
+      <tr><td>7. Continued pre-training</td><td>Months</td><td>A genuinely new domain or language</td><td>You have a research budget</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h3>When fine-tuning genuinely wins</h3>
+<ul>
+  <li><strong>Consistent structured output</strong> at very high volume, where a smaller fine-tuned model replaces a large prompted one at a fraction of the cost.</li>
+  <li><strong>Domain language</strong> &mdash; medical, legal, or an internal jargon the base model misreads.</li>
+  <li><strong>Latency and cost</strong> &mdash; distilling a large model's behaviour into a small one you host yourself.</li>
+  <li><strong>Classification at scale</strong> where a fine-tuned small model beats a prompted large one on both accuracy and price.</li>
+  <li><strong>Embedding models for retrieval</strong> &mdash; the highest-return fine-tune available to a RAG engineer, covered in Topic 2.5.</li>
+</ul>
+
+<h2 id="lora"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>LoRA, derived</h2>
+
+<p>Full fine-tuning updates every parameter. For a 7B model in fp16 that means 14&nbsp;GB of weights, 14&nbsp;GB of gradients and roughly 56&nbsp;GB of Adam optimiser state &mdash; over 84&nbsp;GB before activations. Beyond a single GPU, and that is the small model.</p>
+
+<p>LoRA starts from an empirical observation: <strong>the <em>change</em> a fine-tune makes to a weight matrix has very low intrinsic rank.</strong> The update is not arbitrary; it lies in a small subspace. If that is true, you do not need to store the full update.</p>
+
+<div class="derive">
+  <div class="derive-top">From the low-rank hypothesis to the parameter saving</div>
+  <ol>
+    <li>Fine-tuning computes <i>W</i>&prime; = <i>W</i> + &Delta;<i>W</i>, where <i>W</i> is <i>d</i>&times;<i>k</i>.
+      <span class="why">The trained model is the base plus an update.</span></li>
+    <li>Hypothesis: rank(&Delta;<i>W</i>) = <i>r</i> &#8810; min(<i>d</i>,<i>k</i>).
+      <span class="why">The update lies in a low-dimensional subspace &mdash; measured empirically, and it holds well.</span></li>
+    <li>Any rank-<i>r</i> matrix factorises: &Delta;<i>W</i> = <i>BA</i> with <i>B</i> being <i>d</i>&times;<i>r</i> and <i>A</i> being <i>r</i>&times;<i>k</i>.
+      <span class="why">Standard result. This is the whole trick.</span></li>
+    <li>Freeze <i>W</i>. Train only <i>A</i> and <i>B</i>: <i>h</i> = <i>Wx</i> + <i>BAx</i>.
+      <span class="why">Parameter count falls from <i>dk</i> to <i>r</i>(<i>d</i>+<i>k</i>).</span></li>
+    <li>For <i>d</i>=<i>k</i>=4096 and <i>r</i>=8: 16,777,216 &rarr; 65,536 parameters.
+      <span class="why"><strong>A 256&times; reduction, per matrix.</strong> And no optimiser state for the frozen 99.6%. &nbsp;&#9632;</span></li>
+  </ol>
+</div>
+
+<div class="math">
+  <span class="lbl">The LoRA forward pass</span>
+  <i>h</i> &nbsp;=&nbsp; <i>Wx</i> &nbsp;+&nbsp; <span class="frac"><span>&alpha;</span><span><i>r</i></span></span> <i>BAx</i>
+  <span class="note"><i>A</i> is initialised from a Gaussian, <i>B</i> to <strong>zeros</strong> &mdash; so <i>BA</i> = 0 at step one and the model starts as an exact copy of the base. Training then departs from it smoothly rather than from a random perturbation. The &alpha;/<i>r</i> scaling means changing <i>r</i> does not force you to retune the learning rate; a common convention is &alpha; = 2<i>r</i>.</span>
+</div>
+
+<div class="note key">
+  <span class="tag">Three properties that make LoRA operationally excellent</span>
+  <ul>
+    <li><strong>Adapters are tiny.</strong> A LoRA for a 7B model is 10&ndash;200&nbsp;MB, versus 14&nbsp;GB. You can version them in a registry and ship them like config.</li>
+    <li><strong>They are composable and hot-swappable.</strong> One base model in GPU memory can serve many adapters &mdash; per tenant, per task &mdash; swapped per request. Full fine-tunes would need a separate model each.</li>
+    <li><strong>They can be merged.</strong> <i>W</i> + <i>BA</i> can be folded into the base weights for deployment, giving <em>zero</em> added inference latency. You choose: merged for speed, unmerged for flexibility.</li>
+  </ul>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>LoRA implemented from scratch</span></div>
+<pre><code>import torch, torch.nn as nn, math
+
+class LoRALinear(nn.Module):
+    """Wrap a frozen Linear layer with a trainable low-rank update."""
+
+    def __init__(self, base: nn.Linear, r=8, alpha=16, dropout=0.05):
+        super().__init__()
+        self.base = base
+        for p in self.base.parameters():
+            p.requires_grad = False               <span class="cm"># freeze the original</span>
+
+        self.r = r
+        self.scaling = alpha / r
+        self.dropout = nn.Dropout(dropout)
+
+        <span class="cm"># A: random init. B: ZEROS -- so BA = 0 initially and the</span>
+        <span class="cm"># wrapped layer is numerically identical to the base at step 0.</span>
+        self.A = nn.Parameter(torch.empty(r, base.in_features))
+        self.B = nn.Parameter(torch.zeros(base.out_features, r))
+        nn.init.kaiming_uniform_(self.A, a=math.sqrt(5))
+
+    def forward(self, x):
+        return self.base(x) + self.dropout(x) @ self.A.T @ self.B.T * self.scaling
+
+    @torch.no_grad()
+    def merge(self):
+        """Fold the adapter into the base weights: zero inference cost."""
+        self.base.weight += (self.B @ self.A) * self.scaling
+        return self.base
+
+
+def apply_lora(model, target_names=("q_proj", "v_proj"), r=8, alpha=16):
+    """Attach LoRA to the attention projections. Targeting q and v
+    is the original paper's recommendation and remains a strong
+    default; adding k, o and the MLP projections helps on harder
+    tasks at proportionally more cost."""
+    for name, module in list(model.named_modules()):
+        for child_name, child in list(module.named_children()):
+            if isinstance(child, nn.Linear) and child_name in target_names:
+                setattr(module, child_name, LoRALinear(child, r, alpha))
+    return model
+
+
+<span class="cm"># --- the arithmetic that makes this work --------------------------</span>
+d = k = 4096
+full = d * k
+lora = r_ = 8
+lora_params = r_ * (d + k)
+print(f"full  : {full:,} parameters")          <span class="cm"># 16,777,216</span>
+print(f"LoRA  : {lora_params:,} parameters")   <span class="cm">#     65,536</span>
+print(f"ratio : {full / lora_params:.0f}x")    <span class="cm">#        256x</span></code></pre>
+</div>
+
+<h2 id="peft"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>The PEFT family</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Parameter-efficient fine-tuning methods</caption>
+    <thead><tr><th>Method</th><th>Mechanism</th><th>Trainable</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><strong>LoRA</strong></td><td>Low-rank update to weight matrices</td><td class="nc">0.1&ndash;1%</td><td><strong>The default.</strong> Mergeable, composable</td></tr>
+      <tr><td><strong>QLoRA</strong></td><td>LoRA over a 4-bit quantised frozen base</td><td class="nc">0.1&ndash;1%</td><td>Fine-tune 70B on one 48&nbsp;GB GPU. The practical breakthrough</td></tr>
+      <tr><td>DoRA</td><td>Decomposes weights into magnitude and direction</td><td class="nc">~1%</td><td>Slightly better than LoRA at low rank</td></tr>
+      <tr><td>Prefix / P-tuning</td><td>Learn virtual tokens prepended to the input</td><td class="nc">&lt;0.1%</td><td>Very cheap; less expressive</td></tr>
+      <tr><td>Prompt tuning</td><td>Learn soft embeddings only</td><td class="nc">&lt;0.01%</td><td>Cheapest; needs a large base to work</td></tr>
+      <tr><td>Adapters</td><td>Insert small trainable bottleneck layers</td><td class="nc">~3%</td><td>Predates LoRA; adds inference latency</td></tr>
+      <tr><td>(IA)³</td><td>Learned rescaling vectors</td><td class="nc">&lt;0.05%</td><td>Extremely small, competitive on some tasks</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note java">
+  <span class="tag">QLoRA, and why it changed who can fine-tune</span>
+  <p>QLoRA quantises the frozen base model to 4 bits &mdash; using a data type called NF4 designed for normally-distributed weights &mdash; while keeping the LoRA adapters in bf16. Gradients flow <em>through</em> the quantised weights to the adapters without ever needing a full-precision copy of the base.</p>
+  <p>The arithmetic: a 70B model in fp16 needs 140&nbsp;GB; in 4-bit it needs about 35&nbsp;GB. Add adapters, activations and optimiser state for 0.5% of parameters and it fits on a single 48&nbsp;GB GPU. Fine-tuning a frontier-class open model went from a cluster job to something you can rent for a few dollars an hour.</p>
+</div>
+
+<h2 id="data"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>The data is the whole job</h2>
+
+<p>Practitioners consistently report the same thing: fine-tuning outcomes are dominated by data quality, and the hyperparameters barely matter by comparison. A thousand carefully curated examples routinely beat fifty thousand scraped ones.</p>
+
+<div class="tbl">
+  <table>
+    <caption>How much data, for what</caption>
+    <thead><tr><th>Goal</th><th>Examples needed</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td>Output format / style</td><td class="nc">50&ndash;500</td><td>Try few-shot prompting first &mdash; it often suffices</td></tr>
+      <tr><td>Task specialisation</td><td class="nc">1,000&ndash;10,000</td><td>The sweet spot for LoRA</td></tr>
+      <tr><td>Domain adaptation</td><td class="nc">10,000&ndash;100,000</td><td>Consider whether RAG solves it instead</td></tr>
+      <tr><td>New capability</td><td class="nc">100,000+</td><td>Usually the wrong project</td></tr>
+      <tr><td>Embedding fine-tune</td><td class="nc">1,000&ndash;50,000 pairs</td><td>Highest return for a RAG engineer</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Preparing a dataset properly</span></div>
+<pre><code>import json, hashlib
+from collections import Counter
+
+def load_and_clean(path):
+    seen, rows = set(), []
+    for line in open(path, encoding="utf-8"):
+        row = json.loads(line)
+
+        <span class="cm"># 1. DEDUPLICATE. Duplicates across the train/eval split are</span>
+        <span class="cm">#    leakage, and they make your eval numbers meaningless.</span>
+        key = hashlib.sha256(
+            (row["messages"][-2]["content"] + row["messages"][-1]["content"])
+            .encode()).hexdigest()
+        if key in seen:
+            continue
+        seen.add(key)
+
+        <span class="cm"># 2. Drop degenerate examples</span>
+        answer = row["messages"][-1]["content"].strip()
+        if len(answer) &lt; 10 or len(answer) &gt; 8000:
+            continue
+
+        rows.append(row)
+    return rows
+
+def audit(rows):
+    """Look at the distribution before training, not after."""
+    lengths = [len(json.dumps(r)) for r in rows]
+    lengths.sort()
+    print(f"n = {len(rows)}")
+    print(f"length p50={lengths[len(lengths)//2]} p95={lengths[int(len(lengths)*.95)]}")
+
+    <span class="cm"># 3. Class balance. If 80% of your examples are one category,</span>
+    <span class="cm">#    the model learns to always predict that category.</span>
+    labels = Counter(r.get("label", "unlabelled") for r in rows)
+    for label, count in labels.most_common():
+        print(f"  {label:24s} {count:6d}  {count/len(rows):6.1%}")
+
+<span class="cm"># 4. SPLIT BY A NATURAL GROUPING, not randomly. If ten examples</span>
+<span class="cm">#    come from one document, a random split puts some in train and</span>
+<span class="cm">#    some in eval, and your eval score is inflated by memorisation.</span>
+def split_by_group(rows, group_key="document_id", eval_fraction=0.1):
+    groups = sorted({r[group_key] for r in rows})
+    cutoff = int(len(groups) * (1 - eval_fraction))
+    train_groups = set(groups[:cutoff])
+    train = [r for r in rows if r[group_key] in train_groups]
+    evaluation = [r for r in rows if r[group_key] not in train_groups]
+    return train, evaluation</code></pre>
+</div>
+
+<h2 id="run"><span class="kicker">Section 05 <span class="lvl lvl-a">Advanced</span></span>A complete fine-tuning run</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>QLoRA with PEFT and TRL, end to end</span></div>
+<pre><code>import torch
+from transformers import (AutoModelForCausalLM, AutoTokenizer,
+                          BitsAndBytesConfig)
+from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+from trl import SFTTrainer, SFTConfig
+from datasets import load_dataset
+
+BASE = "meta-llama/Llama-3.1-8B-Instruct"
+
+<span class="cm"># --- 1. Load the base model in 4-bit ------------------------------</span>
+bnb = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_quant_type="nf4",              <span class="cm"># NF4: designed for normal weights</span>
+    bnb_4bit_compute_dtype=torch.bfloat16,  <span class="cm"># compute in bf16, store in 4-bit</span>
+    bnb_4bit_use_double_quant=True,         <span class="cm"># quantise the quantisation constants</span>
+)
+
+model = AutoModelForCausalLM.from_pretrained(
+    BASE, quantization_config=bnb, device_map="auto",
+    attn_implementation="flash_attention_2")
+model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=True)
+
+tokenizer = AutoTokenizer.from_pretrained(BASE)
+tokenizer.pad_token = tokenizer.eos_token
+tokenizer.padding_side = "right"            <span class="cm"># left padding breaks training</span>
+
+<span class="cm"># --- 2. Attach LoRA adapters --------------------------------------</span>
+peft_config = LoraConfig(
+    r=16,
+    lora_alpha=32,                          <span class="cm"># alpha = 2r, a common convention</span>
+    lora_dropout=0.05,
+    bias="none",
+    task_type="CAUSAL_LM",
+    <span class="cm"># Targeting all projections beats q,v alone on harder tasks.</span>
+    target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
+                    "gate_proj", "up_proj", "down_proj"],
+)
+model = get_peft_model(model, peft_config)
+model.print_trainable_parameters()
+<span class="cm"># trainable: 41,943,040 || all: 8,072,204,288 || trainable%: 0.5196</span>
+
+<span class="cm"># --- 3. Data ------------------------------------------------------</span>
+dataset = load_dataset("json", data_files={"train": "train.jsonl",
+                                           "eval":  "eval.jsonl"})
+
+<span class="cm"># --- 4. Train -----------------------------------------------------</span>
+trainer = SFTTrainer(
+    model=model,
+    train_dataset=dataset["train"],
+    eval_dataset=dataset["eval"],
+    processing_class=tokenizer,
+    args=SFTConfig(
+        output_dir="./out",
+        num_train_epochs=3,                 <span class="cm"># more than 3 usually overfits</span>
+        per_device_train_batch_size=4,
+        gradient_accumulation_steps=4,      <span class="cm"># effective batch = 16</span>
+        learning_rate=2e-4,                 <span class="cm"># LoRA wants ~10x a full fine-tune</span>
+        lr_scheduler_type="cosine",
+        warmup_ratio=0.03,
+        max_grad_norm=1.0,
+        bf16=True,
+        gradient_checkpointing=True,
+        logging_steps=10,
+        eval_strategy="steps", eval_steps=100,
+        save_strategy="steps", save_steps=100,
+        load_best_model_at_end=True,        <span class="cm"># keep the best, not the last</span>
+        metric_for_best_model="eval_loss",
+        max_length=2048,
+        packing=True,                       <span class="cm"># pack short examples: less padding waste</span>
+    ),
+)
+trainer.train()
+trainer.save_model("./adapter")             <span class="cm"># ~80 MB, not 16 GB</span>
+
+<span class="cm"># --- 5. Serve -----------------------------------------------------</span>
+<span class="cm"># Option A: keep separate -- swap adapters per tenant at runtime</span>
+<span class="cm"># Option B: merge for zero added latency</span>
+<span class="cm">#   merged = PeftModel.from_pretrained(base_fp16, "./adapter").merge_and_unload()</span>
+<span class="cm">#   merged.save_pretrained("./merged-model")</span></code></pre>
+</div>
+
+<div class="kv">
+  <div><dt>learning rate</dt><dd>1e-4 to 3e-4 for LoRA</dd></div>
+  <div><dt>rank r</dt><dd>8&ndash;16 typical; 32&ndash;64 for hard tasks</dd></div>
+  <div><dt>alpha</dt><dd>2&times;r as a starting convention</dd></div>
+  <div><dt>epochs</dt><dd>1&ndash;3. More overfits</dd></div>
+  <div><dt>effective batch</dt><dd>16&ndash;64 via accumulation</dd></div>
+  <div><dt>lora_dropout</dt><dd>0.05&ndash;0.1</dd></div>
+</div>
+
+<h2 id="pitfalls"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>How fine-tuning goes wrong</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Failure modes and their fixes</caption>
+    <thead><tr><th>Failure</th><th>Symptom</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Catastrophic forgetting</strong></td><td>Great at your task, noticeably worse at everything else</td><td>Lower learning rate, fewer epochs, lower rank, mix in general instruction data</td></tr>
+      <tr><td>Overfitting</td><td>Train loss falls, eval loss rises</td><td>More data, fewer epochs, early stopping, more dropout</td></tr>
+      <tr><td>Format drift</td><td>Output no longer matches the chat template</td><td>Use the tokeniser's own chat template; never hand-roll it</td></tr>
+      <tr><td>Loss on the prompt</td><td>Model learns to generate questions, not answers</td><td>Mask prompt tokens so loss is computed only on completions</td></tr>
+      <tr><td>Leakage across split</td><td>Excellent eval, poor in production</td><td>Deduplicate; split by document or customer, not randomly</td></tr>
+      <tr><td>Padding side wrong</td><td>Nonsense output after training</td><td><code>padding_side="right"</code> for training, <code>"left"</code> for batched generation</td></tr>
+      <tr><td>Safety regression</td><td>The fine-tune eroded refusal behaviour</td><td>Include safety examples; re-run a red-team suite before shipping</td></tr>
+      <tr><td>No baseline</td><td>Nobody can say whether it helped</td><td>Measure the prompted baseline <em>first</em>. Non-negotiable</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note trap">
+  <span class="tag">The evaluation that makes this defensible</span>
+  <p>Run three evaluations, not one. <strong>(1) Your task</strong> &mdash; did it improve, and by more than the confidence interval? <strong>(2) General capability</strong> &mdash; run a standard benchmark before and after to quantify forgetting. <strong>(3) Safety</strong> &mdash; a red-team suite, because fine-tuning demonstrably erodes alignment even when your data contains nothing harmful.</p>
+  <p>A fine-tune that gains 8 points on your task and loses 15 on general reasoning is a regression that a single-metric evaluation will report as a success. This is the most common way fine-tuning projects mislead their own teams.</p>
+</div>
+
+<h2 id="serving"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Serving a fine-tuned model</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Deployment options</caption>
+    <thead><tr><th>Option</th><th>Latency</th><th>Flexibility</th><th>Use when</th></tr></thead>
+    <tbody>
+      <tr><td>Merged weights</td><td>Zero overhead</td><td>One model per deployment</td><td>A single adapter, maximum throughput</td></tr>
+      <tr><td>Unmerged adapter</td><td>Small overhead</td><td>Hot-swappable</td><td>Several tasks or tenants on one base</td></tr>
+      <tr><td>Multi-LoRA serving (vLLM)</td><td>Small overhead</td><td>Many adapters concurrently</td><td>Per-tenant customisation at scale</td></tr>
+      <tr><td>Managed provider fine-tune</td><td>Provider-managed</td><td>Provider-limited</td><td>You do not want to run GPUs</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note java">
+  <span class="tag">Fitting this into a Java estate</span>
+  <p>Serve the fine-tuned model with <strong>vLLM</strong> behind an OpenAI-compatible HTTP endpoint. Spring AI already speaks that protocol, so your Java service changes one property and points at your own model instead of a provider. vLLM supports multi-LoRA, so a single deployment can serve per-tenant adapters selected by request. This keeps all the Python confined to a model-serving container that your platform team can operate like any other service &mdash; no Python in your application code path.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 08 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly a weekend, plus GPU rental</div>
+  <ol>
+    <li>Compute the parameter counts by hand for <i>r</i> = 4, 8, 16, 64 on a 4096&times;4096 matrix. Plot trainable parameters against rank.</li>
+    <li>Implement <code>LoRALinear</code> and verify that with <i>B</i>=0 the wrapped layer produces bit-identical output to the base.</li>
+    <li>Implement <code>merge()</code> and confirm the merged layer matches the unmerged forward pass to floating-point tolerance.</li>
+    <li>Fine-tune a small model (1&ndash;3B) with QLoRA on a formatting task using 500 examples. Free Colab is enough.</li>
+    <li>Measure the prompted baseline first. Then measure the fine-tune. Report the difference with a confidence interval.</li>
+    <li>Run a general benchmark before and after. Quantify the forgetting. Decide honestly whether the trade was worth it.</li>
+    <li>Deliberately train for 10 epochs on 100 examples. Watch eval loss diverge from train loss &mdash; overfitting, seen directly.</li>
+    <li>Serve your adapter with vLLM and call it from Spring AI by changing only configuration.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 09 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2106.09685">LoRA: Low-Rank Adaptation of Large Language Models</a><span class="why">The original. Readable, and the ablations on which modules to target are directly actionable.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2305.14314">QLoRA: Efficient Finetuning of Quantized LLMs</a><span class="why">NF4, double quantisation and paged optimisers. The paper that made single-GPU fine-tuning of large models practical.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://huggingface.co/docs/peft">Hugging Face PEFT</a><span class="why">Every method in Section 03 with runnable examples. Start with the LoRA conceptual guide.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://huggingface.co/docs/trl">TRL &mdash; Transformer Reinforcement Learning</a><span class="why"><code>SFTTrainer</code> and <code>DPOTrainer</code>. The supervised fine-tuning guide covers packing, prompt masking and chat templates.</span></span></li>
+    <li><span class="kind">Tool</span><span class="body"><a href="https://github.com/unslothai/unsloth">Unsloth</a><span class="why">2&ndash;5&times; faster LoRA with lower memory, plus free Colab notebooks for most popular models. The fastest way to a first successful run.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://lightning.ai/pages/community/lora-insights/">Practical Tips for Finetuning LLMs Using LoRA</a><span class="why">Sebastian Raschka's systematic hyperparameter experiments. The empirical companion to Section 05.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.vllm.ai/en/latest/features/lora.html">vLLM &mdash; Multi-LoRA serving</a><span class="why">Serving many adapters from one base model, selected per request.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 3.5 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

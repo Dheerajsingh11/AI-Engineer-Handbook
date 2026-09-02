@@ -1,0 +1,405 @@
+<title>AI Across Domains</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 17 &middot; Applications &amp; Career</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">17.3</span>
+    <h1>AI Across Domains</h1>
+    <p class="lede">AI where the stakes and rules differ &mdash; healthcare, finance, legal, and beyond. This page surveys how AI
+is applied across regulated and high-consequence domains, what changes when a wrong answer has real costs, the
+recurring pattern of augmentation over automation, and the domain-specific constraints an engineer must respect.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#what-changes">What changes in a high-stakes domain</a></li><li><a href="#building">Building for a domain</a></li><li><a href="#opportunity">Where the opportunity is</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>The whole handbook, loosely &mdash; especially RAG (Phase 4), safety (Topics 16.1&ndash;2) and governance (Topic 6.4). This page is about applying it all in specific fields.</p>
+</div>
+
+<p>AI is being applied across nearly every industry, but the <em>engineering</em> changes dramatically depending on the domain &mdash; specifically, on what happens when the AI is wrong. A wrong movie recommendation is a shrug; a wrong medical dosage, loan denial, or legal citation is a catastrophe. This page is about how the stakes and rules of a domain reshape how you build.</p>
+
+<div class="tbl">
+  <table>
+    <caption>AI across some major domains</caption>
+    <thead><tr><th>Domain</th><th>Uses</th><th>What raises the stakes</th></tr></thead>
+    <tbody>
+      <tr><td>Healthcare</td><td>Diagnosis support, medical Q&amp;A, notes, imaging</td><td>Lives; strict regulation; privacy (HIPAA)</td></tr>
+      <tr><td>Finance</td><td>Fraud, risk, research, advice, compliance</td><td>Money; heavy regulation; fairness</td></tr>
+      <tr><td>Legal</td><td>Research, contract review, discovery, drafting</td><td>Accuracy; hallucinated citations are famously dangerous</td></tr>
+      <tr><td>Education</td><td>Tutoring, grading, content</td><td>Fairness; child safety; accuracy</td></tr>
+      <tr><td>Customer service</td><td>Support, triage, self-service</td><td>Brand; scale; escalation quality</td></tr>
+      <tr><td>Manufacturing</td><td>Quality control, predictive maintenance</td><td>Safety; downtime cost (Topics 14.5, 14.7)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">The pattern that holds across high-stakes domains</span>
+  <p>In consequential fields, the winning pattern is almost always <strong>augmentation, not automation</strong>: the AI assists a qualified human who remains responsible and makes the final call, rather than deciding autonomously. AI drafts, a doctor decides. AI flags, an analyst reviews. AI researches, a lawyer verifies. This is not timidity &mdash; it is the correct engineering response to the combination of high stakes, imperfect models (hallucination, Topic 1.3), and legal accountability (Topic 6.4). The valuable systems in these domains make the expert faster and better, not redundant. Building for augmentation &mdash; with the human in the loop and clearly in charge &mdash; is the through-line of applied AI where it matters most.</p>
+</div>
+
+<h2 id="what-changes"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>What changes in a high-stakes domain</h2>
+
+<div class="tbl">
+  <table>
+    <caption>How the engineering shifts</caption>
+    <thead><tr><th>Concern</th><th>In a low-stakes app</th><th>In a high-stakes domain</th></tr></thead>
+    <tbody>
+      <tr><td>Accuracy bar</td><td>"Good enough"</td><td>Very high; errors are costly</td></tr>
+      <tr><td>Hallucination</td><td>Annoying</td><td>Dangerous &mdash; grounding is mandatory (Phase 4)</td></tr>
+      <tr><td>Human oversight</td><td>Optional</td><td>Required &mdash; augmentation (Section 01, Topic 6.4)</td></tr>
+      <tr><td>Explainability</td><td>Nice</td><td>Often legally required (Topic 16.3)</td></tr>
+      <tr><td>Privacy</td><td>Standard care</td><td>Strict regimes (HIPAA, GDPR) (Topic 6.4)</td></tr>
+      <tr><td>Bias &amp; fairness</td><td>Should check</td><td>Legal and ethical necessity (Topic 16.1)</td></tr>
+      <tr><td>Auditability</td><td>Helpful</td><td>Mandatory decision records (Topic 6.4)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note trap">
+  <span class="tag">The hallucinated-citation cautionary tale</span>
+  <p>The legal domain produced the field's most instructive failure: lawyers who submitted AI-generated briefs citing <em>court cases that did not exist</em> &mdash; the model fabricated plausible-looking citations (Topic 1.3), the lawyers did not verify, and they were sanctioned. The lesson generalises to every high-stakes domain: <strong>a fluent, confident, wrong answer is the characteristic AI failure, and in a consequential field it must be caught by design.</strong> The fixes are exactly the handbook's tools &mdash; RAG so answers come from real sources, mandatory citation <em>validation</em> (check that cited sources exist, Topic 4.7), and a human expert who verifies before acting. Never deploy AI into a high-stakes domain trusting the model not to hallucinate; assume it will, and build the verification that catches it.</p>
+</div>
+
+<h2 id="building"><span class="kicker">Section 03 <span class="lvl lvl-a">Advanced</span></span>Building for a domain</h2>
+
+<p>The same handbook components, assembled with domain constraints as first-class requirements.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Domain-building checklist</caption>
+    <thead><tr><th>Requirement</th><th>How</th></tr></thead>
+    <tbody>
+      <tr><td>Ground every answer</td><td>RAG over authoritative domain sources with citations (Phase 4)</td></tr>
+      <tr><td>Validate outputs</td><td>Check citations exist, numbers reconcile, claims are supported (Topic 4.7)</td></tr>
+      <tr><td>Keep a human in charge</td><td>Augmentation with review and override (Section 01)</td></tr>
+      <tr><td>Respect the data rules</td><td>Domain privacy regimes, residency, consent (Topic 6.4)</td></tr>
+      <tr><td>Explain decisions</td><td>Citations, decision records, interpretable where required (Topic 16.3)</td></tr>
+      <tr><td>Use domain knowledge</td><td>Fine-tune or RAG on domain corpora; involve domain experts</td></tr>
+      <tr><td>Evaluate with experts</td><td>Domain-specific golden sets, expert-reviewed (Topic 4.7)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">Domain expertise is not optional</span>
+  <p>You cannot build good AI for a field you do not understand, and you cannot evaluate it either &mdash; a plausible-sounding medical or legal answer needs a qualified person to judge whether it is actually correct. So building for a domain is inherently collaborative: <strong>pair with domain experts</strong> to define what "correct" means, to build the evaluation set (Topic 4.7), to review outputs, and to catch the failures a generalist would miss. The engineer brings the AI systems; the domain expert brings the judgement about what is right and what is dangerous. Systems built without that partnership are the ones that produce confident, well-formatted, wrong answers that no one qualified caught.</p>
+</div>
+
+<h2 id="opportunity"><span class="kicker">Section 04 <span class="lvl lvl-p">Professional</span></span>Where the opportunity is</h2>
+
+<div class="note java">
+  <span class="tag">Vertical depth is where durable value lives</span>
+  <p>Recall from Topic 11.3 that a thin wrapper around a model API has no moat &mdash; the model is a commodity. The durable value is in <strong>vertical depth</strong>: deep integration with a specific domain's data, workflows, regulations and experts. An AI system that genuinely understands the nuances of insurance claims, or clinical documentation, or contract law &mdash; because it was built with domain data, domain evaluation, and domain experts &mdash; is defensible in a way a general chatbot is not. For an engineer building a career or a product, <strong>combining AI skills with deep knowledge of one domain is a strong position</strong>: the AI skills are increasingly common, but AI-skills-plus-real-domain-understanding is rare and valuable. Your existing industry experience, whatever it is, is an asset here, not a distraction from the "pure AI" path.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly a weekend</div>
+  <ol>
+    <li>Pick a domain you know. List what would change about a RAG system if a wrong answer had serious consequences (Section 02).</li>
+    <li>Build citation <em>validation</em> for a RAG system: verify that every cited source actually exists and supports the claim (Topic 4.7).</li>
+    <li>Design an augmentation workflow (AI drafts, human decides) for a high-stakes task. Specify where the human reviews and can override.</li>
+    <li>Identify the privacy/regulatory regime for a domain (HIPAA, GDPR, financial rules) and list what it requires of your system (Topic 6.4).</li>
+    <li>Build a domain-specific golden eval set and have a domain expert (or a proxy) review it.</li>
+    <li>Write a short pitch for an AI product that combines your existing domain knowledge with your new AI skills (Section 04).</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Article</span><span class="body"><a href="https://www.anthropic.com/customers">Anthropic &mdash; Customer stories</a><span class="why">Real domain deployments across industries, with the augmentation pattern of Section 01.</span></span></li>
+    <li><span class="kind">Framework</span><span class="body"><a href="https://www.nist.gov/itl/ai-risk-management-framework">NIST AI Risk Management Framework</a><span class="why">A domain-agnostic framework for the risk assessment high-stakes fields require (Topic 6.4).</span></span></li>
+    <li><span class="kind">Reference</span><span class="body"><a href="https://artificialintelligenceact.eu/high-level-summary/">EU AI Act &mdash; high-risk categories</a><span class="why">Which domains the law treats as high-risk, and why &mdash; directly shapes Section 02 (Topic 6.4).</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://ai.nejm.org/">NEJM AI</a><span class="why">Peer-reviewed AI-in-medicine &mdash; a model for the rigour high-stakes domains demand.</span></span></li>
+    <li><span class="kind">Guide</span><span class="body"><a href="https://www.deeplearning.ai/the-batch/">The Batch &mdash; industry coverage</a><span class="why">Ongoing coverage of AI applications across domains.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 17.3 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

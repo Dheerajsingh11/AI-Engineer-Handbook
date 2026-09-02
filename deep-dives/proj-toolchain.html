@@ -1,0 +1,595 @@
+<title>Toolchain, Skills Map &amp; Schedule</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 21 &middot; Interview &amp; Portfolio</span>
+    <span class="sep">/</span>
+    <span>Toolchain &amp; plan</span>
+  </div>
+
+  <header class="head">
+    <span class="num">21.7</span>
+    <h1>Toolchain, Skills Map &amp; Schedule</h1>
+    <p class="lede">One page for the operational questions: every tool you need and why, which project builds which skill and which interview round tests it, how the five projects compose into a single system, what the whole thing costs, and the twelve-week schedule that ends with offers rather than a finished portfolio.</p>
+  </header>
+
+  <div class="note key">
+    <span class="tag">Five projects, one system</span>
+    <p>Each project is independently shippable, and each is also a layer of the same platform. Built in order, the gateway meters the RAG system, the RAG system becomes a tool for the agent, the eval suite gates all of them, and the fine-tuned model registers as a second provider behind the gateway. That composition is worth far more in an interview than five disconnected repositories &mdash; it is the difference between five tutorials and one system.</p>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol>
+      <li><a href="#arch">How the five compose</a></li>
+      <li><a href="#stack">The toolchain, in one place</a></li>
+      <li><a href="#setup">Local setup</a></li>
+      <li><a href="#skills">Skills map</a></li>
+      <li><a href="#coverage">Handbook coverage</a></li>
+      <li><a href="#cost">What it costs</a></li>
+      <li><a href="#repo">Repository conventions</a></li>
+      <li><a href="#schedule">The twelve weeks</a></li>
+    </ol>
+  </nav>
+
+<h2 id="arch"><span class="kicker">Step 01</span>How the five compose</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Architecture</span><span>Built in order, each layer uses the one below</span></div>
+  <pre><code>                        +---------------------------+
+                        |  P5  Eval + Guardrails    |
+                        |  golden sets, judge, CI   |
+                        +-------------+-------------+
+                                      | gates every deploy
+              +-----------------------+-----------------------+
+              |                                               |
+   +----------+-----------+                      +------------+-----------+
+   |  P3  Agent           |  search_prior_art    |  P2  RAG pipeline      |
+   |  tools, approval     +--------------------->+  ingest, hybrid, rank  |
+   |  gate, injection     |                      |  cite, refuse          |
+   +----------+-----------+                      +------------+-----------+
+              |                                               |
+              |            all model calls route through      |
+              +-----------------------+-----------------------+
+                                      |
+                        +-------------+-------------+
+                        |  P1  LLM Gateway          |
+                        |  route, cache, budget,    |
+                        |  retry, failover, ledger  |
+                        +-------------+-------------+
+                                      |
+                    +-----------------+-----------------+
+                    |                                   |
+          +---------+---------+             +-----------+-----------+
+          |  Frontier API     |             |  P4  Self-hosted      |
+          |  claude-*         |             |  LoRA + vLLM          |
+          +-------------------+             +-----------------------+
+
+   Shared services:  postgres (+pgvector)  |  redis  |  langfuse traces</code></pre>
+</div>
+
+<p>Two consequences worth stating in an interview. First, because every model call goes through the gateway, <strong>every project is costed automatically</strong> &mdash; you can answer &ldquo;what does an agent task cost?&rdquo; with a query rather than an estimate. Second, because the fine-tuned model registers behind the same <code>Provider</code> interface as the frontier API, the migration question in Project&nbsp;4 becomes a configuration change plus an eval run, which is exactly the answer a design round is looking for.</p>
+
+<h2 id="stack"><span class="kicker">Step 02</span>The toolchain, in one place</h2>
+
+<div class="tbl">
+<table>
+  <caption>Everything, grouped by what it is for</caption>
+  <thead><tr><th>Layer</th><th>Tool</th><th>Used by</th><th>Why this one</th></tr></thead>
+  <tbody>
+    <tr><td rowspan="4">Language &amp; service</td><td><code>python 3.12</code> + <code>uv</code></td><td>all</td><td>Fast, reproducible environments. <code>pip</code> works identically if you prefer it.</td></tr>
+    <tr><td><code>fastapi</code> + <code>uvicorn</code></td><td>P1, P2, P3</td><td>Async by default, which streaming requires.</td></tr>
+    <tr><td><code>pydantic</code> v2</td><td>all</td><td>One model definition serves validation, tool schemas and structured outputs.</td></tr>
+    <tr><td><code>pytest</code>, <code>pytest-asyncio</code></td><td>all</td><td>Deterministic checks stay ordinary tests; only fuzzy ones need a judge.</td></tr>
+
+    <tr><td rowspan="3">Model access</td><td><code>anthropic</code> SDK</td><td>all</td><td>Typed errors, streaming helpers, batch and caching support.</td></tr>
+    <tr><td><code>sentence-transformers</code></td><td>P2, P5</td><td>Local embeddings and the cross-encoder reranker &mdash; no per-token cost while iterating.</td></tr>
+    <tr><td><code>vllm</code>, <code>llama.cpp</code></td><td>P4</td><td>Serving and quantisation for the self-hosted path.</td></tr>
+
+    <tr><td rowspan="3">Data</td><td><code>postgres</code> + <code>pgvector</code></td><td>P1, P2, P5</td><td><strong>One service for vectors, metadata and the ledger.</strong> Fewer moving parts, real SQL, and interviewers respect the choice.</td></tr>
+    <tr><td><code>redis</code></td><td>P1, P3</td><td>Rate-limit counters, semantic cache, agent session state.</td></tr>
+    <tr><td><code>unstructured</code>, <code>pymupdf</code></td><td>P2</td><td>Document parsing &mdash; where ingestion actually breaks.</td></tr>
+
+    <tr><td rowspan="3">Training</td><td><code>transformers</code>, <code>peft</code>, <code>trl</code></td><td>P4</td><td>The standard fine-tuning stack.</td></tr>
+    <tr><td><code>bitsandbytes</code></td><td>P4</td><td>4-bit base weights: an 8B fine-tune on one 24&nbsp;GB card.</td></tr>
+    <tr><td>RunPod / Vast.ai</td><td>P4</td><td>Rented GPU by the hour. The entire project fits in a small budget.</td></tr>
+
+    <tr><td rowspan="4">Ops</td><td>Langfuse <em>or</em> Phoenix</td><td>all</td><td>Traces, datasets, scores. Self-hostable. Wire once, reuse everywhere.</td></tr>
+    <tr><td>Docker + compose</td><td>all</td><td>Local services, and the agent's tool sandbox.</td></tr>
+    <tr><td>GitHub Actions</td><td>P5</td><td>The eval gate. Free on public repositories &mdash; and public is the point.</td></tr>
+    <tr><td><code>langgraph</code>, MCP SDK</td><td>P3</td><td>The comparison port, after the hand-written loop works.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="note java">
+  <span class="tag">Three deliberate omissions</span>
+  <p><strong>No dedicated vector database.</strong> Pinecone, Weaviate and Qdrant are all fine, but pgvector keeps vectors next to the metadata you filter on, which is what makes pre-filtered access control simple. Know the trade-off; choose the simpler thing.</p>
+  <p><strong>No framework in Projects 2 and 3 at first.</strong> LangChain and LlamaIndex are worth knowing and you will port to them &mdash; afterwards. Building the pipeline by hand once is what lets you answer questions about it.</p>
+  <p><strong>No Kubernetes.</strong> It adds weeks and teaches nothing this loop tests. Docker Compose is enough.</p>
+</div>
+
+<h2 id="setup"><span class="kicker">Step 03</span>Local setup</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Bash</span><span>Once, at the start of week 1</span></div>
+  <pre><code><span class="cm"># Project skeleton</span>
+uv init llm-platform &amp;&amp; cd llm-platform
+uv add anthropic fastapi uvicorn pydantic asyncpg redis \
+       sentence-transformers rank-bm25 pymupdf \
+       opentelemetry-sdk pytest pytest-asyncio
+
+<span class="cm"># Services. One compose file for all five projects -- see below.</span>
+docker compose up -d
+
+<span class="cm"># Credentials. Never commit a key; the SDK reads the environment.</span>
+export ANTHROPIC_API_KEY="..."</code></pre>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">YAML</span><span>docker-compose.yml</span></div>
+  <pre><code>services:
+  db:
+    image: pgvector/pgvector:pg16      # postgres with the extension built in
+    environment: { POSTGRES_PASSWORD: dev, POSTGRES_DB: platform }
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  langfuse:
+    image: langfuse/langfuse:latest    # traces for every project
+    ports: ["3000:3000"]
+    depends_on: [db]
+
+  sandbox:                             # the agent's tool sandbox (P3)
+    image: python:3.12-slim
+    network_mode: none                 # no network by default; allowlist per tool
+    read_only: true                    # no filesystem writes outside /tmp
+    tmpfs: ["/tmp"]
+
+volumes: { pgdata: }</code></pre>
+</div>
+
+<h2 id="skills"><span class="kicker">Step 04</span>Skills map</h2>
+
+<p>Read this as: <em>if I want to be able to answer that question, I need to have built this.</em></p>
+
+<div class="tbl">
+<table>
+  <caption>Skill &rarr; project &rarr; the round that tests it</caption>
+  <thead><tr><th>Skill</th><th>Built in</th><th>Tested in</th></tr></thead>
+  <tbody>
+    <tr><td>Streaming, SSE, time-to-first-token</td><td>P1</td><td>Coding &middot; System design</td></tr>
+    <tr><td>Prompt caching vs. semantic caching</td><td>P1</td><td>Fundamentals</td></tr>
+    <tr><td>Token accounting, cost attribution, budgets</td><td>P1</td><td>System design &middot; Deep-dive</td></tr>
+    <tr><td>Rate limiting, retries, circuit breaking, failover</td><td>P1</td><td>System design</td></tr>
+    <tr><td>Model routing under a cost ceiling</td><td>P1</td><td>Fundamentals &middot; System design</td></tr>
+    <tr><td>Chunking, parsing, incremental indexing</td><td>P2</td><td>Fundamentals</td></tr>
+    <tr><td>Embeddings, HNSW, the recall/latency knob</td><td>P2</td><td>Fundamentals &middot; Coding</td></tr>
+    <tr><td>Hybrid search and rank fusion</td><td>P2</td><td>Fundamentals</td></tr>
+    <tr><td>Cross-encoder reranking in a latency budget</td><td>P2</td><td>System design</td></tr>
+    <tr><td>Pre-filtered retrieval for access control</td><td>P2</td><td>System design</td></tr>
+    <tr><td>Retrieval metrics vs. generation metrics</td><td>P2, P5</td><td>Fundamentals &middot; Deep-dive</td></tr>
+    <tr><td>The agent loop as plain control flow</td><td>P3</td><td>Fundamentals &middot; Coding</td></tr>
+    <tr><td>Tool schema design, parallel calls, error results</td><td>P3</td><td>Coding &middot; Practical</td></tr>
+    <tr><td>Context management under a window limit</td><td>P3</td><td>System design</td></tr>
+    <tr><td>Human-in-the-loop and idempotent side effects</td><td>P3</td><td>System design</td></tr>
+    <tr><td>Prompt injection through tool output</td><td>P3</td><td>Fundamentals &middot; Security</td></tr>
+    <tr><td>Transformer internals, KV-cache</td><td>P4 (stage 0)</td><td>Fundamentals</td></tr>
+    <tr><td>Dataset construction, splits, leakage</td><td>P4</td><td>Deep-dive</td></tr>
+    <tr><td>LoRA hyperparameters and loss curves</td><td>P4</td><td>Fundamentals &middot; Deep-dive</td></tr>
+    <tr><td>Quantisation and its measured quality cost</td><td>P4</td><td>Fundamentals</td></tr>
+    <tr><td>Throughput, batching, VRAM, serving</td><td>P4</td><td>System design</td></tr>
+    <tr><td>Build-vs-buy arithmetic</td><td>P4</td><td>System design &middot; Behavioural</td></tr>
+    <tr><td>Evaluating a non-deterministic system</td><td>P5</td><td>System design &middot; Deep-dive</td></tr>
+    <tr><td>LLM-as-judge and its calibration</td><td>P5</td><td>Fundamentals &middot; Deep-dive</td></tr>
+    <tr><td>Prompts as versioned, CI-gated artifacts</td><td>P5</td><td>System design</td></tr>
+    <tr><td>Guardrails and false-positive cost</td><td>P5</td><td>Security &middot; System design</td></tr>
+    <tr><td>Tracing, drift, production feedback loops</td><td>P5</td><td>System design</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="coverage"><span class="kicker">Step 05</span>Handbook coverage</h2>
+
+<p>Between them, the five projects put every Tier&nbsp;1 topic from the <a href="interview-prep.html">interview guide</a> into working code &mdash; which is the point. Reading a topic and having built with it produce very different interviews.</p>
+
+<div class="tbl">
+<table>
+  <caption>Project &rarr; topics exercised</caption>
+  <thead><tr><th>Project</th><th>Topics</th></tr></thead>
+  <tbody>
+    <tr><td><a href="proj-gateway.html">P1 Gateway</a></td><td><a href="llm-apis.html">LLM APIs</a>, <a href="serving.html">serving</a>, <a href="decoding-sampling.html">decoding</a>, <a href="structured-generation.html">structured generation</a>, <a href="llmops.html">LLMOps</a>, <a href="security.html">security</a>, <a href="efficiency-engineering.html">cost &amp; efficiency</a>, <a href="inference-optimization.html">inference optimisation</a>, <a href="core-python.html">core Python</a></td></tr>
+    <tr><td><a href="proj-rag.html">P2 RAG</a></td><td><a href="ingestion.html">ingestion</a>, <a href="embeddings.html">embeddings</a>, <a href="vector-index.html">vector index</a>, <a href="vector-db.html">vector DB</a>, <a href="retrieval.html">retrieval</a>, <a href="rag-eval.html">RAG eval</a>, <a href="rag-decision.html">RAG decision</a>, <a href="graph-rag.html">GraphRAG</a>, <a href="data-engineering.html">data engineering</a>, <a href="prompting.html">prompting</a>, <a href="llamaindex.html">LlamaIndex</a></td></tr>
+    <tr><td><a href="proj-agent.html">P3 Agent</a></td><td><a href="tool-calling.html">tool calling</a>, <a href="agent-fundamentals.html">agent fundamentals</a>, <a href="agent-arch.html">agent architecture</a>, <a href="agent-planning.html">planning</a>, <a href="memory.html">memory</a>, <a href="agent-eval.html">agent eval</a>, <a href="agent-security.html">agent security</a>, <a href="multi-agent.html">multi-agent</a>, <a href="mcp.html">MCP</a>, <a href="langchain-langgraph.html">LangGraph</a></td></tr>
+    <tr><td><a href="proj-finetune.html">P4 Fine-tune</a></td><td><a href="fine-tuning.html">fine-tuning</a>, <a href="open-models.html">open models</a>, <a href="huggingface.html">Hugging Face</a>, <a href="pytorch.html">PyTorch</a>, <a href="nn-basics.html">NN basics</a>, <a href="llm-mechanics.html">LLM mechanics</a>, <a href="llm-architectures.html">architectures</a>, <a href="model-compression.html">compression</a>, <a href="alignment-tuning.html">alignment</a>, <a href="synthetic-data.html">synthetic data</a>, <a href="cuda-gpu.html">CUDA &amp; GPU</a></td></tr>
+    <tr><td><a href="proj-evalops.html">P5 Eval</a></td><td><a href="llm-evaluation.html">LLM evaluation</a>, <a href="guardrails.html">guardrails</a>, <a href="responsible-ai.html">responsible AI</a>, <a href="explainability.html">explainability</a>, <a href="governance.html">governance</a>, <a href="testing-java.html">testing</a>, <a href="ai-product.html">AI product</a>, <a href="llmops.html">LLMOps</a></td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="cost"><span class="kicker">Step 06</span>What it costs</h2>
+
+<div class="tbl">
+<table>
+  <caption>Realistic budget for all five, over twelve weeks</caption>
+  <thead><tr><th>Item</th><th>Estimate</th><th>How to keep it there</th></tr></thead>
+  <tbody>
+    <tr><td>P1 gateway development</td><td class="nc">$5&ndash;10</td><td>Short prompts, mostly <code>claude-haiku-4-5</code> while wiring plumbing.</td></tr>
+    <tr><td>P2 RAG &mdash; embeddings</td><td class="nc">$0</td><td>Embed locally with sentence-transformers.</td></tr>
+    <tr><td>P2 RAG &mdash; eval runs</td><td class="nc">$15&ndash;30</td><td>150 questions &times; many variants adds up. Cache aggressively; use the batch API for full sweeps.</td></tr>
+    <tr><td>P3 agent runs</td><td class="nc">$20&ndash;40</td><td>The most expensive per task &mdash; multi-turn loops with tool results. Cap turns and enforce a task budget.</td></tr>
+    <tr><td>P4 dataset generation</td><td class="nc">$10&ndash;20</td><td>Batch API, roughly half price, for a few thousand labels.</td></tr>
+    <tr><td>P4 GPU hours</td><td class="nc">$20&ndash;40</td><td>~15&ndash;25 hours at $1&ndash;2/hr covers training sweeps and benchmarking. Stop the instance.</td></tr>
+    <tr><td>P5 eval + judge runs</td><td class="nc">$15&ndash;30</td><td>Judge calls dominate. Cheap judge for easy cases, batch for full runs.</td></tr>
+    <tr><td>Infrastructure</td><td class="nc">$0</td><td>Everything else runs locally in Docker.</td></tr>
+    <tr><td><strong>Total</strong></td><td class="nc"><strong>$85&ndash;170</strong></td><td>Set a hard budget in the gateway on day one &mdash; then it enforces itself.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="note trap">
+  <span class="tag">The runaway to guard against</span>
+  <p>The single most likely way to overspend is an agent loop without a turn cap running against a tool that keeps failing: each turn resends the whole growing history, so cost per turn climbs while nothing progresses. Put the cap in on day one of Project&nbsp;3, and give your own gateway a hard monthly ceiling that returns a 402. Having done this is also a genuine cost-control story for the interview.</p>
+</div>
+
+<h2 id="repo"><span class="kicker">Step 07</span>Repository conventions</h2>
+
+<p>An interviewer spends about four minutes in your repository before the call. These conventions are what they find.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Markdown</span><span>README.md &mdash; the structure that reads well in four minutes</span></div>
+  <pre><code># &lt;Project&gt;
+
+One sentence on what it does and why it exists.
+
+## Results
+| metric              | baseline | current | how measured                |
+|---------------------|----------|---------|-----------------------------|
+| recall@10           | 0.61     | 0.83    | 150-question labelled set   |
+| faithfulness        | 0.74     | 0.94    | calibrated judge, kappa 0.71|
+| p95 latency         | 3.2s     | 1.4s    | 500 requests, concurrency 8 |
+| cost / 1k requests  | $4.10    | $1.35   | gateway ledger              |
+
+&lt;-- This table goes ABOVE the architecture section. It is the only part
+    some readers will look at, and it is what makes the rest credible. --&gt;
+
+## Architecture
+One diagram, one paragraph.
+
+## What did not work
+Link to FINDINGS.md. Do not bury this.
+
+## Run it
+Three commands, maximum.</code></pre>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Markdown</span><span>FINDINGS.md &mdash; the highest-signal file in the portfolio</span></div>
+  <pre><code># Findings
+
+## HyDE query expansion -- partially rejected
+Tried: generate a hypothetical answer, embed that, search with it.
+Result: +4 pts recall on ambiguous questions, -9 pts on precise ones
+        (identifiers, error strings).
+Decision: gated on query length and absence of an identifier pattern.
+
+## Semantic cache threshold
+Tried: 0.99 down to 0.85, hand-grading 50 hits at each level.
+Result: below 0.95 the false-hit rate exceeded 6%, and a false hit means
+        confidently answering a question nobody asked.
+Decision: 0.95, with hits logged for audit.
+
+## Prompt cache went to zero for two days
+Cause: a request ID interpolated into the system prompt.
+Detection: cache_read_input_tokens flat at 0 in the ledger.
+Fix: moved the ID after the cache breakpoint. Cost impact: ~40% of spend
+     that week.</code></pre>
+</div>
+
+<h2 id="schedule"><span class="kicker">Step 08</span>The twelve weeks</h2>
+
+<div class="tbl">
+<table>
+  <caption>Roughly 10&ndash;12 hours per week</caption>
+  <thead><tr><th>Week</th><th>Build</th><th>Study alongside</th><th>Milestone</th></tr></thead>
+  <tbody>
+    <tr><td class="nc">1</td><td>Gateway: streaming passthrough, provider interface</td><td><a href="core-python.html">core Python</a>, <a href="llm-apis.html">LLM APIs</a></td><td>Tokens streaming end to end</td></tr>
+    <tr><td class="nc">2</td><td>Gateway: routing, both caches, ledger, retries</td><td><a href="llm-mechanics.html">LLM mechanics</a>, <a href="decoding-sampling.html">decoding</a></td><td><strong>P1 shipped</strong>, README with metrics</td></tr>
+    <tr><td class="nc">3</td><td>RAG: <strong>eval set first</strong>, then the naive baseline</td><td><a href="rag-decision.html">RAG decision</a>, <a href="embeddings.html">embeddings</a></td><td>150 labelled questions; a bad number to beat</td></tr>
+    <tr><td class="nc">4</td><td>RAG: ingestion, pgvector, chunking sweep</td><td><a href="ingestion.html">ingestion</a>, <a href="vector-index.html">vector index</a></td><td>Corpus indexed, recall measured</td></tr>
+    <tr><td class="nc">5</td><td>RAG: hybrid, reranking, citations, refusal</td><td><a href="retrieval.html">retrieval</a>, <a href="rag-eval.html">RAG eval</a></td><td><strong>P2 shipped</strong>, before/after table</td></tr>
+    <tr><td class="nc">6</td><td>Agent: the manual loop, tool set</td><td><a href="tool-calling.html">tool calling</a>, <a href="agent-arch.html">agent architecture</a></td><td><strong>Start applying.</strong> Resume rewritten</td></tr>
+    <tr><td class="nc">7</td><td>Agent: context strategies, approval gate, injection suite</td><td><a href="agent-security.html">agent security</a>, <a href="memory.html">memory</a></td><td><strong>P3 shipped</strong></td></tr>
+    <tr><td class="nc">8</td><td>Eval: runner, judge, hand-label 100 outputs</td><td><a href="llm-evaluation.html">LLM evaluation</a></td><td>Cohen's &kappa; above 0.6</td></tr>
+    <tr><td class="nc">9</td><td>Eval: CI gate, guardrails, production sampling</td><td><a href="guardrails.html">guardrails</a>, <a href="llmops.html">LLMOps</a></td><td><strong>P5 shipped</strong>; a caught regression, screenshotted</td></tr>
+    <tr><td class="nc">10</td><td>Fine-tune: attention from scratch, dataset, baseline</td><td><a href="nn-basics.html">NN basics</a>, <a href="pytorch.html">PyTorch</a></td><td>Baseline accuracy recorded</td></tr>
+    <tr><td class="nc">11</td><td>Fine-tune: LoRA sweeps, quantisation ladder, vLLM</td><td><a href="fine-tuning.html">fine-tuning</a>, <a href="model-compression.html">compression</a></td><td><strong>P4 shipped</strong>; decision document</td></tr>
+    <tr><td class="nc">12</td><td>Interview reps only</td><td>Tier 1 review</td><td>Six spoken mock designs; daily coding</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="note key">
+  <span class="tag">Three rules that decide whether this works</span>
+  <ol>
+    <li><strong>Measure before you optimise, every time.</strong> A naive baseline you can quote a number for is worth more in an interview than a sophisticated version you cannot.</li>
+    <li><strong>Write down what failed.</strong> <code>FINDINGS.md</code> is the file that proves you did the real thing, because tutorials never have one.</li>
+    <li><strong>Apply at week six.</strong> Loops take four to eight weeks. Projects 3, 4 and 5 will finish while you are interviewing, and &ldquo;I am building that layer right now&rdquo; is a strong answer.</li>
+  </ol>
+</div>
+
+<div class="res">
+  <div class="res-top">Where to go next</div>
+  <ul>
+    <li><span class="kind">Guide</span><span class="body"><a href="interview-prep.html">21.1 Interview Preparation Guide</a><span class="why">The rounds, the question bank, and the topic triage these projects are built against.</span></span></li>
+    <li><span class="kind">Capstone</span><span class="body"><a href="cap-overview.html">Phase 20 &mdash; Atlas</a><span class="why">The twelve-chapter capstone. Its RAG and fine-tuning chapters overlap with P2 and P4 &mdash; read them as the guided version.</span></span></li>
+    <li><span class="kind">Topic</span><span class="body"><a href="ai-career.html">17.4 AI Career</a><span class="why">The wider role landscape, beyond the applied-engineer track targeted here.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Phase 21.7 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

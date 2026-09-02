@@ -1,0 +1,417 @@
+<title>AI Product & UX Design</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 19 &middot; Evaluation, Product &amp; Production</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">19.2</span>
+    <h1>AI Product &amp; UX Design</h1>
+    <p class="lede">Building AI products people actually trust and use. This page is the functional, non-code layer &mdash; choosing
+what to build, designing for a model that is sometimes wrong, keeping a human in the loop, and earning trust
+through the interface &mdash; the difference between a clever model and a product that survives contact with users.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#what-to-build">Choosing what to build</a></li><li><a href="#designing">Designing for a fallible model</a></li><li><a href="#trust">Trust, calibration &amp; feedback</a></li><li><a href="#production">Measuring an AI product</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>None technical. This page is for anyone shaping an AI feature &mdash; engineer, PM, designer, founder. It sits above the implementation and decides what is worth implementing.</p>
+</div>
+
+<p>Most AI projects that fail do not fail on the model &mdash; they fail on the product. They automate the wrong thing, hide the model's uncertainty until it burns a user, or solve a problem nobody had. <strong>AI product thinking</strong> is the discipline of deciding <em>what</em> to build and <em>how it should behave</em>, given a component that is powerful, probabilistic and occasionally confidently wrong.</p>
+
+<div class="note key">
+  <span class="tag">The one thing that makes AI products different</span>
+  <p>Traditional software is deterministic: the same input gives the same, correct output, so you design as if it always works. An AI feature is <strong>probabilistic and sometimes wrong</strong> &mdash; and that single fact changes everything about how you design it. You are not designing a feature that works; you are designing a feature that is <em>right most of the time</em>, and the product's quality is decided by <strong>how gracefully it handles being wrong</strong>. Every principle on this page follows from taking that seriously.</p>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Human-in-the-loop</dt><dd>A person reviews or approves the AI's output before it takes effect.</dd>
+    <dt>Augmentation vs automation</dt><dd>Helping a person do a task vs replacing them on it.</dd>
+    <dt>Graceful failure</dt><dd>Being wrong in a safe, recoverable, honest way.</dd>
+    <dt>Calibrated trust</dt><dd>Users trusting the AI exactly as much as it deserves &mdash; no more, no less.</dd>
+    <dt>Feedback loop</dt><dd>Capturing whether the output was good, to improve the system.</dd>
+  </dl>
+</div>
+
+<h2 id="what-to-build"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>Choosing what to build</h2>
+
+<p>Before any design, one question: <em>is this a good problem for AI at all?</em> The best AI features share a shape.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Is this a good fit for AI?</caption>
+    <thead><tr><th>Good fit when&hellip;</th><th>Poor fit when&hellip;</th></tr></thead>
+    <tbody>
+      <tr><td>Mistakes are cheap and recoverable</td><td>A single error is catastrophic or irreversible</td></tr>
+      <tr><td>"Roughly right" is genuinely useful</td><td>Only exact, provable correctness will do</td></tr>
+      <tr><td>A human can easily verify the output</td><td>Errors are hard to notice until too late</td></tr>
+      <tr><td>The task is fuzzy, linguistic, or generative</td><td>A simple rule or formula would do it perfectly</td></tr>
+      <tr><td>Volume makes human-only impractical</td><td>Low volume where a human is cheaper and better</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note trap">
+  <span class="tag">Two failure modes at the idea stage</span>
+  <p><strong>Solving a non-problem:</strong> "add AI" is not a goal &mdash; a feature must solve a real user pain, and often a boring deterministic solution beats an AI one. If a regex, a lookup or a form would do the job reliably, use it. <strong>Over-automating:</strong> jumping straight to "the AI does it all" where the errors are expensive. The safer, and usually better, first version keeps a human in the loop and lets the AI <em>assist</em>. Earn the right to remove the human by proving the AI is good enough, measured (Topic 19.1) &mdash; do not assume it.</p>
+</div>
+
+<h2 id="designing"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>Designing for a fallible model</h2>
+
+<p>Once you have a good problem, the design work is mostly about the model being wrong sometimes. A few principles carry most of the weight.</p>
+
+<div class="ladder">
+  <div class="ladder-top">The core design principles</div>
+  <ol>
+    <li><b>Set expectations</b><span class="who">Tell users it is AI and can be wrong. Honesty upfront prevents betrayal later.</span></li>
+    <li><b>Make verification easy</b><span class="who">Show sources, highlight what to check, keep the human's review cheap.</span></li>
+    <li><b>Fail gracefully</b><span class="who">"I'm not sure" beats a confident wrong answer. Offer an exit and a fallback.</span></li>
+    <li><b>Keep control reversible</b><span class="who">Draft, don't send. Suggest, don't act. Let the user undo and edit.</span></li>
+  </ol>
+</div>
+
+<div class="note java">
+  <span class="tag">Augment before you automate &mdash; the drafting pattern</span>
+  <p>The most reliable AI-product pattern is the <strong>draft</strong>: the AI proposes, the human disposes. It writes the email, the user edits and sends. It suggests the code, the developer reviews and commits. It drafts the summary, the analyst approves it. This keeps a human on the irreversible action (Topic 16.1), turns the model's occasional error into a caught typo rather than a shipped disaster, and &mdash; crucially &mdash; every human edit is <em>feedback</em> you can capture to improve the system (Topic 18.1). It is also the honest framing for users: the AI is a fast first draft, not an oracle. Automate fully only where you have <em>measured</em> that it is safe.</p>
+</div>
+
+<h2 id="trust"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>Trust, calibration &amp; feedback</h2>
+
+<p>The subtle goal is <strong>calibrated trust</strong> &mdash; users relying on the AI exactly as much as it merits. Too little and they ignore a useful tool; too much and they get burned by a confident hallucination.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Designing for calibrated trust</caption>
+    <thead><tr><th>Lever</th><th>How it calibrates trust</th></tr></thead>
+    <tbody>
+      <tr><td>Citations &amp; sources</td><td>Users can check claims; grounds trust in evidence (Topic 4.6)</td></tr>
+      <tr><td>Confidence signals</td><td>Hedging on uncertain answers lowers trust <em>appropriately</em></td></tr>
+      <tr><td>Showing the work</td><td>Reasoning or steps let users judge the output, not just accept it</td></tr>
+      <tr><td>Consistent honesty</td><td>Admitting "I don't know" once buys trust everywhere else</td></tr>
+      <tr><td>Easy correction</td><td>Letting users fix errors keeps them engaged rather than abandoning</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">Feedback is the product's second job</span>
+  <p>Every AI product should be quietly designed to <strong>learn from use</strong>. A thumbs up/down, an accepted vs rejected suggestion, an edited draft, a regenerated answer &mdash; each is a signal about quality that, captured, becomes evaluation data (Topic 19.1) and training data (Topic 18.1). The strongest AI products run a <em>data flywheel</em>: usage produces feedback, feedback improves the model, the better model attracts more usage. Designing the feedback capture into the interface from day one &mdash; not bolting it on later &mdash; is what turns a static feature into one that compounds. The interface is not just how users get value; it is how the product gets better.</p>
+</div>
+
+<h2 id="production"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>Measuring an AI product</h2>
+
+<div class="note">
+  <p>Traditional product metrics still apply, but AI products need two extra lenses. <strong>Quality in the world:</strong> not the offline eval score (Topic 19.1) but the real outcome &mdash; did the support issue get resolved, did the user accept the suggestion, did they have to redo the work? <strong>Trust &amp; safety signals:</strong> escalation rate, correction rate, complaints, the frequency of the model being confidently wrong where it matters. A feature can have a great model and a failing product if users learn not to trust it, or if the one-in-a-hundred bad output is the one that ends up in front of a customer. Measure the product, not just the model &mdash; and treat cost and latency (Topic 19.3) as part of the user experience, because a brilliant answer that arrives in ten seconds or costs a fortune is often the wrong product.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; think like a product owner</div>
+  <ol>
+    <li>Take an AI feature idea and run it through the Section 02 fit test. Decide honestly whether AI is even the right tool.</li>
+    <li>Redesign a feature that currently auto-acts into a draft/review flow. Describe what the human sees and approves.</li>
+    <li>For a chatbot you use, find where it fails <em>gracefully</em> and where it fails <em>badly</em>. Redesign one bad failure.</li>
+    <li>Design the feedback capture for a feature: what signal, how collected, how it feeds evaluation and training.</li>
+    <li>Write the "this is AI and can be wrong" moment for a product without making it feel broken. Wording is the exercise.</li>
+    <li>List the metrics you would put on a dashboard for an AI feature &mdash; product, quality-in-the-world, and trust/safety.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Guide</span><span class="body"><a href="https://pair.withgoogle.com/guidebook/">Google &mdash; People + AI Guidebook</a><span class="why">The best free guide to designing human-centred AI products &mdash; all of Sections 03&ndash;04.</span></span></li>
+    <li><span class="kind">Guide</span><span class="body"><a href="https://www.microsoft.com/en-us/haxtoolkit/ai-guidelines/">Microsoft &mdash; Guidelines for Human-AI Interaction</a><span class="why">18 research-backed design guidelines for fallible AI, with examples.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://a16z.com/emerging-architectures-for-llm-applications/">Emerging Architectures for LLM Applications</a><span class="why">How real AI products are actually structured &mdash; connects product to build.</span></span></li>
+    <li><span class="kind">Book</span><span class="body"><a href="https://www.oreilly.com/library/view/designing-machine-learning/9781098107956/">Designing Machine Learning Systems &mdash; Chip Huyen</a><span class="why">The systems-and-product view of shipping AI, from problem framing to feedback loops.</span></span></li>
+    <li><span class="kind">Talk</span><span class="body"><a href="https://www.youtube.com/watch?v=c3b-JASoPi0">Building LLM applications for production</a><span class="why">A practitioner's tour of what breaks between demo and product.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 19.2 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

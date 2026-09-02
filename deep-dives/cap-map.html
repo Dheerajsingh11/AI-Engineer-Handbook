@@ -1,0 +1,462 @@
+<title>The Complete Topic Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 20 &middot; Capstone Project</span>
+    <span class="sep">/</span>
+    <span>Capstone build</span>
+  </div>
+
+  <header class="head">
+    <span class="num">20.12</span>
+    <h1>The Complete Topic Map</h1>
+    <p class="lede">The proof that it all connects. This closing chapter indexes every one of the handbook's 91 topics against the
+part of Atlas that used it &mdash; as built-in code, as the foundation an idea rests on, or as the natural extension
+beyond what we built. Read top to bottom, it is the whole handbook seen through one working system.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">The end-to-end build &middot; where this chapter sits</div>
+    <ol>
+      <li><span class="lvl lvl-b">Stage 1</span><b>Data &amp; Retrieval</b><span class="who">Ch. 20.2&ndash;20.4 &mdash; corpus, embeddings, the RAG core.</span></li>
+      <li><span class="lvl lvl-i">Stage 2</span><b>The Model</b><span class="who">Ch. 20.5&ndash;20.6 &mdash; fine-tune Llama, run it in llama.cpp.</span></li>
+      <li><span class="lvl lvl-a">Stage 3</span><b>The Application</b><span class="who">Ch. 20.7&ndash;20.8 &mdash; the agent, the serving API.</span></li>
+      <li><span class="lvl lvl-p">Stage 4</span><b>Operations</b><span class="who">Ch. 20.9&ndash;20.11 &mdash; eval, efficiency, deploy &amp; safety.</span></li>
+    </ol>
+  </div>
+
+  <div class="note java">
+    <span class="tag">How to read a capstone chapter</span>
+    <p>This is not a tutorial page &mdash; it is a build log. Every section shows <strong>code</strong>, the <strong>reason</strong> for it, and the <strong>maths or algorithm</strong> underneath, and closes with a <strong>&ldquo;Topics used here&rdquo;</strong> box linking the Phase&nbsp;1&ndash;19 pages it draws on. The goal is to see the whole handbook working as one system &mdash; chapter 20.1 gives the architecture, 20.12 indexes every topic.</p>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#how">How to read the map</a></li><li><a href="#p1-4">Phases 1&ndash;4 &middot; Maths, Python &amp; RAG</a></li><li><a href="#p5-8">Phases 5&ndash;8 &middot; Agents, Production &amp; Frameworks</a></li><li><a href="#p9-13">Phases 9&ndash;13 &middot; Models, Cloud, Foundations, DL &amp; NLP</a></li><li><a href="#p14-19">Phases 14&ndash;19 &middot; Classical ML, Media, Safety, Applications, Efficiency</a></li><li><a href="#close">The whole handbook, in one system</a></li></ol>
+  </nav>
+
+<h2 id="how"><span class="kicker">Step 01</span>How to read the map</h2>
+
+<p>Atlas is one system, but it draws on the entire handbook. Each topic below is tagged by <em>how</em> it appears in the project, so the map is honest about what was written as code versus what underpins it versus what a next version would add.</p>
+
+<div class="tbl">
+  <table>
+    <caption>The three roles</caption>
+    <thead><tr><th>Tag</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Core</strong></td><td>Written directly into Atlas's code, in the named chapter.</td></tr>
+      <tr><td><strong>Foundation</strong></td><td>The underlying idea Atlas relies on, even if not coded line-by-line.</td></tr>
+      <tr><td><strong>Extension</strong></td><td>Not built here &mdash; the natural next step for a v2 of Atlas.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="p1-4"><span class="kicker">Step 02</span>Phases 1&ndash;4 &middot; Maths, Python &amp; RAG</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Fundamentals, the Java/AI stack, RAG &amp; vectors</caption>
+    <thead><tr><th>Topic</th><th>In Atlas</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td>1.1 Linear Algebra</td><td>20.3</td><td><strong>Core</strong> &mdash; vectors, dot product, cosine similarity</td></tr>
+      <tr><td>1.2 Probability &amp; Statistics</td><td>20.4, 20.10</td><td><strong>Core</strong> &mdash; BM25's IDF; expected-cost maths</td></tr>
+      <tr><td>1.3 LLM Mechanics</td><td>20.4&ndash;20.6</td><td><strong>Core</strong> &mdash; attention, next-token, the KV cache</td></tr>
+      <tr><td>1.4 Calculus &amp; Optimisation</td><td>20.5</td><td><strong>Core</strong> &mdash; gradient descent over the loss</td></tr>
+      <tr><td>2.1 Core Python</td><td>all</td><td><strong>Core</strong> &mdash; the language every chapter is written in</td></tr>
+      <tr><td>2.2 NumPy &amp; Pandas</td><td>20.2, 20.3</td><td><strong>Core</strong> &mdash; the data pipeline and vector arrays</td></tr>
+      <tr><td>2.3 Classical Machine Learning</td><td>20.2, 20.9</td><td><strong>Foundation</strong> &mdash; the leakage rule; evaluation metrics</td></tr>
+      <tr><td>2.4 Neural Network Basics</td><td>20.5</td><td><strong>Core</strong> &mdash; backpropagation during fine-tuning</td></tr>
+      <tr><td>2.5 PyTorch &amp; Training Loops</td><td>20.5</td><td><strong>Core</strong> &mdash; the training stack under PEFT/TRL</td></tr>
+      <tr><td>2.6 CUDA &amp; GPU Computing</td><td>20.5, 20.8</td><td><strong>Core</strong> &mdash; bf16 compute; batching on the GPU</td></tr>
+      <tr><td>3.1 Prompt Engineering</td><td>20.4</td><td><strong>Core</strong> &mdash; the grounded, cite-sources prompt</td></tr>
+      <tr><td>3.2 Spring AI</td><td>20.8</td><td><strong>Foundation</strong> &mdash; the Java equivalent of the serving layer</td></tr>
+      <tr><td>3.3 LangChain4j</td><td>20.8</td><td><strong>Foundation</strong> &mdash; Java-side agent/RAG parallel</td></tr>
+      <tr><td>3.4 Model Context Protocol</td><td>20.7</td><td><strong>Extension</strong> &mdash; expose Atlas's tools over MCP</td></tr>
+      <tr><td>3.5 Fine-Tuning &amp; PEFT</td><td>20.5</td><td><strong>Core</strong> &mdash; LoRA/QLoRA on Llama</td></tr>
+      <tr><td>4.1 When to Use RAG</td><td>20.1</td><td><strong>Core</strong> &mdash; the RAG-and-fine-tune decision</td></tr>
+      <tr><td>4.2 Embedding Models</td><td>20.3, 20.10</td><td><strong>Core</strong> &mdash; encoding chunks; the semantic cache</td></tr>
+      <tr><td>4.3 Vector Indexes</td><td>20.3</td><td><strong>Core</strong> &mdash; the HNSW index</td></tr>
+      <tr><td>4.4 Vector Databases</td><td>20.3</td><td><strong>Core</strong> &mdash; pgvector storage &amp; filtering</td></tr>
+      <tr><td>4.5 Ingestion &amp; Chunking</td><td>20.2</td><td><strong>Core</strong> &mdash; the chunker and overlap</td></tr>
+      <tr><td>4.6 Advanced Retrieval</td><td>20.4</td><td><strong>Core</strong> &mdash; hybrid, fusion, re-ranking</td></tr>
+      <tr><td>4.7 RAG Evaluation</td><td>20.9</td><td><strong>Core</strong> &mdash; recall, faithfulness</td></tr>
+      <tr><td>4.8 Knowledge Graphs &amp; GraphRAG</td><td>20.4</td><td><strong>Extension</strong> &mdash; add graph retrieval for linked docs</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="p5-8"><span class="kicker">Step 03</span>Phases 5&ndash;8 &middot; Agents, Production &amp; Frameworks</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Agents &amp; ops, production, Python frameworks, agent engineering</caption>
+    <thead><tr><th>Topic</th><th>In Atlas</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td>5.1 Tool &amp; Function Calling</td><td>20.7</td><td><strong>Core</strong> &mdash; the tool-call mechanism</td></tr>
+      <tr><td>5.2 Agentic Architecture</td><td>20.1, 20.7</td><td><strong>Core</strong> &mdash; the perceive&ndash;plan&ndash;act shape</td></tr>
+      <tr><td>5.3 Memory &amp; Context</td><td>20.7</td><td><strong>Core</strong> &mdash; conversation memory in the graph</td></tr>
+      <tr><td>5.4 Event-Driven AI</td><td>20.8</td><td><strong>Core</strong> &mdash; queued jobs, webhook delivery</td></tr>
+      <tr><td>5.5 LLMOps</td><td>20.9</td><td><strong>Core</strong> &mdash; production monitoring &amp; logging</td></tr>
+      <tr><td>5.6 LLM Security</td><td>20.11</td><td><strong>Core</strong> &mdash; injection &amp; exfiltration defences</td></tr>
+      <tr><td>5.7 Structured Generation</td><td>20.7</td><td><strong>Core</strong> &mdash; typed, valid tool calls</td></tr>
+      <tr><td>6.1 Inference, Serving &amp; Quantisation</td><td>20.6, 20.8</td><td><strong>Core</strong> &mdash; quantised serving, batching, KV cache</td></tr>
+      <tr><td>6.2 Multimodal AI</td><td>&mdash;</td><td><strong>Extension</strong> &mdash; ingest diagrams/screenshots in docs</td></tr>
+      <tr><td>6.3 Testing AI in Java</td><td>20.9</td><td><strong>Foundation</strong> &mdash; the testing discipline, Java-side</td></tr>
+      <tr><td>6.4 Governance, Privacy &amp; Compliance</td><td>20.11</td><td><strong>Core</strong> &mdash; privacy, audit, erasure</td></tr>
+      <tr><td>6.5 AI Hardware &amp; Accelerators</td><td>20.6, 20.11</td><td><strong>Core</strong> &mdash; sizing &amp; the GPU deploy node</td></tr>
+      <tr><td>7.1 LangChain &amp; LangGraph</td><td>20.7</td><td><strong>Core</strong> &mdash; the orchestration state graph</td></tr>
+      <tr><td>7.2 LlamaIndex</td><td>20.4</td><td><strong>Foundation</strong> &mdash; alternative RAG framework</td></tr>
+      <tr><td>8.1 Agent Fundamentals</td><td>20.7</td><td><strong>Core</strong> &mdash; the agent loop</td></tr>
+      <tr><td>8.2 Orchestration Patterns</td><td>20.7</td><td><strong>Core</strong> &mdash; graph nodes &amp; edges</td></tr>
+      <tr><td>8.3 Building an Agent</td><td>20.7</td><td><strong>Core</strong> &mdash; the whole chapter</td></tr>
+      <tr><td>8.4 Types of Tools</td><td>20.7</td><td><strong>Core</strong> &mdash; read/write taxonomy</td></tr>
+      <tr><td>8.5 Agent Skills</td><td>20.7</td><td><strong>Extension</strong> &mdash; package capabilities as skills</td></tr>
+      <tr><td>8.6 Hooks &amp; Middleware</td><td>20.8, 20.11</td><td><strong>Core</strong> &mdash; auth, rate-limit, logging middleware</td></tr>
+      <tr><td>8.7 Planning &amp; Reasoning</td><td>20.7</td><td><strong>Core</strong> &mdash; the ReAct cycle</td></tr>
+      <tr><td>8.8 Computer Use</td><td>&mdash;</td><td><strong>Extension</strong> &mdash; a browser tool for external lookups</td></tr>
+      <tr><td>8.9 Multi-Agent Systems</td><td>&mdash;</td><td><strong>Extension</strong> &mdash; split retrieval &amp; answer into agents</td></tr>
+      <tr><td>8.10 Agent Evaluation</td><td>20.9</td><td><strong>Core</strong> &mdash; tracing the agent end to end</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="p9-13"><span class="kicker">Step 04</span>Phases 9&ndash;13 &middot; Models, Cloud, Foundations, DL &amp; NLP</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Models &amp; training, cloud/deploy, AI foundations, deep learning, NLP</caption>
+    <thead><tr><th>Topic</th><th>In Atlas</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td>9.1 LLM APIs &amp; Model Selection</td><td>20.1, 20.6</td><td><strong>Core</strong> &mdash; choosing Llama; OpenAI-compatible local API</td></tr>
+      <tr><td>9.2 Open Models &amp; Running Locally</td><td>20.5, 20.6</td><td><strong>Core</strong> &mdash; the open Llama base, run locally</td></tr>
+      <tr><td>9.3 The Hugging Face Ecosystem</td><td>20.5</td><td><strong>Core</strong> &mdash; models, PEFT, TRL, datasets</td></tr>
+      <tr><td>9.4 Reasoning Models</td><td>20.7</td><td><strong>Extension</strong> &mdash; swap in a reasoning model for hard queries</td></tr>
+      <tr><td>9.5 Train From Scratch</td><td>20.5</td><td><strong>Foundation</strong> &mdash; the contrast that justifies fine-tuning</td></tr>
+      <tr><td>9.6 Distributed &amp; Large-Scale Training</td><td>20.5</td><td><strong>Core</strong> &mdash; gradient accumulation; the scale-up path</td></tr>
+      <tr><td>10.1 Cloud AI Platforms</td><td>20.11</td><td><strong>Core</strong> &mdash; the deployment target</td></tr>
+      <tr><td>10.2 Containerised Deployment</td><td>20.8, 20.11</td><td><strong>Core</strong> &mdash; the Docker image &amp; rollout</td></tr>
+      <tr><td>10.3 MLOps Tooling</td><td>20.11</td><td><strong>Core</strong> &mdash; versioning, rollback, CI gating</td></tr>
+      <tr><td>11.1 What Is AI</td><td>20.1</td><td><strong>Foundation</strong> &mdash; the framing of the whole system</td></tr>
+      <tr><td>11.2 A Short History of AI</td><td>20.1</td><td><strong>Foundation</strong> &mdash; why the stack looks as it does</td></tr>
+      <tr><td>11.3 The AI Landscape</td><td>20.1</td><td><strong>Foundation</strong> &mdash; placing Atlas in the ecosystem</td></tr>
+      <tr><td>12.1 CNNs &amp; Computer Vision</td><td>&mdash;</td><td><strong>Foundation</strong> &mdash; representation learning lineage</td></tr>
+      <tr><td>12.2 RNNs, LSTMs &amp; Sequences</td><td>&mdash;</td><td><strong>Foundation</strong> &mdash; the sequence models the transformer replaced</td></tr>
+      <tr><td>12.3 Autoencoders &amp; VAEs</td><td>20.3</td><td><strong>Foundation</strong> &mdash; compressing meaning into vectors</td></tr>
+      <tr><td>12.4 GANs</td><td>20.2</td><td><strong>Foundation</strong> &mdash; the generative lineage behind synthetic data</td></tr>
+      <tr><td>12.5 Diffusion Models</td><td>&mdash;</td><td><strong>Extension</strong> &mdash; generate diagrams for answers</td></tr>
+      <tr><td>12.6 Graph Neural Networks</td><td>20.4</td><td><strong>Extension</strong> &mdash; power a GraphRAG retriever</td></tr>
+      <tr><td>13.1 NLP Fundamentals</td><td>20.2, 20.4</td><td><strong>Core</strong> &mdash; tokenisation; classic IR under BM25</td></tr>
+      <tr><td>13.2 Classic NLP Tasks</td><td>20.4</td><td><strong>Foundation</strong> &mdash; retrieval as an IR task</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="p14-19"><span class="kicker">Step 05</span>Phases 14&ndash;19 &middot; Classical ML, Media, Safety, Applications, Efficiency</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Classical ML extended, generative media, safety, applications, data &amp; efficiency, evaluation</caption>
+    <thead><tr><th>Topic</th><th>In Atlas</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td>14.1 Feature Engineering</td><td>20.2</td><td><strong>Foundation</strong> &mdash; the data-shaping instinct</td></tr>
+      <tr><td>14.2 Ensemble Methods</td><td>20.4</td><td><strong>Foundation</strong> &mdash; combining retrievers as an ensemble</td></tr>
+      <tr><td>14.3 Unsupervised Learning &amp; Clustering</td><td>20.3</td><td><strong>Foundation</strong> &mdash; the geometry of the embedding space</td></tr>
+      <tr><td>14.4 Reinforcement Learning</td><td>20.5</td><td><strong>Foundation</strong> &mdash; the RLHF lineage of instruction-tuned models</td></tr>
+      <tr><td>14.5 Time Series Forecasting</td><td>20.9</td><td><strong>Foundation</strong> &mdash; reasoning about drift over time</td></tr>
+      <tr><td>14.6 Recommender Systems</td><td>20.4</td><td><strong>Core</strong> &mdash; the retrieve-then-rank funnel</td></tr>
+      <tr><td>14.7 Anomaly Detection</td><td>20.9</td><td><strong>Core</strong> &mdash; drift &amp; outlier monitoring</td></tr>
+      <tr><td>15.1 Speech &amp; Audio AI</td><td>&mdash;</td><td><strong>Extension</strong> &mdash; a voice interface to Atlas</td></tr>
+      <tr><td>15.2 Image, Video &amp; Music Generation</td><td>&mdash;</td><td><strong>Extension</strong> &mdash; generated visual answers</td></tr>
+      <tr><td>16.1 Responsible AI &amp; Ethics</td><td>20.11</td><td><strong>Core</strong> &mdash; honesty, citations, fair access</td></tr>
+      <tr><td>16.2 AI Safety &amp; Alignment</td><td>20.11</td><td><strong>Core</strong> &mdash; human oversight of consequential actions</td></tr>
+      <tr><td>16.3 Explainability (XAI)</td><td>20.9, 20.11</td><td><strong>Core</strong> &mdash; citations &amp; traces as explanations</td></tr>
+      <tr><td>17.1 Conversational AI &amp; Chatbots</td><td>20.7, 20.8</td><td><strong>Core</strong> &mdash; multi-turn chat over the agent</td></tr>
+      <tr><td>17.2 AI Coding Assistants</td><td>all</td><td><strong>Foundation</strong> &mdash; the tools that help build Atlas itself</td></tr>
+      <tr><td>17.3 AI Across Domains</td><td>20.1</td><td><strong>Core</strong> &mdash; Atlas as a domain/internal tool</td></tr>
+      <tr><td>17.4 AI System Design &amp; Career</td><td>20.1</td><td><strong>Core</strong> &mdash; the requirements-first design</td></tr>
+      <tr><td>18.1 Data Engineering for AI</td><td>20.2</td><td><strong>Core</strong> &mdash; the whole data pipeline</td></tr>
+      <tr><td>18.2 Synthetic Data Generation</td><td>20.2</td><td><strong>Core</strong> &mdash; synthesising instruction pairs</td></tr>
+      <tr><td>18.3 Model Compression &amp; Distillation</td><td>20.6</td><td><strong>Core</strong> &mdash; 4-bit quantisation</td></tr>
+      <tr><td>18.4 Modern LLM Architectures</td><td>20.6</td><td><strong>Core</strong> &mdash; the KV cache; MoE as a scale-up</td></tr>
+      <tr><td>19.1 LLM Evaluation &amp; Benchmarks</td><td>20.9</td><td><strong>Core</strong> &mdash; the eval harness &amp; LLM judge</td></tr>
+      <tr><td>19.2 AI Product &amp; UX Design</td><td>20.1, 20.11</td><td><strong>Core</strong> &mdash; grounded, human-checkable design</td></tr>
+      <tr><td>19.3 Cost, Latency &amp; Efficiency</td><td>20.8, 20.10</td><td><strong>Core</strong> &mdash; caching, cascade, streaming</td></tr>
+      <tr><td>19.4 Edge &amp; On-Device AI</td><td>20.6</td><td><strong>Core</strong> &mdash; running the model locally</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="close"><span class="kicker">Step 06</span>The whole handbook, in one system</h2>
+
+<div class="note key">
+  <span class="tag">What the map shows</span>
+  <p>Every topic in the handbook appears above. The majority are <strong>Core</strong> &mdash; written directly into Atlas &mdash; which is the point: a single, realistic system genuinely exercises maths, Python, RAG, fine-tuning, agents, serving, evaluation, efficiency, safety and deployment together. The <strong>Foundations</strong> are the ideas underneath the code, the reason it works rather than merely runs. The <strong>Extensions</strong> are the honest edges &mdash; multimodal ingestion, a voice interface, multi-agent decomposition, GraphRAG &mdash; each a clear next step, and each already understood because its topic is in the handbook.</p>
+</div>
+
+<div class="note java">
+  <span class="tag">You have finished the handbook</span>
+  <p>From linear algebra to a deployed, evaluated, secured AI assistant &mdash; the distance is exactly what these twenty phases covered, and Atlas is the proof they connect. The remaining distance to the role is not more reading; it is building your own Atlas: pick a corpus you care about, run these chapters end to end, measure it honestly, deploy it, and write it up (Topic 17.4). That project &mdash; an experienced engineer shipping a real, measured AI system &mdash; is the whole job, and now you know how to build it.</p>
+</div>
+
+  <div class="foot">
+    <span>Capstone 20.12 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

@@ -1,0 +1,410 @@
+<title>Green AI & Compute Cost</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 16 &middot; Safety, Ethics &amp; XAI</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">16.5</span>
+    <h1>Green AI &amp; Compute Cost</h1>
+    <p class="lede">The energy bill behind the intelligence. This page covers Green AI &mdash; the compute, energy and carbon cost of
+training and running models &mdash; where that cost actually goes, how to measure it, and the levers that cut it
+(which, conveniently, are the same ones that cut your cloud bill).</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#where">Where the energy goes</a></li><li><a href="#measure">Measuring it</a></li><li><a href="#levers">The levers that cut it</a></li><li><a href="#production">Being honest about it</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>AI hardware (Topic 6.5) and efficiency engineering (Topic 19.3). This page reframes the same compute through the lens of energy and carbon.</p>
+</div>
+
+<p>Every token a model generates and every step it trains burns electricity, and electricity has a cost &mdash; in money, and in carbon. As models and usage have grown, so has that footprint. <strong>Green AI</strong> is the practice of being aware of, measuring, and reducing the energy and carbon cost of AI &mdash; not as a moral add-on, but because <em>the same efficiency that saves the planet a little also saves you a lot of money</em>.</p>
+
+<div class="note key">
+  <span class="tag">Efficiency is the rare win-win</span>
+  <p>The reason to care even if sustainability is not your top concern: <strong>cost, latency, and carbon are the same axis.</strong> A smaller, quantised, well-cached model uses less energy, costs less to run, responds faster, <em>and</em> emits less carbon &mdash; all at once. So Green AI is not a trade-off against performance; it is mostly good engineering (Topics 19.3, 18.3) described in a different unit. The teams that take it seriously tend to have cheaper, faster products as a side effect.</p>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>FLOPs</dt><dd>Floating-point operations &mdash; a rough proxy for how much compute a task needs.</dd>
+    <dt>kWh</dt><dd>Kilowatt-hours &mdash; the actual energy used.</dd>
+    <dt>CO&#8322;e</dt><dd>Carbon-dioxide equivalent &mdash; energy converted to emissions using the grid's carbon intensity.</dd>
+    <dt>Carbon intensity</dt><dd>How dirty the electricity is &mdash; varies a lot by region and time of day.</dd>
+    <dt>Embodied carbon</dt><dd>The emissions from manufacturing the hardware, not just running it.</dd>
+  </dl>
+</div>
+
+<h2 id="where"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>Where the energy goes</h2>
+
+<p>The cost splits into two very different phases, and knowing which dominates decides where to spend your effort.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Training vs inference, energetically</caption>
+    <thead><tr><th></th><th>Training</th><th>Inference</th></tr></thead>
+    <tbody>
+      <tr><td>When</td><td>Once (or occasionally)</td><td>Every request, forever</td></tr>
+      <tr><td>Cost shape</td><td>A large, one-off spike</td><td>A small cost paid billions of times</td></tr>
+      <tr><td>Visibility</td><td>Headline-grabbing ("training cost X")</td><td>Quiet, but usually the bigger lifetime total</td></tr>
+      <tr><td>Your lever</td><td>Train less; reuse/fine-tune instead of from scratch</td><td>Serve efficiently (the biggest win for most teams)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note">
+  <p>The counter-intuitive point, same as the cost story (Topic 6.5): for most organisations, <strong>inference dominates the lifetime footprint</strong>, not training. A model trained once but served to millions of users for years spends far more total energy answering than it ever did learning. So unless you are a frontier lab training giant models, the highest-leverage Green-AI work is making <em>inference</em> efficient &mdash; which is exactly the efficiency engineering of Topic 19.3. The greenest training run, meanwhile, is usually the one you <em>don't</em> do: fine-tune or reuse an existing model instead of pre-training from scratch (Topic 9.5).</p>
+</div>
+
+<h2 id="measure"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>Measuring it</h2>
+
+<p>You cannot reduce what you do not measure (the theme of Topic 19.1, applied to energy). The chain from compute to carbon is straightforward.</p>
+
+<div class="math">
+  <span class="lbl">From energy to carbon</span>
+  <span class="row">CO&#8322;e &nbsp;=&nbsp; energy (kWh) &nbsp;&times;&nbsp; carbon intensity (kg CO&#8322;e / kWh)</span>
+  <span class="note">Energy used depends on the hardware's power draw &times; time &times; a data-centre overhead factor (PUE). Carbon intensity depends on <em>where and when</em> you run &mdash; the same job can emit several times more on a coal-heavy grid than on a hydro/nuclear/solar one. Tools like CodeCarbon estimate this automatically from your hardware and region.</span>
+</div>
+
+<div class="note java">
+  <span class="tag">The region and timing lever</span>
+  <p>One of the easiest wins requires <em>no</em> model change at all: <strong>run compute where and when the grid is clean.</strong> Carbon intensity varies enormously by region and even by hour (more solar at midday, more coal at night). Scheduling training jobs in low-carbon regions, or at low-carbon times, can cut emissions by a large factor for the same work &mdash; "carbon-aware scheduling." For an engineer this is just a data-centre-region choice and a scheduler, and cloud providers increasingly expose the carbon data to make it.</p>
+</div>
+
+<h2 id="levers"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>The levers that cut it</h2>
+
+<div class="tbl">
+  <table>
+    <caption>How to use less &mdash; and why each also saves money</caption>
+    <thead><tr><th>Lever</th><th>Cuts energy by&hellip;</th><th>Also (handbook)</th></tr></thead>
+    <tbody>
+      <tr><td>Smaller / distilled model</td><td>Doing less compute per request</td><td>18.3 Compression</td></tr>
+      <tr><td>Quantisation</td><td>Cheaper maths, less memory movement</td><td>18.3, 6.1</td></tr>
+      <tr><td>Caching &amp; routing</td><td>Not computing repeated/easy work</td><td>19.3 Efficiency</td></tr>
+      <tr><td>Efficient hardware / batching</td><td>More work per joule</td><td>6.5, 2.6</td></tr>
+      <tr><td>Reuse over retrain</td><td>Skipping the training spike entirely</td><td>3.5, 9.5</td></tr>
+      <tr><td>Carbon-aware scheduling</td><td>Cleaner electricity for the same work</td><td>this page</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">"Right-size the model" is the master lever</span>
+  <p>Every lever above is a specific case of one principle you have met all through Phases 18&ndash;19: <strong>use the smallest model that clears the quality bar, served as efficiently as possible.</strong> The instinct to reach for the biggest frontier model for every task is the single largest source of wasted energy (and money) in applied AI. A distilled, quantised model that meets the requirement on cheap hardware, answering from a cache when it can, is the green choice and the economical choice at once. Green AI, in the end, is not a separate discipline &mdash; it is efficiency engineering with the externality made visible.</p>
+</div>
+
+<h2 id="production"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>Being honest about it</h2>
+
+<div class="note">
+  <p>Two professional cautions. First, <strong>avoid greenwashing</strong>: report real numbers (kWh, CO&#8322;e, region) rather than vague "eco-friendly" claims, and include the honest caveats &mdash; estimates are rough, and <em>embodied</em> carbon (manufacturing the GPUs) is real too. Second, keep <strong>perspective</strong>: for a typical application team, your footprint is dominated by inference volume, so the responsible move is simply to right-size and serve efficiently, and to measure so you can show it. The field also has a healthy counter-current &mdash; "Green AI" as a research value that rewards <em>efficiency</em> and reporting compute, not just chasing accuracy at any cost. As an engineer, you contribute most by defaulting to the efficient option and being transparent about what your systems actually cost to run &mdash; which, happily, is the same habit that keeps the cloud bill down (Topic 19.3).</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; put a number on it</div>
+  <ol>
+    <li>Wrap a training run in CodeCarbon. Record the kWh and estimated CO&#8322;e. Now you have a baseline.</li>
+    <li>Quantise a model and re-measure the energy per 1,000 inferences. Report the % reduction in energy <em>and</em> cost.</li>
+    <li>Estimate a feature's <em>lifetime</em> footprint: training once vs inference over a year at your expected traffic. See which dominates.</li>
+    <li>Compare the carbon intensity of two cloud regions and estimate the emissions saved by moving a job to the cleaner one.</li>
+    <li>Take a task currently on a frontier model and find the smallest model that still passes your eval (Topic 19.1). Quantify the energy saved.</li>
+    <li>Write the honest sustainability note for a project: real numbers, the region, and the caveats (estimates, embodied carbon).</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Tool</span><span class="body"><a href="https://mlco2.github.io/codecarbon/">CodeCarbon</a><span class="why">Estimate the energy and CO&#8322;e of your training/inference in a few lines &mdash; Section 03.</span></span></li>
+    <li><span class="kind">Tool</span><span class="body"><a href="https://mlco2.github.io/impact/">ML CO2 Impact calculator</a><span class="why">A quick estimator by hardware, hours and region &mdash; the Section 03 maths.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/1907.10597">Green AI</a><span class="why">The paper that named the movement &mdash; efficiency as a first-class research value.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2104.10350">Carbon Emissions and Large Neural Network Training</a><span class="why">Real measurements and the region/efficiency levers of Section 04.</span></span></li>
+    <li><span class="kind">Data</span><span class="body"><a href="https://app.electricitymaps.com/">Electricity Maps</a><span class="why">Live grid carbon intensity by region &mdash; the input to carbon-aware scheduling.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 16.5 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

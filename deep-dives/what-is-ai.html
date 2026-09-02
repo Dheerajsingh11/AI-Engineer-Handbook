@@ -1,0 +1,454 @@
+<title>What Is AI: ML, DL & GenAI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 11 &middot; AI Foundations</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">11.1</span>
+    <h1>What Is AI: ML, DL &amp; GenAI</h1>
+    <p class="lede">The map of the whole field, for someone starting from nothing. This page defines AI, machine learning, deep
+learning and generative AI and shows how they nest; separates the types of AI (narrow, general, super) from
+the science-fiction versions; and gives you the vocabulary to place every other topic in this handbook.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#paradigm">The shift that made it work</a></li><li><a href="#types">Types of AI &mdash; the real ones and the sci-fi ones</a></li><li><a href="#genai">Why generative AI changed everything</a></li><li><a href="#map">Placing the rest of this handbook</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>None whatsoever. This is the front door to the entire handbook. If you are new to AI, start here; every other topic assumes the vocabulary this page establishes.</p>
+</div>
+
+<p>"AI" is used to mean a dozen different things, which makes the field sound more confusing than it is. The single most useful thing you can learn first is how the main terms fit together &mdash; because they are not competing ideas, they are <strong>nested</strong> ones, each a special case of the one above.</p>
+
+<div class="tbl">
+  <table>
+    <caption>The four terms, from broadest to narrowest</caption>
+    <thead><tr><th>Term</th><th>Means</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Artificial Intelligence</strong></td><td>Any technique that makes a machine do something we would call "intelligent"</td><td>A chess program; a route planner; a spam filter</td></tr>
+      <tr><td>&nbsp;&nbsp;&#8627; <strong>Machine Learning</strong></td><td>AI that <em>learns from data</em> instead of being explicitly programmed</td><td>A spam filter trained on labelled emails</td></tr>
+      <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&#8627; <strong>Deep Learning</strong></td><td>ML using neural networks with many layers</td><td>Image recognition; speech-to-text</td></tr>
+      <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#8627; <strong>Generative AI</strong></td><td>Deep learning that <em>creates</em> new content</td><td>ChatGPT; image generators</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">The nesting is the whole point</span>
+  <p>Generative AI is a kind of deep learning, which is a kind of machine learning, which is a kind of AI. So an LLM is <em>all four</em> at once. When someone says "AI" today they usually mean the innermost box &mdash; generative AI &mdash; but the outer boxes are older, larger, and still everywhere: your bank's fraud detection, your email's spam filter, and your maps app are all AI, most of it not generative. This handbook lives mostly in the two innermost boxes, but it is worth knowing the whole nesting so you can place any tool you meet.</p>
+</div>
+
+<h2 id="paradigm"><span class="kicker">Section 02 <span class="lvl lvl-b">Beginner</span></span>The shift that made it work</h2>
+
+<p>The deepest idea in the whole field is a reversal of how software normally works.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Two ways to make a computer do something</caption>
+    <thead><tr><th></th><th>Traditional programming</th><th>Machine learning</th></tr></thead>
+    <tbody>
+      <tr><td>You write</td><td>The rules</td><td>Examples (data + answers)</td></tr>
+      <tr><td>The computer produces</td><td>Answers, by following your rules</td><td>The rules, by learning from your examples</td></tr>
+      <tr><td>To improve it</td><td>Write more rules</td><td>Show it more examples</td></tr>
+      <tr><td>Good for</td><td>Problems with clear rules (tax, payroll)</td><td>Problems too fuzzy to write rules for (recognising a cat)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note">
+  <p><strong>Why this matters.</strong> Some problems have rules you can write down &mdash; calculate a tax, sort a list. Others do not: nobody can write the rules that distinguish a photo of a cat from a photo of a dog, yet a three-year-old does it instantly. Machine learning was the breakthrough for exactly these fuzzy problems: instead of writing impossible rules, you show the computer thousands of labelled examples and let it work out the pattern. Generative AI is the same trick pointed at creation &mdash; show a model enough text and it learns to produce text.</p>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Model</dt><dd>The thing a machine learns &mdash; the learned pattern, plus the rule for using it.</dd>
+    <dt>Training</dt><dd>The process of learning that pattern from data.</dd>
+    <dt>Inference</dt><dd>Using a trained model to get an answer. What you do every day.</dd>
+    <dt>Data</dt><dd>The examples a model learns from. More and cleaner is usually better.</dd>
+    <dt>Neural network</dt><dd>The kind of model deep learning uses &mdash; layers of simple units, loosely inspired by the brain.</dd>
+    <dt>Algorithm</dt><dd>A step-by-step procedure. "The learning algorithm" is how the model is trained.</dd>
+  </dl>
+</div>
+
+<h2 id="types"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>Types of AI &mdash; the real ones and the sci-fi ones</h2>
+
+<p>You will hear "narrow AI", "AGI" and "superintelligence". These describe <em>how general</em> an AI is, and it is important to know which exist today and which are aspirations.</p>
+
+<div class="tbl">
+  <table>
+    <caption>AI by breadth of ability</caption>
+    <thead><tr><th>Type</th><th>Means</th><th>Exists?</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Narrow AI (ANI)</strong></td><td>Good at one specific thing</td><td><strong>Yes &mdash; everything today is this</strong></td></tr>
+      <tr><td>General AI (AGI)</td><td>Human-level across any task</td><td>Not yet; actively pursued and debated</td></tr>
+      <tr><td>Superintelligence (ASI)</td><td>Beyond human across the board</td><td>Hypothetical</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note trap">
+  <span class="tag">Everything you will build is narrow AI</span>
+  <p>Even the most capable chatbot is narrow AI: astonishingly broad-seeming, but still a system trained to predict text, without goals, understanding or awareness of the kind the words "general" and "super" imply. Marketing blurs this constantly. When you read that a model "understands" or "thinks", read it as a useful shorthand for a statistical process (Topic 1.2), not a literal claim. Keeping that distinction sharp will make you a clearer thinker about what these systems can and cannot do &mdash; and a more honest engineer.</p>
+</div>
+
+<p>A second, more useful classification is by <em>how the system learns</em> &mdash; the paradigms you will actually work with:</p>
+
+<div class="tbl">
+  <table>
+    <caption>AI by how it learns (covered in Topic 2.3)</caption>
+    <thead><tr><th>Paradigm</th><th>Learns from</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td>Supervised</td><td>Labelled examples</td><td>Spam detection</td></tr>
+      <tr><td>Unsupervised</td><td>Unlabelled data &mdash; finds structure</td><td>Customer segments</td></tr>
+      <tr><td>Reinforcement</td><td>Trial and error with rewards</td><td>Game-playing; robot control</td></tr>
+      <tr><td>Self-supervised</td><td>Labels derived from the data itself</td><td><strong>How LLMs are trained</strong> (Topic 1.3)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="genai"><span class="kicker">Section 04 <span class="lvl lvl-i">Intermediate</span></span>Why generative AI changed everything</h2>
+
+<p>AI existed for decades before 2022 &mdash; so why the sudden explosion? Three things converged, and understanding them explains the moment we are in.</p>
+
+<ol class="steps">
+  <li><strong>The transformer (2017).</strong> A neural-network design (Topic 1.3) that scales beautifully with data and compute, and handles language far better than anything before it.</li>
+  <li><strong>Scale.</strong> Training these models on enormous text corpora with enormous compute produced capabilities nobody explicitly programmed &mdash; and, surprisingly, kept improving as the scale grew.</li>
+  <li><strong>The interface.</strong> Chat made that capability usable by anyone, with no code. ChatGPT put a research capability in front of hundreds of millions of people overnight.</li>
+</ol>
+
+<div class="note key">
+  <span class="tag">What generative AI is, mechanically</span>
+  <p>Under the excitement, a generative language model does something simple to state: <strong>it predicts the next word, over and over</strong> (Topic 1.2). Trained on enough text, that single ability &mdash; guess what comes next &mdash; produces essays, code, translations and conversations. It is not looking things up in a database and not reasoning like a person; it is sampling likely continuations. Holding that plain picture in mind, while still respecting how capable the result is, is the mark of someone who actually understands the technology rather than the hype around it.</p>
+</div>
+
+<h2 id="map"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>Placing the rest of this handbook</h2>
+
+<p>With the vocabulary in hand, here is how the whole handbook maps onto the field:</p>
+
+<div class="tbl">
+  <table>
+    <caption>Where each part of the handbook sits</caption>
+    <thead><tr><th>Handbook area</th><th>Part of the field</th></tr></thead>
+    <tbody>
+      <tr><td>Maths, Python, Classical ML (Phases 1&ndash;2)</td><td>The foundations under all of it</td></tr>
+      <tr><td>Neural nets, PyTorch, DL architectures (2.4, Phase 12)</td><td>Deep learning</td></tr>
+      <tr><td>LLM mechanics, prompting, RAG, agents (Phases 1, 3&ndash;8)</td><td>Generative AI &mdash; the innermost box</td></tr>
+      <tr><td>Serving, cloud, deployment, MLOps (Phases 6, 10)</td><td>Making any of it run in production</td></tr>
+      <tr><td>NLP, computer vision (Phases 12&ndash;13)</td><td>Classic sub-fields, now transformed by deep learning</td></tr>
+      <tr><td>Safety, ethics, governance</td><td>The responsibilities that come with all of it</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note">
+  <p><strong>You do not need all of it for most jobs.</strong> An applied AI engineer building with LLMs lives mostly in the generative-AI and production boxes &mdash; prompting, RAG, agents, serving. The broader deep-learning and classical-ML topics are worth understanding so you can recognise the right tool and read the field, but you will use a fraction of them daily. This map is for orientation, not a checklist you must complete before starting.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly an hour</div>
+  <ol>
+    <li>For five AI products you use (maps, spam filter, a recommender, a chatbot, autocomplete), classify each as ML / deep learning / generative, and as narrow/general.</li>
+    <li>Explain to a non-technical friend, in two sentences, the difference between traditional programming and machine learning.</li>
+    <li>Find one news headline that uses "AI" to mean generative AI and one that uses it to mean older ML. Notice how often the word is doing different jobs.</li>
+    <li>Write one plain-English sentence explaining what a generative language model actually does mechanically. Avoid the words "understand" and "think".</li>
+    <li>Pick any later topic in this handbook and place it on the Section 05 map. Confirm you know which box it lives in.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Course</span><span class="body"><a href="https://www.elementsofai.com/">Elements of AI</a><span class="why">A free, non-technical introduction to what AI is and is not. The best starting point for a true beginner.</span></span></li>
+    <li><span class="kind">Video</span><span class="body"><a href="https://www.youtube.com/watch?v=zjkBMFhNj_g">3Blue1Brown &mdash; But what is a neural network?</a><span class="why">A beautiful visual intuition for the deep-learning box, once this page has placed it.</span></span></li>
+    <li><span class="kind">Course</span><span class="body"><a href="https://developers.google.com/machine-learning/crash-course/">Google ML Crash Course &mdash; intro</a><span class="why">The traditional-vs-ML shift of Section 02, with interactive examples.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://developers.google.com/machine-learning/guides/rules-of-ml">Google &mdash; Rules of Machine Learning</a><span class="why">A grounded view of what ML is good and bad at, from practitioners.</span></span></li>
+    <li><span class="kind">Video</span><span class="body"><a href="https://www.youtube.com/watch?v=7xTGNNLPyMI">Karpathy &mdash; Deep Dive into LLMs</a><span class="why">When you are ready to open the innermost box, this is the definitive tour (also Topic 1.3).</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 11.1 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

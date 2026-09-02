@@ -1,0 +1,442 @@
+<title>NLP Fundamentals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 13 &middot; Natural Language Processing</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">13.1</span>
+    <h1>NLP Fundamentals</h1>
+    <p class="lede">How computers came to process language, and the vocabulary that still underlies LLMs. This page covers the
+classic NLP pipeline &mdash; tokenisation, normalisation, part-of-speech, parsing, named-entity recognition
+&mdash; and word embeddings (word2vec, GloVe), explaining what survived into the transformer era and what the
+LLM quietly absorbed.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#pipeline">The pipeline in practice</a></li><li><a href="#embeddings">Word embeddings: the bridge to modern NLP</a></li><li><a href="#today">What the LLM absorbed, and what to still use</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>Vectors and embeddings (Topic 1.1) and tokenisation from the LLM side (Topic 1.3). This page is the classical NLP foundation those built on.</p>
+</div>
+
+<p>Natural Language Processing is teaching computers to work with human language. Long before LLMs, NLP was a mature field with a standard toolkit for turning messy text into something a machine could analyse. Modern LLMs absorbed much of this &mdash; but the vocabulary and the pipeline still explain a great deal about how language is handled, and you will meet these terms constantly.</p>
+
+<div class="note key">
+  <span class="tag">The classic NLP pipeline</span>
+  <p>Traditional NLP processed text through a sequence of stages, each adding structure: split into tokens &rarr; normalise them &rarr; tag their grammatical roles &rarr; parse the sentence structure &rarr; identify the entities. Each stage was often a separate model. The big shift with LLMs is that a single model now does much of this <em>implicitly</em> &mdash; it learned grammar and entities from data without being told the stages exist. But the concepts remain the right way to <em>think</em> about language tasks, and the classic tools are still the pragmatic choice for many jobs.</p>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>The classic pipeline stages</caption>
+    <thead><tr><th>Stage</th><th>Turns&hellip;</th><th>Into&hellip;</th></tr></thead>
+    <tbody>
+      <tr><td>Tokenisation</td><td>A string</td><td>A list of words/subwords (Topic 1.3)</td></tr>
+      <tr><td>Normalisation</td><td>Raw tokens</td><td>Cleaned tokens (lowercase, stems)</td></tr>
+      <tr><td>Part-of-speech tagging</td><td>Tokens</td><td>Tokens labelled noun/verb/adjective&hellip;</td></tr>
+      <tr><td>Parsing</td><td>A tagged sentence</td><td>A grammatical structure (a tree)</td></tr>
+      <tr><td>Named-entity recognition</td><td>Text</td><td>Spans labelled person/place/org/date</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Token</dt><dd>A unit of text &mdash; a word or subword.</dd>
+    <dt>Stemming / lemmatisation</dt><dd>Reducing words to a root: "running" &rarr; "run".</dd>
+    <dt>Part of speech (POS)</dt><dd>A word's grammatical role: noun, verb, adjective.</dd>
+    <dt>Parsing</dt><dd>Working out the grammatical structure of a sentence.</dd>
+    <dt>Named-entity recognition (NER)</dt><dd>Finding and labelling names of people, places, organisations, dates.</dd>
+    <dt>Word embedding</dt><dd>A vector representing a word's meaning (Topic 1.1).</dd>
+    <dt>Corpus</dt><dd>A large body of text used to train or analyse.</dd>
+  </dl>
+</div>
+
+<h2 id="pipeline"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>The pipeline in practice</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Classic NLP with spaCy</span></div>
+<pre><code>import spacy
+nlp = spacy.load("en_core_web_sm")
+
+doc = nlp("Dr. Okonkwo joined Acme Corp in London last March.")
+
+<span class="cm"># Tokenisation + POS + lemma, all at once:</span>
+for token in doc:
+    print(token.text, token.pos_, token.lemma_)
+<span class="cm"># Dr.      PROPN  Dr.</span>
+<span class="cm"># joined   VERB   join      &lt;- lemmatised</span>
+<span class="cm"># London   PROPN  London</span>
+
+<span class="cm"># Named-entity recognition -- who/what/where/when:</span>
+for ent in doc.ents:
+    print(ent.text, ent.label_)
+<span class="cm"># Okonkwo   PERSON</span>
+<span class="cm"># Acme Corp ORG</span>
+<span class="cm"># London    GPE     (geo-political entity)</span>
+<span class="cm"># last March DATE</span>
+
+<span class="cm"># Dependency parse -- the grammatical structure (a tree):</span>
+<span class="cm"># displacy.render(doc)  shows subject -> verb -> object relations</span></code></pre>
+</div>
+
+<div class="note">
+  <p><strong>These tools are still useful.</strong> For extracting entities from millions of documents, tagging parts of speech, or building a fast, cheap, deterministic text pipeline, classic tools like spaCy are often the right choice &mdash; no API cost, no latency, fully reproducible. NER in particular is a workhorse: pulling names, dates and organisations out of documents is exactly what your ingestion pipeline (Topic 4.5) needs for metadata, and a small NER model does it faster and cheaper than an LLM. Reaching for an LLM for every text task is a common and expensive mistake; the classic toolkit still earns its place.</p>
+</div>
+
+<h2 id="embeddings"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>Word embeddings: the bridge to modern NLP</h2>
+
+<p>The single most important idea from classical NLP &mdash; the one that leads directly to LLMs &mdash; is the <strong>word embedding</strong>. You met the principle in Topic 1.1; here is its NLP lineage.</p>
+
+<div class="note key">
+  <span class="tag">word2vec and the distributional hypothesis</span>
+  <p>In 2013, <strong>word2vec</strong> showed you could learn a vector for every word by a simple task: predict a word from its neighbours (or vice versa) across a huge corpus. The result placed words with similar meanings near each other in vector space &mdash; because, per the distributional hypothesis (Topic 1.1), words used in similar contexts mean similar things. Famously, the vectors even captured analogies: <code>king &minus; man + woman &asymp; queen</code>. <strong>GloVe</strong> reached similar embeddings from global co-occurrence statistics. This was the proof that meaning could be turned into geometry &mdash; the foundation everything in Phase 4 rests on, and the direct ancestor of the embeddings you use for RAG.</p>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>The evolution of word representations</caption>
+    <thead><tr><th>Approach</th><th>Idea</th><th>Limitation it had</th></tr></thead>
+    <tbody>
+      <tr><td>One-hot / bag-of-words</td><td>Count words; no meaning</td><td>"good" and "great" are unrelated</td></tr>
+      <tr><td>word2vec / GloVe</td><td>One vector per word, from context</td><td>One vector per word &mdash; "bank" (river/money) collapsed</td></tr>
+      <tr><td>Contextual (ELMo, BERT)</td><td>A word's vector depends on its sentence</td><td>Heavier to compute</td></tr>
+      <tr><td>LLM embeddings (Topic 4.2)</td><td>Rich contextual representations of whole texts</td><td>&mdash; the current state of the art</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note">
+  <p>The key limitation word2vec had &mdash; <em>one fixed vector per word</em> &mdash; is exactly what contextual models (BERT, and then LLMs) fixed: they give "bank" a different vector in "river bank" than in "savings bank," because the vector depends on the whole sentence. That move from static to contextual embeddings is one of the main things that made modern NLP work, and it is why today's embedding models (Topic 4.2) represent meaning so much better.</p>
+</div>
+
+<h2 id="today"><span class="kicker">Section 04 <span class="lvl lvl-p">Professional</span></span>What the LLM absorbed, and what to still use</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Classic NLP task &rarr; how it is done now</caption>
+    <thead><tr><th>Task</th><th>Classic tool</th><th>LLM-era option</th><th>Best choice</th></tr></thead>
+    <tbody>
+      <tr><td>NER</td><td>spaCy / CRF models</td><td>Prompt an LLM</td><td>Classic for scale/cost; LLM for nuance</td></tr>
+      <tr><td>POS / parsing</td><td>spaCy / Stanza</td><td>Rarely needed explicitly</td><td>Classic when you need the structure</td></tr>
+      <tr><td>Text classification</td><td>TF-IDF + classifier</td><td>Fine-tune / prompt</td><td>Depends on data volume (Topic 13.2)</td></tr>
+      <tr><td>Embeddings</td><td>word2vec / GloVe</td><td>Transformer embeddings (Topic 4.2)</td><td>Modern embeddings, always</td></tr>
+      <tr><td>Summarisation / translation</td><td>Seq2seq LSTMs</td><td>LLM</td><td>LLM</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note java">
+  <span class="tag">The practical judgement</span>
+  <p>The LLM did not make classical NLP useless &mdash; it made it a <em>choice</em>. For a task an LLM does well and you run rarely, prompt the LLM. For a task you run millions of times where cost, latency and determinism matter &mdash; extracting entities from a document stream, classifying tickets at scale &mdash; a small classic model (spaCy NER, a fine-tuned classifier) is frequently the better engineering answer. Knowing the classical toolkit gives you a cheaper, faster option than reaching for an LLM every time, which is exactly the model-routing discipline from Topic 9.1 applied to text tasks. The engineer who knows both picks correctly; the one who only knows LLMs overpays.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly an evening</div>
+  <ol>
+    <li>Run the spaCy pipeline on a paragraph. Inspect tokens, POS tags, the dependency parse and the entities.</li>
+    <li>Extract all people, organisations and dates from a batch of documents with spaCy NER. Time it, then do the same with an LLM and compare cost and speed.</li>
+    <li>Load pretrained word2vec or GloVe vectors. Find the nearest neighbours of a few words, and try the <code>king &minus; man + woman</code> analogy.</li>
+    <li>Take a polysemous word ("bank", "bat") and show that word2vec gives it one vector, then that a contextual model gives it different vectors in different sentences.</li>
+    <li>Build a fast NER-based metadata extractor for an ingestion pipeline (Topic 4.5) &mdash; no LLM.</li>
+    <li>For three text tasks you have, decide classic tool vs LLM using the Section 04 judgement, and justify each.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Book</span><span class="body"><a href="https://web.stanford.edu/~jurafsky/slp3/">Speech and Language Processing &mdash; Jurafsky &amp; Martin</a><span class="why">The definitive free NLP textbook. The chapters on the classic pipeline and embeddings are authoritative.</span></span></li>
+    <li><span class="kind">Course</span><span class="body"><a href="https://course.spacy.io/">Advanced NLP with spaCy</a><span class="why">A free, hands-on course on the practical toolkit from Section 02.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://jalammar.github.io/illustrated-word2vec/">The Illustrated Word2vec</a><span class="why">The clearest explanation of the embedding idea in Section 03.</span></span></li>
+    <li><span class="kind">Course</span><span class="body"><a href="https://web.stanford.edu/class/cs224n/">Stanford CS224n</a><span class="why">The full arc from word vectors through RNNs to transformers.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://spacy.io/usage/spacy-101">spaCy 101</a><span class="why">The reference for the production NLP toolkit that is still the right tool for many jobs.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 13.1 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

@@ -1,0 +1,568 @@
+<title>Embedding Models</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 04 &middot; RAG &amp; Vectors</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">4.2</span>
+    <h1>Embedding Models</h1>
+    <p class="lede">The component that decides your ceiling. This page explains how embedding models are trained with contrastive
+loss, why bi-encoders and cross-encoders exist as separate things, what Matryoshka representation actually
+does to the vector, and how to choose and evaluate a model on your own corpus rather than a leaderboard.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#training">How embedding models are trained</a></li><li><a href="#types">Types of embedding</a></li><li><a href="#matryoshka">Matryoshka embeddings</a></li><li><a href="#choosing">Choosing a model</a></li><li><a href="#production">Operating embeddings</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>Cosine similarity and normalisation from <a href="#deeper">Topic 1.1</a>. Section 03 refers to encoder architectures from Topic 1.3.</p>
+</div>
+
+<p>An embedding model is a function: text goes in, a fixed-length list of numbers comes out. Its one job is that similar text produces similar numbers.</p>
+
+<p>Everything downstream depends on it. If your embedding model puts "how do I cancel my subscription" far away from the passage that explains cancellation, no amount of clever re-ranking, prompting or chunking will recover that document. <strong>The embedding model sets the ceiling on your retrieval quality.</strong></p>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Dimension</dt><dd>How many numbers in the output vector. 384, 768 and 1536 are common. More is not automatically better.</dd>
+    <dt>Bi-encoder</dt><dd>Embeds query and document separately, so documents can be indexed in advance. Fast, scalable.</dd>
+    <dt>Cross-encoder</dt><dd>Reads query and document together and scores the pair. Much more accurate, cannot be pre-indexed.</dd>
+    <dt>Pooling</dt><dd>How per-token vectors are combined into one vector for the whole text. Usually mean or CLS.</dd>
+    <dt>Contrastive learning</dt><dd>Training by pulling matching pairs together and pushing non-matching pairs apart.</dd>
+    <dt>Asymmetric search</dt><dd>Short query, long document. Needs a model trained for it &mdash; usually with prefixes.</dd>
+    <dt>MTEB</dt><dd>Massive Text Embedding Benchmark. The standard public leaderboard.</dd>
+    <dt>Matryoshka</dt><dd>An embedding trained so its leading dimensions are usable alone, allowing truncation.</dd>
+  </dl>
+</div>
+
+<h2 id="training"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>How embedding models are trained</h2>
+
+<p>A base encoder like BERT produces token vectors that are <em>not</em> good sentence embeddings &mdash; averaging BERT's outputs performs barely better than averaging word vectors. Something else has to happen, and that something is contrastive training.</p>
+
+<div class="math">
+  <span class="lbl">InfoNCE / multiple-negatives ranking loss</span>
+  <i>L</i> &nbsp;=&nbsp; &minus;log <span class="frac"><span>exp(sim(<i>q</i>, <i>d</i><sup>+</sup>) / &tau;)</span><span>&Sigma;<sub><i>j</i></sub> exp(sim(<i>q</i>, <i>d<sub>j</sub></i>) / &tau;)</span></span>
+  <span class="note">Read it as a softmax classification over the batch: given query <i>q</i>, which of these documents is the right one? The numerator is the correct pair, the denominator sums over the correct one plus every negative. Minimising this pushes the correct pair's similarity up <em>relative to</em> all the others. The temperature &tau; (typically 0.02&ndash;0.05) controls how harshly near-misses are punished.</span>
+</div>
+
+<div class="note key">
+  <span class="tag">Why batch size matters unusually much here</span>
+  <p>With a batch of <i>B</i> pairs, every other document in the batch serves as a negative for each query &mdash; so you get <i>B</i>&minus;1 free negatives per example with no additional labelling. A batch of 1,024 gives 1,023 negatives; a batch of 16 gives 15. This is why embedding models are trained with very large batches and gradient-cache tricks, and why fine-tuning one on a small GPU underperforms unless you use those tricks.</p>
+  <p><strong>Hard negatives</strong> matter even more. A random negative is trivially distinguishable and teaches nothing. A <em>hard</em> negative &mdash; a passage that looks relevant but is not &mdash; is where the learning happens. Production training pipelines mine these by retrieving with a weaker model and taking high-scoring wrong answers.</p>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>Pooling strategies</caption>
+    <thead><tr><th>Strategy</th><th>How</th><th>Used by</th></tr></thead>
+    <tbody>
+      <tr><td>Mean pooling</td><td>Average token vectors, masked to exclude padding</td><td>Most sentence-transformers models</td></tr>
+      <tr><td>CLS pooling</td><td>Take the special first token's vector</td><td>BERT-derived models, <code>bge</code></td></tr>
+      <tr><td>Last-token pooling</td><td>Take the final token</td><td>Decoder-based embedding models</td></tr>
+      <tr><td>Weighted mean</td><td>Weight later tokens more heavily</td><td>Some decoder-based models</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note trap">
+  <span class="tag">Two bugs that silently degrade every embedding you produce</span>
+  <p><strong>Pooling over padding.</strong> If you average token vectors without applying the attention mask, padding tokens dilute every short text. Longer texts are affected less, so short queries suffer most &mdash; precisely the thing you care about. Always mask.</p>
+  <p><strong>Missing the required prefix.</strong> E5, BGE and several other families are trained with asymmetric prefixes: <code>query: </code> for questions and <code>passage: </code> for documents. Omit them and retrieval quality drops measurably, with no error and no warning. Read the model card, every time.</p>
+</div>
+
+<h2 id="types"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>Types of embedding</h2>
+
+<div class="tbl">
+  <table>
+    <caption>The representational families</caption>
+    <thead><tr><th>Type</th><th>Shape</th><th>Strength</th><th>Weakness</th><th>Examples</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Dense</strong></td><td>One vector, ~768 floats</td><td>Semantics, paraphrase, synonyms</td><td>Weak on exact tokens and rare terms</td><td><code>text-embedding-3</code>, <code>bge</code>, <code>e5</code>, <code>nomic-embed</code></td></tr>
+      <tr><td>Sparse (lexical)</td><td>Mostly-zero vector over the vocabulary</td><td>Exact matching, interpretable</td><td>No synonym handling</td><td>BM25, TF-IDF</td></tr>
+      <tr><td>Learned sparse</td><td>Sparse, but term weights are learned and expanded</td><td>Exact matching <em>plus</em> some semantics</td><td>Larger index</td><td>SPLADE</td></tr>
+      <tr><td>Multi-vector</td><td>One vector <em>per token</em></td><td>Highest quality; token-level matching</td><td>10&ndash;100&times; storage</td><td>ColBERT, ColPali</td></tr>
+      <tr><td>Matryoshka</td><td>Dense, truncatable</td><td>Choose the cost/quality point after training</td><td>Slight loss versus a native model of that size</td><td><code>text-embedding-3</code>, <code>nomic-embed</code></td></tr>
+      <tr><td>Multimodal</td><td>Shared space for text and images</td><td>Cross-modal search</td><td>Weaker on text-only tasks</td><td>CLIP, SigLIP</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h3>Bi-encoder versus cross-encoder</h3>
+
+<p>This distinction determines your entire retrieval architecture, so it is worth being precise.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Two ways to score relevance</caption>
+    <thead><tr><th></th><th>Bi-encoder</th><th>Cross-encoder</th></tr></thead>
+    <tbody>
+      <tr><td>Input</td><td>Query and document, separately</td><td>Query and document, concatenated</td></tr>
+      <tr><td>Output</td><td>Two vectors; you compute similarity</td><td>A single relevance score</td></tr>
+      <tr><td>Pre-indexable?</td><td><strong>Yes</strong> &mdash; embed documents once, offline</td><td>No &mdash; one model pass per candidate</td></tr>
+      <tr><td>Cost for 1M documents</td><td>One vector search, milliseconds</td><td>1M model passes. Impossible</td></tr>
+      <tr><td>Accuracy</td><td>Good</td><td><strong>Substantially better</strong></td></tr>
+      <tr><td>Why</td><td>Query and document never interact before scoring</td><td>Attention runs across both, so terms can match directly</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">The architecture this dictates</span>
+  <p>Use both, in sequence. A bi-encoder retrieves 50&ndash;100 candidates from millions in milliseconds; a cross-encoder then re-scores only those candidates to pick the final 5. You pay the expensive model's cost 100 times instead of a million times, and you get most of its accuracy. This <strong>retrieve-then-rerank</strong> pattern is the single highest-return structure in production RAG, and it is developed in &sect;4.6.</p>
+</div>
+
+<h2 id="matryoshka"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>Matryoshka embeddings</h2>
+
+<p>Normally, changing embedding dimension means changing model and re-embedding everything. Matryoshka Representation Learning removes that constraint by training so that <em>prefixes of the vector are themselves valid embeddings</em>.</p>
+
+<p>The mechanism is straightforward once stated: during training, the contrastive loss is computed at several truncation lengths simultaneously &mdash; at 64, 128, 256, 512 and full dimension &mdash; and the losses are summed. The model is therefore forced to pack the most important information into the earliest dimensions, exactly as PCA orders components by variance (Topic 1.1).</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Truncation, and the cost/quality curve</span></div>
+<pre><code>import numpy as np
+
+def truncate(embeddings, dims):
+    """Take the first `dims` components and RE-NORMALISE.
+    Skipping the renormalisation is a real bug -- the truncated
+    vector no longer has unit length, so dot product stops being
+    cosine similarity and long documents start winning."""
+    out = embeddings[..., :dims]
+    return out / np.linalg.norm(out, axis=-1, keepdims=True)
+
+<span class="cm"># Storage for 10 million chunks, float32</span>
+for d in (1536, 768, 512, 256, 128):
+    gb = 10_000_000 * d * 4 / 1e9
+    print(f"{d:5d} dims -> {gb:6.1f} GB")
+
+<span class="cm"># 1536 dims ->   61.4 GB</span>
+<span class="cm">#  768 dims ->   30.7 GB</span>
+<span class="cm">#  512 dims ->   20.5 GB</span>
+<span class="cm">#  256 dims ->   10.2 GB   often ~97-99% of full-dim recall</span>
+<span class="cm">#  128 dims ->    5.1 GB</span>
+
+<span class="cm"># Combine with int8 quantisation for another 4x:</span>
+def quantize_int8(v, lo=-1.0, hi=1.0):
+    return np.clip(np.round((v - lo) / (hi - lo) * 255 - 128), -128, 127).astype(np.int8)
+
+<span class="cm"># 256 dims in int8 = 2.6 GB for 10M chunks -- a 24x reduction from</span>
+<span class="cm"># the 1536-dim float32 baseline, typically for a few points of recall.</span></code></pre>
+</div>
+
+<div class="note java">
+  <span class="tag">The two-stage pattern this enables</span>
+  <p>Store both a truncated and a full vector. Search the cheap 256-dimension index to get 200 candidates, then re-score those candidates against the full 1536-dimension vectors. You get near-full-dimension accuracy with a fraction of the index memory and a much faster first pass. This is the same shape as binary-then-exact rescoring, and the same shape as retrieve-then-rerank &mdash; a coarse cheap filter followed by an expensive accurate one. Once you notice the pattern, you will see it everywhere in retrieval.</p>
+</div>
+
+<h2 id="choosing"><span class="kicker">Section 05 <span class="lvl lvl-a">Advanced</span></span>Choosing a model</h2>
+
+<div class="tbl">
+  <table>
+    <caption>What to weigh, in order</caption>
+    <thead><tr><th>Factor</th><th>Why it matters</th><th>How to decide</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Quality on your corpus</strong></td><td>MTEB rank correlates weakly with your domain</td><td>Test on your own golden set. Nothing else settles it</td></tr>
+      <tr><td>Max input tokens</td><td>Text beyond the limit is silently truncated</td><td>Most cap at 512. Match your chunk size to it</td></tr>
+      <tr><td>Dimensions</td><td>Storage and index memory scale linearly</td><td>Prefer Matryoshka so you can decide later</td></tr>
+      <tr><td>Language coverage</td><td>English-only models fail badly elsewhere</td><td>Filter MTEB by language</td></tr>
+      <tr><td>Self-host or API</td><td>Data residency, cost shape, latency</td><td>Self-hosting a small model is often cheaper and faster</td></tr>
+      <tr><td>Licence</td><td>Some strong models are non-commercial</td><td>Check before building on it</td></tr>
+      <tr><td>Stability</td><td>An API model can change under you</td><td>Pin versions; prefer self-hosted for long-lived indexes</td></tr>
+      <tr><td>Asymmetric support</td><td>Query/passage prefixes materially help</td><td>Read the model card</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Evaluate candidates on your own data</span></div>
+<pre><code>import numpy as np
+from sentence_transformers import SentenceTransformer
+
+<span class="cm"># Your golden set: question -> the chunk ids that answer it.</span>
+<span class="cm"># 50-200 real questions. This is the artefact that makes every</span>
+<span class="cm"># later decision in Phase 4 measurable rather than aesthetic.</span>
+golden = [
+    {"q": "how do I reset my password", "relevant": [12, 47]},
+    {"q": "what is the refund window",  "relevant": [88]},
+]
+
+def recall_at_k(retrieved, relevant, k):
+    hits = set(retrieved[:k]) &amp; set(relevant)
+    return len(hits) / len(relevant)
+
+def mrr(retrieved, relevant):
+    for rank, doc_id in enumerate(retrieved, start=1):
+        if doc_id in relevant:
+            return 1.0 / rank
+    return 0.0
+
+def evaluate(model_name, chunks, golden, query_prefix="", doc_prefix=""):
+    model = SentenceTransformer(model_name)
+
+    <span class="cm"># Prefixes matter for E5/BGE-family models. Omitting them costs</span>
+    <span class="cm"># several points of recall with no error message.</span>
+    doc_vecs = model.encode([doc_prefix + c for c in chunks],
+                            normalize_embeddings=True, batch_size=64)
+
+    r5 = r20 = rr = 0.0
+    for case in golden:
+        q = model.encode(query_prefix + case["q"], normalize_embeddings=True)
+        ranked = np.argsort(-(doc_vecs @ q)).tolist()
+        r5  += recall_at_k(ranked, case["relevant"], 5)
+        r20 += recall_at_k(ranked, case["relevant"], 20)
+        rr  += mrr(ranked, case["relevant"])
+
+    n = len(golden)
+    return {"model": model_name, "recall@5": r5/n, "recall@20": r20/n, "mrr": rr/n}
+
+candidates = [
+    ("BAAI/bge-small-en-v1.5",                    "Represent this sentence for searching relevant passages: ", ""),
+    ("intfloat/e5-base-v2",                        "query: ", "passage: "),
+    ("sentence-transformers/all-MiniLM-L6-v2",     "", ""),
+    ("nomic-ai/nomic-embed-text-v1.5",             "search_query: ", "search_document: "),
+]
+
+for name, qp, dp in candidates:
+    print(evaluate(name, chunks, golden, qp, dp))
+
+<span class="cm"># Also record: index size, p95 embedding latency, cost per million</span>
+<span class="cm"># tokens. The best model on recall is not always the right choice.</span></code></pre>
+</div>
+
+<h2 id="production"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Operating embeddings</h2>
+
+<div class="note trap">
+  <span class="tag">Vector spaces are not interchangeable &mdash; plan for migration</span>
+  <p>Two embedding models produce unrelated coordinate systems. Cosine similarity between a vector from model A and one from model B returns a number, and the number is meaningless. This is not a subtle degradation; it is noise that <em>looks</em> like a result.</p>
+  <p>Consequences you must design for: changing model means re-embedding the entire corpus; a provider silently updating an API model corrupts your index incrementally as new documents arrive; and mixing two models in one store produces a system that works for old queries and fails unpredictably for new ones.</p>
+  <p><strong>Store the model identifier and version with every vector.</strong> Assert on it at query time. To migrate, write to a new index, backfill, verify recall on the golden set, then switch atomically. Never migrate in place.</p>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>Operational practices</caption>
+    <thead><tr><th>Concern</th><th>Practice</th></tr></thead>
+    <tbody>
+      <tr><td>Batching</td><td>Embed 32&ndash;256 texts per call. Per-text calls are 10&ndash;50&times; slower and often rate-limited</td></tr>
+      <tr><td>Caching</td><td>Hash the text and cache the vector. Re-ingestion of unchanged documents becomes free</td></tr>
+      <tr><td>Truncation</td><td>Count tokens and reject or split before embedding. Silent truncation is invisible data loss</td></tr>
+      <tr><td>Empty input</td><td>Guard against whitespace-only chunks &mdash; they produce degenerate vectors and <code>NaN</code> similarities</td></tr>
+      <tr><td>Normalisation</td><td>Normalise once on write; use inner product thereafter</td></tr>
+      <tr><td>Self-hosting</td><td>A small model on ONNX Runtime or an inference server is often cheaper and lower-latency than an API, and keeps data in your VPC</td></tr>
+      <tr><td>Monitoring</td><td>Track embedding latency, failure rate, and the distribution of top-1 similarity scores &mdash; a shift in that distribution is an early warning of a model or data change</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly one weekend</div>
+  <ol>
+    <li>Build a golden set of 50 questions with known relevant chunks from your own corpus. This artefact is used by every remaining page in Phase 4.</li>
+    <li>Run the comparison script over four candidate models. Record recall@5, recall@20, MRR, index size and embedding latency in one table.</li>
+    <li>Run an E5-family model with and without the <code>query:</code> / <code>passage:</code> prefixes. Measure the difference. Note that nothing warned you.</li>
+    <li>Embed the same text with and without the attention mask applied during mean pooling. Compare the vectors and the resulting recall.</li>
+    <li>Truncate a Matryoshka embedding to 768, 512, 256 and 128 dimensions. Plot recall@5 against index size and find your own knee point.</li>
+    <li>Add int8 quantisation on top of truncation. Measure the additional recall loss against the additional saving.</li>
+    <li>Retrieve with a bi-encoder, then re-rank the top 50 with a cross-encoder. Measure recall@5 before and after. This number is why &sect;4.6 exists.</li>
+    <li>Fine-tune a small embedding model on 500 domain pairs (Topic 2.5) and re-run your evaluation.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 08 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Leaderboard</span><span class="body"><a href="https://huggingface.co/spaces/mteb/leaderboard">MTEB Leaderboard</a><span class="why">Filter to Retrieval and to your language before drawing any conclusion. The overall ranking is close to meaningless for a specific application.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://sbert.net/">Sentence Transformers</a><span class="why">The library and the concepts. The "Training Overview" and "Loss Functions" pages explain Section 02 in production terms.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/1908.10084">Sentence-BERT</a><span class="why">The paper that established the bi-encoder approach and quantified why raw BERT pooling is inadequate.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2205.13147">Matryoshka Representation Learning</a><span class="why">The multi-truncation training objective, with the accuracy-versus-dimension curves.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2004.12832">ColBERT: Efficient and Effective Passage Search via Late Interaction</a><span class="why">The multi-vector approach &mdash; near cross-encoder quality at bi-encoder-ish cost.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://huggingface.co/blog/embedding-quantization">Embedding Quantization &mdash; Hugging Face</a><span class="why">Binary and int8 quantisation with measured recall retention, plus the rescoring pattern from Section 04.</span></span></li>
+    <li><span class="kind">Guide</span><span class="body"><a href="https://www.pinecone.io/learn/series/nlp/">Pinecone &mdash; NLP for Semantic Search</a><span class="why">Vendor-neutral series covering dense, sparse and hybrid representations with clear diagrams.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 4.2 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

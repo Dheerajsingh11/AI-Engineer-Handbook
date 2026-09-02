@@ -1,0 +1,415 @@
+<title>Anomaly Detection</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 14 &middot; Classical ML, Extended</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">14.7</span>
+    <h1>Anomaly Detection</h1>
+    <p class="lede">Finding the needle that does not belong. This page covers detecting the rare, the unusual, the fraudulent
+&mdash; why it is different from ordinary classification, the main approaches (statistical, distance, density,
+isolation, autoencoder), the extreme-imbalance evaluation trap, and where it meets your AI work in monitoring
+model behaviour and catching bad data.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#approaches">The approaches</a></li><li><a href="#evaluation">The evaluation trap, sharpened</a></li><li><a href="#ai-angle">Where it meets your AI-engineering work</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>Classical ML and the precision/recall metrics (Topics 2.3, 1.2), and clustering (Topic 14.3).</p>
+</div>
+
+<p><strong>Anomaly detection</strong> is finding the data points that do not fit the pattern &mdash; fraudulent transactions among millions of normal ones, a failing server among healthy ones, a defective part on a production line. It powers fraud detection, security monitoring, predictive maintenance and quality control.</p>
+
+<div class="note key">
+  <span class="tag">Why it is not just classification</span>
+  <p>You might think "just train a classifier: normal vs anomaly." But anomalies have two properties that break ordinary classification. First, they are <strong>extremely rare</strong> &mdash; often well under 1% &mdash; so a classifier can score 99.9% accuracy by calling everything normal (the base-rate trap, Topic 1.2). Second, they are <strong>diverse and unknown</strong> &mdash; new kinds of fraud appear that look nothing like past fraud, so you often cannot learn "what anomalies look like" from examples. The winning reframing: instead of learning what anomalies look like, <strong>learn what <em>normal</em> looks like, and flag anything that deviates.</strong> That shift is the heart of the field.</p>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Anomaly / outlier</dt><dd>A data point that differs markedly from the rest.</dd>
+    <dt>Novelty</dt><dd>A new pattern not seen in training &mdash; often what you are hunting.</dd>
+    <dt>Normal profile</dt><dd>A model of what typical data looks like.</dd>
+    <dt>Anomaly score</dt><dd>How unusual a point is; you threshold it to decide.</dd>
+    <dt>Contamination</dt><dd>The (estimated) fraction of data that is anomalous.</dd>
+    <dt>False positive</dt><dd>A normal point wrongly flagged &mdash; the operational cost of most systems.</dd>
+  </dl>
+</div>
+
+<h2 id="approaches"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>The approaches</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Ways to detect anomalies</caption>
+    <thead><tr><th>Approach</th><th>Flags a point if&hellip;</th><th>Method</th></tr></thead>
+    <tbody>
+      <tr><td>Statistical</td><td>It is many standard deviations from the mean</td><td>z-score, IQR &mdash; simple, 1D</td></tr>
+      <tr><td>Distance-based</td><td>Its neighbours are far away</td><td>k-NN distance, LOF</td></tr>
+      <tr><td>Density-based</td><td>It sits in a low-density region</td><td>DBSCAN noise points (Topic 14.3), LOF</td></tr>
+      <tr><td><strong>Isolation Forest</strong></td><td>It is easy to isolate with random splits</td><td>Tree-based, scales well</td></tr>
+      <tr><td>One-class SVM</td><td>It falls outside the learned normal boundary</td><td>Learns a boundary around normal data</td></tr>
+      <tr><td><strong>Autoencoder</strong></td><td>It reconstructs poorly (Topic 12.3)</td><td>Learn to rebuild normal; anomalies fail</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">Two elegant ideas worth knowing</span>
+  <p><strong>Isolation Forest</strong> is delightfully simple: anomalies are, by definition, few and different, so they are <em>easy to isolate</em> &mdash; a few random splits separate an outlier, while normal points take many. The average number of splits to isolate a point becomes its anomaly score. <strong>Autoencoders</strong> (Topic 12.3) take the "learn normal" idea literally: train one to reconstruct normal data, and it will rebuild normal points well but fail on anomalies it never learned &mdash; high reconstruction error means anomaly. Both illustrate the reframing from Section 01: you never need labelled anomalies, only a model of normality.</p>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Isolation Forest and autoencoder detection</span></div>
+<pre><code>from sklearn.ensemble import IsolationForest
+
+<span class="cm"># Learn "normal" from mostly-normal data; score how anomalous each is.</span>
+detector = IsolationForest(contamination=0.01)   <span class="cm"># ~1% expected anomalous</span>
+detector.fit(X_train)
+scores = detector.decision_function(X_test)      <span class="cm"># lower = more anomalous</span>
+flags  = detector.predict(X_test)                <span class="cm"># -1 = anomaly, 1 = normal</span>
+
+<span class="cm"># Autoencoder version (Topic 12.3): train on normal data only,</span>
+<span class="cm"># then flag high reconstruction error.</span>
+recon = autoencoder(X_test)
+error = ((X_test - recon) ** 2).mean(axis=1)
+anomalies = error &gt; threshold                    <span class="cm"># poorly rebuilt = anomalous</span></code></pre>
+</div>
+
+<h2 id="evaluation"><span class="kicker">Section 03 <span class="lvl lvl-a">Advanced</span></span>The evaluation trap, sharpened</h2>
+
+<div class="note trap">
+  <span class="tag">Accuracy is meaningless here &mdash; and so are naive thresholds</span>
+  <p>With anomalies at 0.1%, a model that flags nothing is 99.9% accurate and completely useless (Topic 1.2). You must evaluate with <strong>precision, recall and especially PR-AUC</strong> (the precision-recall curve), which ignores the vast pile of true negatives and focuses on how well you catch the rare positives. Then comes the real engineering decision: the <strong>precision-recall trade-off</strong> is a business call. Fraud detection tolerates false positives (better to review a few good transactions than miss fraud) &mdash; favour recall. A system that auto-blocks accounts cannot &mdash; a false positive locks out a real customer &mdash; so favour precision. There is no universally right threshold; you set it by the relative cost of the two errors (Topic 1.2), and that cost is domain knowledge, not maths.</p>
+</div>
+
+<h2 id="ai-angle"><span class="kicker">Section 04 <span class="lvl lvl-p">Professional</span></span>Where it meets your AI-engineering work</h2>
+
+<div class="note key">
+  <span class="tag">Anomaly detection guards your AI systems</span>
+  <p>Beyond classic fraud and monitoring, anomaly detection is a tool for keeping your <em>own</em> AI systems healthy. <strong>Data quality</strong>: flag anomalous documents entering your ingestion pipeline (Topic 4.5) &mdash; a corrupted file, an injection attempt, an off-distribution input. <strong>Embedding monitoring</strong>: detect drift in the distribution of embedding similarities, an early warning that your model or data changed (Topics 4.2, 5.5). <strong>Agent behaviour</strong>: flag anomalous agent trajectories &mdash; a runaway cost, an unusual tool-call pattern &mdash; as a safety signal (Topic 8.10). <strong>Model outputs</strong>: catch responses that deviate from normal (a spike in refusals or output length) as a sign of a model change (Topic 5.5). The "model normal, flag deviations" instinct is directly useful for operating AI in production.</p>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>Choosing an approach</caption>
+    <thead><tr><th>Situation</th><th>Reach for</th></tr></thead>
+    <tbody>
+      <tr><td>Simple, low-dimensional data</td><td>Statistical (z-score, IQR)</td></tr>
+      <tr><td>General tabular, want a strong default</td><td>Isolation Forest</td></tr>
+      <tr><td>Clusters of varying density</td><td>Local Outlier Factor / DBSCAN</td></tr>
+      <tr><td>High-dimensional (images, embeddings)</td><td>Autoencoder reconstruction error</td></tr>
+      <tr><td>You have some labelled anomalies</td><td>Supervised, with heavy imbalance handling (Topic 2.3)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly a weekend</div>
+  <ol>
+    <li>Run Isolation Forest on a fraud dataset. Report PR-AUC, precision and recall &mdash; never accuracy.</li>
+    <li>Train an autoencoder on normal data only, then flag high-reconstruction-error points. Compare to Isolation Forest.</li>
+    <li>Sweep the anomaly threshold and plot precision against recall. Choose an operating point for (a) fraud review and (b) auto-blocking &mdash; and justify the difference.</li>
+    <li>Use DBSCAN noise points (Topic 14.3) as an anomaly detector. Compare.</li>
+    <li>Build a data-quality check for an ingestion pipeline that flags anomalous documents (Topic 4.5).</li>
+    <li>Monitor the distribution of embedding similarities over time and detect an injected drift (Topic 5.5).</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://scikit-learn.org/stable/modules/outlier_detection.html">scikit-learn &mdash; Novelty and Outlier Detection</a><span class="why">Every method in Section 02 with a visual comparison. The practical reference.</span></span></li>
+    <li><span class="kind">Library</span><span class="body"><a href="https://pyod.readthedocs.io/">PyOD</a><span class="why">A comprehensive Python anomaly-detection library &mdash; dozens of algorithms, one API.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://cs.nju.edu.cn/zhouzh/zhouzh.files/publication/icdm08b.pdf">Isolation Forest</a><span class="why">The elegant "anomalies are easy to isolate" idea from Section 02.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://scikit-learn.org/stable/auto_examples/miscellaneous/plot_anomaly_comparison.html">Comparing anomaly detection algorithms</a><span class="why">A visual side-by-side of the methods on different data shapes.</span></span></li>
+    <li><span class="kind">Reference</span><span class="body"><a href="https://scikit-learn.org/stable/modules/model_evaluation.html#precision-recall-f-measure-metrics">scikit-learn &mdash; PR-AUC and metrics</a><span class="why">The evaluation of Section 03 done correctly (also Topic 1.2).</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 14.7 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

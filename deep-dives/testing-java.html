@@ -1,0 +1,640 @@
+<title>Testing AI Applications in Java</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 06 &middot; Production</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">6.3</span>
+    <h1>Testing AI Applications in Java</h1>
+    <p class="lede">Testing software whose output is non-deterministic. This page shows how to unit-test AI code by mocking the
+model, how to write assertions that tolerate variation without becoming meaningless, how to run a golden set
+in JUnit and CI, and how Testcontainers and WireMock give you a full RAG integration test.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#unit">Unit-test everything around the model</a></li><li><a href="#contract">Contract tests: assert shape, not content</a></li><li><a href="#eval">Golden-set evaluation in CI</a></li><li><a href="#integration">Integration tests with real infrastructure</a></li><li><a href="#jmh">Performance and load</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>JUnit 5, Mockito and Spring Boot testing. Evaluation concepts from <a href="#deeper">Topics 4.7 and 5.5</a> &mdash; this page is their Java-testing implementation.</p>
+</div>
+
+<p>Your instinct is <code>assertEquals(expected, actual)</code>. It does not work here, because the same input produces different output every time. That does not mean AI code is untestable &mdash; it means you test different things, at different layers, with different assertions.</p>
+
+<div class="tbl">
+  <table>
+    <caption>The testing pyramid for an AI application</caption>
+    <thead><tr><th>Layer</th><th>Tests</th><th>Model involved?</th><th>Runs</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Unit</strong></td><td>Your logic: parsing, routing, tool execution, retry</td><td>No &mdash; mocked</td><td>Every commit, fast</td></tr>
+      <tr><td><strong>Contract</strong></td><td>Output shape: valid JSON, required fields, ranges</td><td>Yes, but assert structure</td><td>CI, moderate</td></tr>
+      <tr><td><strong>Evaluation</strong></td><td>Quality: golden-set pass rate, faithfulness</td><td>Yes</td><td>CI on AI changes, slow</td></tr>
+      <tr><td><strong>Integration</strong></td><td>The whole pipeline against real infrastructure</td><td>Real or stubbed</td><td>CI, slow</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">The reframing that makes it tractable</span>
+  <p>Most of your code is <em>not</em> the model. It is parsing, validation, routing, tool execution, retry logic, memory management, authorisation. All of that is ordinary deterministic Java, and you test it exactly as you always have &mdash; by mocking the model out. Only the thin layer that genuinely depends on model output needs the special treatment, and even there you test <em>properties</em>, not exact strings.</p>
+</div>
+
+<h2 id="unit"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>Unit-test everything around the model</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Java</span><span>Mock the model; test your logic deterministically</span></div>
+<pre><code>@ExtendWith(MockitoExtension.class)
+class TriageServiceTest {
+
+    @Mock  ChatModel chatModel;
+    @Mock  VectorStore vectorStore;
+    TriageService service;
+
+    @BeforeEach
+    void setup() {
+        service = new TriageService(ChatClient.create(chatModel), vectorStore);
+    }
+
+    @Test
+    void parsesModelResponseIntoRecord() {
+        <span class="cm">// Give the mock a FIXED response. Now the test is deterministic</span>
+        <span class="cm">// and checks YOUR binding logic, not the model's behaviour.</span>
+        when(chatModel.call(any(Prompt.class))).thenReturn(chatResponse("""
+            {"category":"TECHNICAL","severityOneToFive":4,
+             "summary":"Login failing for all users","requiresHumanReview":true}
+            """));
+
+        var result = service.triage("Nobody can log in");
+
+        assertThat(result.category()).isEqualTo(Category.TECHNICAL);
+        assertThat(result.severityOneToFive()).isEqualTo(4);
+        assertThat(result.requiresHumanReview()).isTrue();
+    }
+
+    @Test
+    void retriesOnMalformedJson() {
+        <span class="cm">// First response is broken, second is valid. Assert the repair</span>
+        <span class="cm">// loop (Topic 3.1) recovers -- no real model needed.</span>
+        when(chatModel.call(any(Prompt.class)))
+            .thenReturn(chatResponse("not json at all"))
+            .thenReturn(chatResponse("""
+                {"category":"BILLING","severityOneToFive":2,
+                 "summary":"Refund query","requiresHumanReview":false}"""));
+
+        var result = service.triage("How do I get a refund?");
+
+        assertThat(result.category()).isEqualTo(Category.BILLING);
+        verify(chatModel, times(2)).call(any(Prompt.class));   <span class="cm">// it retried</span>
+    }
+
+    @Test
+    void appliesTenantFilterOnRetrieval() {
+        <span class="cm">// Security-relevant logic is deterministic and MUST be tested.</span>
+        service.triageWithContext("issue", 42L);
+        var captor = ArgumentCaptor.forClass(SearchRequest.class);
+        verify(vectorStore).similaritySearch(captor.capture());
+        assertThat(captor.getValue().getFilterExpression())
+                .asString().contains("tenant_id == 42");
+    }
+}</code></pre>
+</div>
+
+<h2 id="contract"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>Contract tests: assert shape, not content</h2>
+
+<p>Contract tests do call the real model, but they assert properties that must hold for <em>any</em> valid answer &mdash; not a specific string. They catch the failures that matter operationally without being flaky.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Java</span><span>Property assertions that tolerate variation</span></div>
+<pre><code>@SpringBootTest
+@EnabledIfEnvironmentVariable(named = "RUN_AI_TESTS", matches = "true")
+class TriageContractTest {
+
+    @Autowired TriageService service;
+
+    @Test
+    void outputAlwaysSatisfiesTheContract() {
+        var result = service.triage("The checkout page returns a 500 error");
+
+        <span class="cm">// Structural guarantees -- true for every valid response.</span>
+        assertThat(result).isNotNull();
+        assertThat(result.category()).isNotNull();
+        assertThat(result.severityOneToFive()).isBetween(1, 5);
+        assertThat(result.summary()).isNotBlank().hasSizeLessThan(200);
+    }
+
+    @Test
+    void refusesWhenContextIsEmpty() {
+        <span class="cm">// A BEHAVIOURAL property: given no relevant context, the system</span>
+        <span class="cm">// must decline rather than confabulate. Assert the property,</span>
+        <span class="cm">// not the wording.</span>
+        var answer = service.answer("What is the capital of Atlantis?", emptyTenant);
+        assertThat(answer.grounded()).isFalse();
+        assertThat(answer.citations()).isEmpty();
+    }
+
+    @RepeatedTest(5)
+    void isStableAcrossRuns() {
+        <span class="cm">// For a classification that SHOULD be stable, run several times</span>
+        <span class="cm">// and require agreement -- catching prompts that are too</span>
+        <span class="cm">// sensitive to sampling noise.</span>
+        var category = service.triage("URGENT: production database is down").category();
+        assertThat(category).isEqualTo(Category.TECHNICAL);
+    }
+}</code></pre>
+</div>
+
+<div class="note trap">
+  <span class="tag">The two ways contract tests go wrong</span>
+  <p><strong>Too strict</strong> &mdash; asserting exact strings. The test flakes on ordinary sampling variation, the team adds <code>@Disabled</code>, and you have no coverage. <strong>Too loose</strong> &mdash; asserting only "not null". The test passes while the output is useless.</p>
+  <p>The middle ground is to assert on <em>invariants</em>: valid schema, values in range, required behaviours (grounding, refusal, citation), and stability where stability is genuinely expected. Set temperature to 0 for these tests to reduce &mdash; though not eliminate &mdash; variation, and gate them behind an environment flag so they do not run on every local build and consume tokens.</p>
+</div>
+
+<h2 id="eval"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>Golden-set evaluation in CI</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Java</span><span>The golden set as a parameterised test, with statistics</span></div>
+<pre><code>@SpringBootTest
+@EnabledIfEnvironmentVariable(named = "RUN_EVALS", matches = "true")
+class RagEvaluationTest {
+
+    @Autowired RagService rag;
+
+    static List&lt;GoldenCase&gt; goldenSet() throws IOException {
+        <span class="cm">// Versioned with the code; grown from production failures (5.5).</span>
+        return MAPPER.readValue(
+                new ClassPathResource("evals/rag-golden.jsonl").getInputStream(),
+                new TypeReference&lt;List&lt;GoldenCase&gt;&gt;() {});
+    }
+
+    <span class="cm">// RETRIEVAL: fix this first -- generation cannot recover a miss.</span>
+    @Test
+    void retrievalRecallMeetsThreshold() throws IOException {
+        var cases = goldenSet();
+        double recallSum = cases.stream().mapToDouble(c -&gt; {
+            var ids = rag.retrieve(c.question(), 20).stream()
+                         .map(Chunk::id).toList();
+            return recallAt(ids, c.relevantChunkIds(), 20);
+        }).sum();
+
+        double recall = recallSum / cases.size();
+        assertThat(recall)
+                .as("recall@20 across %d cases", cases.size())
+                .isGreaterThan(0.85);
+    }
+
+    <span class="cm">// GENERATION: pass rate with a confidence interval, so a couple</span>
+    <span class="cm">// of unlucky samples do not fail the build (Topic 5.5).</span>
+    @Test
+    void answerQualityMeetsBaseline() throws IOException {
+        var cases = goldenSet();
+        long passed = cases.stream().filter(c -&gt; {
+            var answer = rag.answer(c.question(), c.tenantId());
+            return judge.faithful(answer, c.groundTruth())
+                && judge.relevant(answer, c.question());
+        }).count();
+
+        double rate = (double) passed / cases.size();
+        double se = Math.sqrt(rate * (1 - rate) / cases.size());
+        double lowerBound = rate - 1.96 * se;
+
+        assertThat(lowerBound)
+                .as("faithful+relevant pass rate %.3f (95%% lower bound %.3f)",
+                    rate, lowerBound)
+                .isGreaterThan(0.80);
+    }
+
+    <span class="cm">// SECURITY cases live in the same suite (Topic 5.6).</span>
+    @ParameterizedTest
+    @MethodSource("injectionCases")
+    void resistsInjection(String attack) {
+        var answer = rag.answer(attack, testTenant);
+        assertThat(answer.text()).doesNotContain(SYSTEM_PROMPT_MARKER);
+    }
+}</code></pre>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">YAML</span><span>Wiring evals into the pipeline</span></div>
+<pre><code><span class="cm"># A separate CI stage: unit and contract tests gate every PR;</span>
+<span class="cm"># the eval suite runs on changes to prompts, retrieval or models,</span>
+<span class="cm"># and nightly. Keeping it separate stops slow, token-costing tests</span>
+<span class="cm"># from blocking ordinary commits.</span>
+jobs:
+  unit:
+    steps:
+      - run: ./mvnw test          <span class="cm"># fast, no model, every PR</span>
+
+  evaluate:
+    if: contains(github.event.head_commit.modified, 'prompts/')
+        || github.event_name == 'schedule'
+    env:
+      RUN_EVALS: "true"
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - run: ./mvnw test -Dtest=RagEvaluationTest
+      - run: ./scripts/post-eval-report.sh    <span class="cm"># comment results on the PR</span></code></pre>
+</div>
+
+<h2 id="integration"><span class="kicker">Section 05 <span class="lvl lvl-a">Advanced</span></span>Integration tests with real infrastructure</h2>
+
+<p>Testcontainers gives you a real Postgres with pgvector; WireMock gives you a deterministic stand-in for the model API. Together they test the whole pipeline without flakiness and without spending tokens.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Java</span><span>Full RAG pipeline against real pgvector, stubbed model</span></div>
+<pre><code>@SpringBootTest
+@Testcontainers
+class RagPipelineIntegrationTest {
+
+    @Container
+    static PostgreSQLContainer&lt;?&gt; postgres =
+        new PostgreSQLContainer&lt;&gt;("pgvector/pgvector:pg16")
+            .withDatabaseName("rag");
+
+    <span class="cm">// WireMock stands in for the model API: deterministic responses,</span>
+    <span class="cm">// zero tokens, and you can simulate rate limits and timeouts.</span>
+    static WireMockServer wireMock = new WireMockServer(options().dynamicPort());
+
+    @DynamicPropertySource
+    static void props(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.ai.anthropic.base-url",
+                     () -&gt; "http://localhost:" + wireMock.port());
+    }
+
+    @Test
+    void ingestRetrieveAnswerEndToEnd() {
+        stubEmbeddings();
+        stubChatResponse("The refund window is 30 days.");
+
+        ingestionService.ingest(policyDocument(), TENANT, "policy-1");
+
+        var answer = ragService.answer("How long do I have to get a refund?", TENANT);
+
+        assertThat(answer.text()).contains("30 days");
+        assertThat(answer.citations()).isNotEmpty();
+    }
+
+    @Test
+    void enforcesTenantIsolationAtTheDatabase() {
+        stubEmbeddings();
+        ingestionService.ingest(secretDoc(), TENANT_A, "secret");
+
+        var chunks = ragService.retrieve("secret information", TENANT_B);
+
+        <span class="cm">// A real database, a real query -- the isolation is genuinely</span>
+        <span class="cm">// exercised, not mocked away.</span>
+        assertThat(chunks).isEmpty();
+    }
+
+    @Test
+    void retriesOnRateLimitThenSucceeds() {
+        <span class="cm">// WireMock returns 429 twice, then 200 -- proving the resilience</span>
+        <span class="cm">// layer (Topic 5.4) works against a real HTTP client.</span>
+        wireMock.stubFor(post("/v1/messages")
+            .inScenario("rate-limit").whenScenarioStateIs(STARTED)
+            .willReturn(aResponse().withStatus(429).withHeader("retry-after", "1"))
+            .willSetStateTo("second"));
+        <span class="cm">// ... second attempt also 429, third succeeds ...</span>
+
+        var answer = ragService.answer("test", TENANT);
+        assertThat(answer).isNotNull();
+        wireMock.verify(3, postRequestedFor(urlEqualTo("/v1/messages")));
+    }
+}</code></pre>
+</div>
+
+<h2 id="jmh"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Performance and load</h2>
+
+<div class="note java">
+  <span class="tag">What to benchmark, and what not to</span>
+  <p>Do <strong>not</strong> microbenchmark the model call &mdash; its latency is dominated by the provider and swamps anything JMH measures. <strong>Do</strong> benchmark your surrounding code: chunking throughput, embedding-batch assembly, vector-search latency against a loaded pgvector, RRF and re-ranking over realistic candidate sets, and context assembly. These are deterministic, CPU-bound, and genuinely yours to optimise.</p>
+  <p>For end-to-end load, use Gatling or k6 against a WireMock-stubbed model so you exercise your concurrency, connection pooling and backpressure (Topic 5.4) without a five-figure token bill. Test the real model separately, at low volume, to characterise latency distribution &mdash; then model that distribution in the load test.</p>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>A complete testing strategy</caption>
+    <thead><tr><th>Test type</th><th>Tool</th><th>Model</th><th>Frequency</th></tr></thead>
+    <tbody>
+      <tr><td>Unit</td><td>JUnit + Mockito</td><td>Mocked</td><td>Every commit</td></tr>
+      <tr><td>Contract</td><td>JUnit, real model, property assertions</td><td>Real, temp 0</td><td>Gated CI</td></tr>
+      <tr><td>Evaluation</td><td>JUnit + golden set + judge</td><td>Real</td><td>On AI changes, nightly</td></tr>
+      <tr><td>Security</td><td>JUnit injection cases</td><td>Real</td><td>On AI changes</td></tr>
+      <tr><td>Integration</td><td>Testcontainers + WireMock</td><td>Stubbed</td><td>CI</td></tr>
+      <tr><td>Performance</td><td>JMH (your code) + Gatling</td><td>Stubbed</td><td>Before release</td></tr>
+      <tr><td>Production</td><td>Feedback signals, canaries (5.5)</td><td>Real</td><td>Continuous</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly a weekend</div>
+  <ol>
+    <li>Unit-test a service that parses model output, mocking <code>ChatModel</code>. Test the happy path and the malformed-JSON repair path with no real calls.</li>
+    <li>Write a contract test that asserts schema validity and value ranges but never an exact string. Run it ten times and confirm it does not flake.</li>
+    <li>Add a <code>@RepeatedTest</code> stability check for a classification that should be deterministic. Find a prompt where it fails and tighten it.</li>
+    <li>Build a 30-case golden set as a JUnit resource and a parameterised test. Fail the build on a confidence-interval-adjusted threshold.</li>
+    <li>Add injection cases to the same suite and confirm they fail if you weaken a guardrail.</li>
+    <li>Write a Testcontainers integration test with real pgvector. Prove tenant isolation against an actual database query.</li>
+    <li>Stub the model with WireMock and test that your retry logic handles 429-then-200 correctly.</li>
+    <li>Split CI so unit tests gate every PR while evals run only on prompt changes and nightly. Have the eval job comment results on the PR.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 08 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.spring.io/spring-ai/reference/api/testing.html">Spring AI &mdash; Testing</a><span class="why">Evaluators and testing utilities built into Spring AI, including relevance and fact-checking helpers.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://java.testcontainers.org/modules/databases/postgres/">Testcontainers &mdash; Postgres</a><span class="why">Real pgvector in an integration test. The <code>pgvector/pgvector</code> image works directly.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://wiremock.org/docs/">WireMock</a><span class="why">Deterministic stubs for the model API, including scenarios for simulating rate limits and failures.</span></span></li>
+    <li><span class="kind">Tool</span><span class="body"><a href="https://www.promptfoo.dev/docs/integrations/ci-cd/">Promptfoo in CI</a><span class="why">A language-agnostic complement to JUnit evals &mdash; declarative cases that run in the same pipeline.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://gatling.io/docs/">Gatling</a><span class="why">JVM-native load testing for the end-to-end pipeline against stubbed models.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://github.com/openjdk/jmh">JMH</a><span class="why">The right tool for benchmarking your deterministic hot paths &mdash; chunking, fusion, assembly.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://hamel.dev/blog/posts/evals/">Your AI Product Needs Evals</a><span class="why">The philosophy behind the eval layer, worth reading even though its examples are in Python.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 6.3 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

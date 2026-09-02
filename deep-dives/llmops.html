@@ -1,0 +1,603 @@
+<title>LLMOps</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 05 &middot; Agents &amp; Ops</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">5.5</span>
+    <h1>LLMOps</h1>
+    <p class="lede">Running AI systems the way you run everything else. This page covers evaluation types and their biases,
+tracing with OpenTelemetry's GenAI conventions, prompt versioning and canary deployment, the cost and drift
+metrics that matter, and the incident-response question nobody can answer without instrumentation.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#eval-types">Types of evaluation</a></li><li><a href="#tracing">Observability</a></li><li><a href="#deployment">Prompt versioning and safe rollout</a></li><li><a href="#metrics">The dashboard</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>Evaluation metrics from <a href="#deeper">Topics 1.2 and 4.7</a>. Standard observability practice &mdash; metrics, traces, dashboards.</p>
+</div>
+
+<p>LLMOps is DevOps applied to systems whose output is a sample from a distribution rather than a value. Most of your practice carries over. Three things genuinely change.</p>
+
+<div class="tbl">
+  <table>
+    <caption>What is different from ordinary services</caption>
+    <thead><tr><th>Concern</th><th>Ordinary service</th><th>LLM system</th></tr></thead>
+    <tbody>
+      <tr><td>Correctness</td><td><code>assertEquals</code></td><td><strong>No single right answer.</strong> Graded, statistical evaluation</td></tr>
+      <tr><td>Regression source</td><td>Your code changed</td><td>Your code, your prompt, <em>or the provider's model</em> &mdash; and you were not told</td></tr>
+      <tr><td>Cost</td><td>Roughly fixed per instance</td><td>Per request, highly variable, unbounded without limits</td></tr>
+      <tr><td>Latency</td><td>Milliseconds, tight distribution</td><td>Seconds, long tail, driven by output length</td></tr>
+      <tr><td>Debugging</td><td>Read the stack trace</td><td>Read the prompt, the retrieved context, and the reasoning</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">The question that drives everything on this page</span>
+  <p>A user reports a bad answer three days ago. Can you reconstruct <strong>exactly</strong> what happened &mdash; the resolved prompt, the prompt version, the model and its version, the sampling parameters, the retrieved chunk ids and their scores, every tool call and result, the tokens and the cost?</p>
+  <p>If not, you cannot debug it, you cannot tell whether your fix worked, and you cannot tell whether it recurs. Everything else in LLMOps is downstream of being able to answer that question.</p>
+</div>
+
+<h2 id="eval-types"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>Types of evaluation</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Every evaluation type, with its limitation stated</caption>
+    <thead><tr><th>Type</th><th>Mechanism</th><th>Good for</th><th>Limitation</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Rule-based assertions</strong></td><td>Schema validation, regex, must-contain, budgets</td><td>Format and safety guarantees</td><td>Cannot judge quality</td></tr>
+      <tr><td>Golden dataset</td><td>Fixed inputs, expected outputs</td><td>Regression detection in CI</td><td>Needs curation; goes stale</td></tr>
+      <tr><td>LLM-as-judge, pointwise</td><td>Model scores one output against a rubric</td><td>Scale, subjective qualities</td><td>Biased toward length and its own style</td></tr>
+      <tr><td><strong>LLM-as-judge, pairwise</strong></td><td>Which of A or B is better?</td><td><strong>Comparing versions &mdash; more reliable than absolute scores</strong></td><td>Position bias; randomise order</td></tr>
+      <tr><td>Reference-based</td><td>ROUGE, BLEU, semantic similarity</td><td>Translation, summarisation</td><td>Penalises valid alternative phrasings</td></tr>
+      <tr><td>Human review</td><td>Experts rate a sample</td><td>Ground truth; calibrating judges</td><td>Slow and expensive &mdash; sample, do not exhaust</td></tr>
+      <tr><td>Red-teaming</td><td>Adversarial inputs, jailbreaks, injections</td><td>Safety and security posture</td><td>Never complete; run continuously</td></tr>
+      <tr><td><strong>Online / production</strong></td><td>Thumbs, escalation rate, task completion, edit distance</td><td><strong>The only measure that reflects reality</strong></td><td>Lagging; needs traffic</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note trap">
+  <span class="tag">Order your assertions by cost, not by sophistication</span>
+  <p>Schema validity, required fields, citation presence, latency and cost budgets are deterministic, instant, free and never flaky. Run them on every case. LLM-as-judge assertions are slow, expensive and themselves noisy &mdash; reserve them for the dimensions rules genuinely cannot capture.</p>
+  <p>Most teams reach for the judge first, end up with a suite that takes twenty minutes and fails randomly, and stop trusting it within a month. A fast deterministic core with a small judged layer on top is what survives contact with a busy team.</p>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Java</span><span>Deterministic evaluation in the JUnit suite you already run</span></div>
+<pre><code>@SpringBootTest
+class TriageEvaluationTest {
+
+    @Autowired TriageService triage;
+
+    static Stream&lt;GoldenCase&gt; goldenSet() throws IOException {
+        <span class="cm">// Versioned with the code, reviewed in pull requests.</span>
+        return objectMapper.readValue(
+                new ClassPathResource("evals/triage-golden.json").getFile(),
+                new TypeReference&lt;List&lt;GoldenCase&gt;&gt;() {}).stream();
+    }
+
+    @ParameterizedTest
+    @MethodSource("goldenSet")
+    void meetsContract(GoldenCase testCase) {
+        var result = triage.triage(testCase.input());
+
+        <span class="cm">// Deterministic assertions: fast, free, never flaky.</span>
+        assertThat(result.category()).isEqualTo(testCase.expectedCategory());
+        assertThat(result.severityOneToFive()).isBetween(1, 5);
+        assertThat(result.summary()).hasSizeLessThan(200);
+
+        <span class="cm">// Tolerance where the output is genuinely graded.</span>
+        assertThat(result.severityOneToFive())
+                .isCloseTo(testCase.expectedSeverity(), within(1));
+    }
+
+    @Test
+    void passRateExceedsBaseline() {
+        var cases = goldenSet().toList();
+        long passed = cases.stream().filter(this::passes).count();
+        double rate = (double) passed / cases.size();
+
+        <span class="cm">// A confidence interval, so you do not fail the build on noise.</span>
+        double se = Math.sqrt(rate * (1 - rate) / cases.size());
+        double lowerBound = rate - 1.96 * se;
+
+        assertThat(lowerBound)
+                .as("pass rate %.3f (95%% lower bound %.3f)", rate, lowerBound)
+                .isGreaterThan(0.85);
+    }
+}</code></pre>
+</div>
+
+<h2 id="tracing"><span class="kicker">Section 03 <span class="lvl lvl-a">Advanced</span></span>Observability</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Java</span><span>A span tree that answers the incident question</span></div>
+<pre><code>@Component
+class ObservabilityAdvisor implements CallAdvisor {
+
+    private final Tracer tracer;
+    private final MeterRegistry meters;
+
+    @Override public int getOrder() { return 100; }   <span class="cm">// after redaction</span>
+
+    @Override
+    public ChatClientResponse adviseCall(ChatClientRequest request,
+                                         CallAdvisorChain chain) {
+        var span = tracer.nextSpan().name("gen_ai.chat").start();
+
+        try (var scope = tracer.withSpan(span)) {
+            <span class="cm">// OTel GenAI semantic conventions: these exact attribute</span>
+            <span class="cm">// names mean your spans work with everyone else's tooling.</span>
+            span.tag("gen_ai.system", "anthropic");
+            span.tag("gen_ai.request.model", modelId(request));
+            span.tag("gen_ai.request.temperature", String.valueOf(temperature(request)));
+
+            <span class="cm">// Business identity: what makes a trace searchable when a</span>
+            <span class="cm">// customer complains three days later.</span>
+            span.tag("app.tenant_id", currentTenant());
+            span.tag("app.prompt_version", promptVersion(request));
+            span.tag("app.conversation_id", conversationId(request));
+
+            var response = chain.nextCall(request);
+
+            var usage = response.chatResponse().getMetadata().getUsage();
+            span.tag("gen_ai.usage.input_tokens",  String.valueOf(usage.getPromptTokens()));
+            span.tag("gen_ai.usage.output_tokens", String.valueOf(usage.getCompletionTokens()));
+            span.tag("gen_ai.response.finish_reason", finishReason(response));
+
+            double cost = pricing.cost(modelId(request), usage);
+            span.tag("app.cost_usd", String.format("%.6f", cost));
+
+            meters.counter("gen_ai.tokens", "type", "output",
+                           "model", modelId(request)).increment(usage.getCompletionTokens());
+            meters.summary("gen_ai.cost", "tenant", currentTenant()).record(cost);
+
+            return response;
+
+        } catch (Exception e) {
+            span.error(e);
+            throw e;
+        } finally {
+            span.end();
+        }
+    }
+}</code></pre>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>What a complete trace contains</caption>
+    <thead><tr><th>Span</th><th>Attributes worth capturing</th></tr></thead>
+    <tbody>
+      <tr><td>Request</td><td>Tenant, user, endpoint, conversation id</td></tr>
+      <tr><td>Query transformation</td><td>Original query, rewritten query, route chosen</td></tr>
+      <tr><td>Retrieval</td><td>Chunk ids, scores, filter expression, index used, <code>ef_search</code></td></tr>
+      <tr><td>Re-ranking</td><td>Candidates in, survivors out, scores</td></tr>
+      <tr><td>Generation</td><td>Prompt version, model, parameters, tokens, cached tokens, finish reason</td></tr>
+      <tr><td>Each tool call</td><td>Name, arguments, result size, duration, outcome</td></tr>
+      <tr><td>Response</td><td>Output, evaluation scores, user feedback when it arrives</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note java">
+  <span class="tag">Logging prompts is a privacy decision, not a debugging one</span>
+  <p>Full prompts and completions are the most useful thing to log and the most dangerous. They contain customer data, retrieved documents and sometimes credentials users pasted in.</p>
+  <p>A workable policy: log prompts in full in development; in production log a hash plus the prompt <em>version</em>, with full content behind a redaction advisor, a shorter retention period and access controls. Store retrieved chunk <em>ids</em> rather than chunk text &mdash; you can look the text up, and ids are not personal data. This connects to &sect;6.4.</p>
+</div>
+
+<h2 id="deployment"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>Prompt versioning and safe rollout</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Java</span><span>Versioned prompts with canary routing</span></div>
+<pre><code>@Service
+class PromptRegistry {
+
+    <span class="cm">// A prompt is only correct WITH RESPECT TO a model version and</span>
+    <span class="cm">// its parameters. Version them together or you will chase ghosts.</span>
+    public record PromptVersion(
+            String id, String version, String template,
+            String validatedAgainstModel, double temperature,
+            Instant createdAt, String createdBy,
+            double goldenSetPassRate) {}
+
+    public PromptVersion resolve(String promptId, String tenantId) {
+        var active = repository.activeVersion(promptId);
+        var canary = repository.canaryVersion(promptId);
+
+        if (canary == null) return active;
+
+        <span class="cm">// Deterministic assignment by tenant hash: a tenant always</span>
+        <span class="cm">// sees the same version, so their experience is consistent</span>
+        <span class="cm">// and the comparison is not polluted by within-user switching.</span>
+        int bucket = Math.floorMod(tenantId.hashCode(), 100);
+        return bucket &lt; canary.trafficPercent() ? canary.version() : active;
+    }
+}
+
+@Component
+class CanaryEvaluator {
+
+    @Scheduled(cron = "0 */15 * * * *")
+    public void compare() {
+        for (var canary : registry.activeCanaries()) {
+            var control = metrics.window(canary.promptId(), canary.controlVersion(),
+                                         Duration.ofHours(6));
+            var variant = metrics.window(canary.promptId(), canary.version(),
+                                         Duration.ofHours(6));
+
+            <span class="cm">// Guardrails first: roll back immediately on a hard regression,</span>
+            <span class="cm">// without waiting for statistical significance.</span>
+            if (variant.errorRate() &gt; control.errorRate() * 1.5
+                || variant.p95Latency() &gt; control.p95Latency() * 2
+                || variant.costPerRequest() &gt; control.costPerRequest() * 1.5) {
+                registry.rollback(canary);
+                alerts.page("canary rolled back: " + canary.promptId());
+                continue;
+            }
+
+            <span class="cm">// Then quality, with an interval -- do not promote on noise.</span>
+            if (variant.sampleSize() &gt; 500
+                && variant.satisfactionLowerBound() &gt; control.satisfaction()) {
+                registry.promote(canary);
+            }
+        }
+    }
+}</code></pre>
+</div>
+
+<div class="note trap">
+  <span class="tag">Pin your model version</span>
+  <p>Calling a floating alias means the provider can change the model underneath you. Your prompts were tuned against specific behaviour; a new version can change output length, formatting, refusal boundaries and tool-calling reliability, and your golden set will start failing for reasons that are nowhere in your git history.</p>
+  <p>Pin an explicit dated version. Treat a model upgrade as a deployment: run the golden set against the new version, diff the results, canary it, and keep the old version available for rollback. Subscribe to provider deprecation notices &mdash; pinned versions do eventually retire, and you want that on your schedule.</p>
+</div>
+
+<h2 id="metrics"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>The dashboard</h2>
+
+<div class="kv">
+  <div><dt>Quality</dt><dd>Golden-set pass rate, faithfulness, thumbs-down rate</dd></div>
+  <div><dt>Cost</dt><dd>Per request, per tenant, per feature; cache hit rate</dd></div>
+  <div><dt>Latency</dt><dd>p50/p95/p99 TTFT and total; tokens per second</dd></div>
+  <div><dt>Reliability</dt><dd>Error rate by provider, rate-limit hits, fallback rate</dd></div>
+  <div><dt>Drift</dt><dd>Output length, refusal rate, format-failure rate over time</dd></div>
+  <div><dt>Agents</dt><dd>Steps per run, completion rate, human-intervention rate</dd></div>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>Alerts worth having, and what each usually means</caption>
+    <thead><tr><th>Alert</th><th>Usual cause</th></tr></thead>
+    <tbody>
+      <tr><td>Structured-output failure rate rises</td><td><strong>Model version changed</strong>, or a prompt regression</td></tr>
+      <tr><td>Mean output length shifts sharply</td><td>Model change &mdash; often the first visible symptom</td></tr>
+      <tr><td>Refusal rate rises</td><td>Model safety tuning changed, or your inputs did</td></tr>
+      <tr><td>Cost per request jumps</td><td>Retrieval returning more chunks; cache misses; a prompt grew</td></tr>
+      <tr><td>Cache hit rate falls</td><td>Prompt prefix became unstable &mdash; check ordering</td></tr>
+      <tr><td>p99 latency detaches from p50</td><td>A subset of requests generating very long outputs</td></tr>
+      <tr><td>Steps per agent run rises</td><td>Agent struggling &mdash; a tool is failing or a description regressed</td></tr>
+      <tr><td>Retrieval similarity distribution shifts</td><td>Corpus changed, or embeddings were written by a different model</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note java">
+  <span class="tag">The feedback loop that keeps the system honest</span>
+  <p>Capture a signal on every response &mdash; explicit thumbs, or implicit ones like whether the user rephrased, escalated to a human, or copied the answer. Weekly, sample the negative cases, have someone label the correct behaviour, and add them to the golden set.</p>
+  <p>Your offline suite then converges on the failures that actually occur rather than the ones you imagined when you built it. Without this loop the golden set decays into a test of last year's problems, and the pass rate stays reassuringly high while users grow unhappier.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly a weekend</div>
+  <ol>
+    <li>Take a bad answer from your own system and try to reconstruct exactly what produced it. Note every piece of information you wish you had logged.</li>
+    <li>Instrument one call path with OTel GenAI attributes. View the trace and confirm you could now answer exercise 1.</li>
+    <li>Build a golden-set JUnit test that fails the build on regression, using a confidence interval rather than a bare threshold.</li>
+    <li>Externalise a prompt into a versioned file with its model and parameters recorded. Deploy a change without touching Java code.</li>
+    <li>Implement canary routing by tenant hash. Verify a tenant consistently receives the same version.</li>
+    <li>Build the cost dashboard broken down by tenant and feature. Find your most expensive endpoint &mdash; it is rarely the one you expect.</li>
+    <li>Deliberately switch to a different model version and run your golden set. Record what changed, and how you would have detected it in production.</li>
+    <li>Implement a redaction advisor and verify no PII reaches your logs while prompt versions still do.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Article</span><span class="body"><a href="https://hamel.dev/blog/posts/evals/">Your AI Product Needs Evals</a><span class="why">Hamel Husain on building evaluation as a practice. The best writing on the organisational side of this.</span></span></li>
+    <li><span class="kind">Course</span><span class="body"><a href="https://www.wandb.courses/">Weights &amp; Biases free courses</a><span class="why">LLM evaluation and structured outputs. Free with registration; named in your roadmap.</span></span></li>
+    <li><span class="kind">Standard</span><span class="body"><a href="https://opentelemetry.io/docs/specs/semconv/gen-ai/">OpenTelemetry GenAI semantic conventions</a><span class="why">The attribute names in Section 03. Vendor-neutral, and it means your spans work with any backend.</span></span></li>
+    <li><span class="kind">Tool</span><span class="body"><a href="https://langfuse.com/docs">Langfuse</a><span class="why">Open-source, self-hostable LLM observability: tracing, prompt management and evaluation, with an OTel path from Java.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.spring.io/spring-ai/reference/observability/index.html">Spring AI &mdash; Observability</a><span class="why">Built-in Micrometer instrumentation, the metrics it emits, and the prompt-logging switches.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2306.05685">Judging LLM-as-a-Judge</a><span class="why">Quantifies position, verbosity and self-enhancement bias. Read before trusting a judge-based metric.</span></span></li>
+    <li><span class="kind">Tool</span><span class="body"><a href="https://www.promptfoo.dev/docs/intro/">Promptfoo</a><span class="why">Declarative prompt regression tests that slot into CI alongside your JUnit suite.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 5.5 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

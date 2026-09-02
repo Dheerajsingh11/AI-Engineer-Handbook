@@ -1,0 +1,650 @@
+<title>Vector Indexes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 04 &middot; RAG &amp; Vectors</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">4.3</span>
+    <h1>Vector Indexes</h1>
+    <p class="lede">How to search a hundred million vectors in five milliseconds. This page builds HNSW from the skip list it
+generalises, implements product quantisation from scratch, derives the memory arithmetic, and explains why
+filtered vector search is genuinely hard rather than merely fiddly.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#families">The index families</a></li><li><a href="#hnsw">HNSW, built from the skip list</a></li><li><a href="#quantisation">Product quantisation from scratch</a></li><li><a href="#filtering">Filtered search &mdash; where indexes get hard</a></li><li><a href="#sizing">Capacity planning</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>Cosine similarity from <a href="#deeper">Topic 1.1</a>, particularly the section on high-dimensional strangeness. k-means from Topic 2.3 is used directly in Section 03.</p>
+</div>
+
+<p>You have a million document vectors and a query vector. Finding the closest matches is conceptually trivial: compare the query against all one million and keep the best ten. This is <strong>exact</strong> or <strong>brute-force</strong> search, and it is correct.</p>
+
+<p>It is also linear. A million comparisons is fine. A hundred million, thousands of times per second, is not. So you trade a little correctness for a lot of speed, and that trade is what an <strong>Approximate Nearest Neighbour</strong> index is.</p>
+
+<div class="note key">
+  <span class="tag">Why approximate is the right answer, not a compromise</span>
+  <p>Recall from Topic 1.1 that in 1536 dimensions the nearest neighbour is already about 84% as far away as the farthest. Distances have largely collapsed, so the difference between the "true" tenth-best result and the eleventh is often smaller than the noise in your embedding model.</p>
+  <p>Insisting on mathematically exact results buys you very little real quality and costs a full scan. Accepting 95&ndash;99% recall for a hundredfold speedup is not cutting corners &mdash; it is recognising what the numbers actually mean.</p>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Recall</dt><dd>What fraction of the true nearest neighbours the index actually returned. The quality measure for an index.</dd>
+    <dt>QPS</dt><dd>Queries per second. The throughput measure.</dd>
+    <dt>Build time</dt><dd>How long it takes to construct the index. Matters for large or frequently rebuilt corpora.</dd>
+    <dt>Graph index</dt><dd>Stores vectors as nodes connected by edges; searching means walking the graph toward the query.</dd>
+    <dt>Partition index</dt><dd>Divides vectors into groups; searching means picking a few groups and scanning only those.</dd>
+    <dt>Quantisation</dt><dd>Storing vectors in fewer bits, approximately.</dd>
+    <dt>Rescoring</dt><dd>Re-computing exact distances for a small candidate set at the end, to undo quantisation error.</dd>
+  </dl>
+</div>
+
+<h2 id="families"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>The index families</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Every index type, and where each belongs</caption>
+    <thead><tr><th>Index</th><th>Mechanism</th><th>Build</th><th>Query</th><th>Memory</th><th>Use when</th></tr></thead>
+    <tbody>
+      <tr><td>Flat</td><td>Compare against everything</td><td class="nc">None</td><td class="nc">O(n)</td><td class="nc">Vectors only</td><td>Under ~100k vectors, or 100% recall required</td></tr>
+      <tr><td>IVF</td><td>k-means partitions; scan the nearest few</td><td class="nc">Fast</td><td class="nc">Fast</td><td class="nc">Low</td><td>Large static corpora; needs training data</td></tr>
+      <tr><td>IVF-PQ</td><td>IVF plus product quantisation</td><td class="nc">Medium</td><td class="nc">Fast</td><td class="nc"><strong>Very low</strong></td><td>Billions of vectors, limited RAM</td></tr>
+      <tr><td><strong>HNSW</strong></td><td>Multi-layer navigable small-world graph</td><td class="nc">Slow</td><td class="nc"><strong>Very fast</strong></td><td class="nc">High</td><td><strong>The default for most workloads</strong></td></tr>
+      <tr><td>DiskANN / Vamana</td><td>Graph index designed for SSD residency</td><td class="nc">Slow</td><td class="nc">Medium</td><td class="nc">Low RAM</td><td>Huge corpora where RAM is the binding constraint</td></tr>
+      <tr><td>LSH</td><td>Hash so nearby vectors collide</td><td class="nc">Fast</td><td class="nc">Fast</td><td class="nc">Low</td><td>Largely historical; weaker recall than the above</td></tr>
+      <tr><td>ScaNN</td><td>Anisotropic quantisation plus partitioning</td><td class="nc">Medium</td><td class="nc">Very fast</td><td class="nc">Medium</td><td>Very large inner-product search</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="hnsw"><span class="kicker">Section 03 <span class="lvl lvl-a">Advanced</span></span>HNSW, built from the skip list</h2>
+
+<p>HNSW is the default in pgvector, Qdrant, Weaviate, Milvus, Elasticsearch and FAISS. Understanding it is what lets you tune it rather than accept defaults.</p>
+
+<h3>Step 1: the idea it generalises</h3>
+
+<p>A <strong>skip list</strong> speeds up search in a sorted linked list by adding express lanes. The bottom layer holds every element. The layer above holds roughly half, with longer hops. The next holds a quarter. Searching means starting at the top, moving right until you would overshoot, dropping a layer, and repeating &mdash; O(log n) instead of O(n).</p>
+
+<p>HNSW is that idea in many dimensions. Instead of a sorted line you have a graph; instead of "move right" you have "move to whichever neighbour is closer to the query".</p>
+
+<ol class="steps">
+  <li><strong>Assign each vector a maximum layer</strong> drawn from an exponentially decaying distribution. Most vectors live only at layer 0; a few reach layer 1; very few reach higher. This produces the express-lane structure automatically.</li>
+  <li><strong>Connect each node to its <i>m</i> nearest neighbours</strong> within each layer it occupies. Higher layers are sparse, so their edges span long distances.</li>
+  <li><strong>Search greedily from the top.</strong> Enter at the single top node, repeatedly move to the neighbour closest to the query until no neighbour improves, then drop to the layer below and continue from there.</li>
+  <li><strong>At layer 0, search with a beam.</strong> Keep a candidate set of size <code>ef_search</code> rather than following a single path &mdash; this is what makes recall tunable at query time.</li>
+</ol>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>HNSW from scratch &mdash; simplified but functionally real</span></div>
+<pre><code>import numpy as np, heapq, math
+
+class HNSW:
+    def __init__(self, m=16, ef_construction=100, ml=None, seed=0):
+        self.m = m                                <span class="cm"># neighbours per node per layer</span>
+        self.m0 = m * 2                           <span class="cm"># layer 0 gets double: it holds everything</span>
+        self.ef_construction = ef_construction
+        <span class="cm"># 1/ln(m) is the level multiplier that yields ~log_m(n) layers</span>
+        self.ml = ml or 1.0 / math.log(m)
+        self.rng = np.random.default_rng(seed)
+        self.vectors, self.layers, self.entry = [], [], None
+
+    def _random_level(self):
+        <span class="cm"># Exponential decay: P(level >= l) = exp(-l/ml).</span>
+        <span class="cm"># Most nodes get 0; a handful get high levels and become highways.</span>
+        return int(-math.log(self.rng.random()) * self.ml)
+
+    def _distance(self, a, b):
+        return float(np.linalg.norm(self.vectors[a] - b))
+
+    def _search_layer(self, query, entry_points, ef, layer):
+        """Beam search within one layer. Returns the ef closest found."""
+        visited = set(entry_points)
+        <span class="cm"># candidates: min-heap by distance (explore closest first)</span>
+        candidates = [(self._distance(p, query), p) for p in entry_points]
+        heapq.heapify(candidates)
+        <span class="cm"># results: max-heap by distance (evict the worst)</span>
+        results = [(-d, p) for d, p in candidates]
+        heapq.heapify(results)
+
+        while candidates:
+            dist, node = heapq.heappop(candidates)
+            <span class="cm"># If the closest unexplored candidate is worse than our worst</span>
+            <span class="cm"># kept result, no further exploration can help. Stop.</span>
+            if results and dist &gt; -results[0][0]:
+                break
+            for neighbour in self.layers[layer].get(node, []):
+                if neighbour in visited:
+                    continue
+                visited.add(neighbour)
+                d = self._distance(neighbour, query)
+                if len(results) &lt; ef or d &lt; -results[0][0]:
+                    heapq.heappush(candidates, (d, neighbour))
+                    heapq.heappush(results, (-d, neighbour))
+                    if len(results) &gt; ef:
+                        heapq.heappop(results)      <span class="cm"># drop the worst</span>
+        return [p for _, p in results]
+
+    def add(self, vector):
+        idx = len(self.vectors)
+        self.vectors.append(np.asarray(vector, dtype=np.float32))
+        level = self._random_level()
+
+        while len(self.layers) &lt;= level:
+            self.layers.append({})
+
+        if self.entry is None:
+            self.entry = idx
+            for l in range(level + 1):
+                self.layers[l][idx] = []
+            return idx
+
+        <span class="cm"># Descend the layers above `level` with a greedy single-path search</span>
+        entry_points = [self.entry]
+        for l in range(len(self.layers) - 1, level, -1):
+            entry_points = self._search_layer(vector, entry_points, 1, l)
+
+        <span class="cm"># Insert with proper beam search on layers at and below `level`</span>
+        for l in range(min(level, len(self.layers) - 1), -1, -1):
+            found = self._search_layer(vector, entry_points, self.ef_construction, l)
+            max_conn = self.m0 if l == 0 else self.m
+            neighbours = sorted(found, key=lambda p: self._distance(p, vector))[:max_conn]
+            self.layers[l][idx] = list(neighbours)
+
+            <span class="cm"># Bidirectional edges, pruned to keep degree bounded</span>
+            for n in neighbours:
+                self.layers[l].setdefault(n, []).append(idx)
+                if len(self.layers[l][n]) &gt; max_conn:
+                    nv = self.vectors[n]
+                    self.layers[l][n] = sorted(
+                        self.layers[l][n],
+                        key=lambda p: float(np.linalg.norm(self.vectors[p] - nv))
+                    )[:max_conn]
+            entry_points = found
+
+        if level &gt;= len(self.layers) - 1:
+            self.entry = idx                      <span class="cm"># new highest node becomes entry</span>
+        return idx
+
+    def search(self, query, k=10, ef_search=50):
+        query = np.asarray(query, dtype=np.float32)
+        entry_points = [self.entry]
+        for l in range(len(self.layers) - 1, 0, -1):
+            entry_points = self._search_layer(query, entry_points, 1, l)
+        found = self._search_layer(query, entry_points, max(ef_search, k), 0)
+        return sorted(found, key=lambda p: self._distance(p, query))[:k]
+
+
+<span class="cm"># --- the recall/latency dial, measured ----------------------------</span>
+rng = np.random.default_rng(0)
+data = rng.normal(size=(5000, 64)).astype(np.float32)
+data /= np.linalg.norm(data, axis=1, keepdims=True)
+
+index = HNSW(m=16, ef_construction=100)
+for v in data:
+    index.add(v)
+
+query = data[7]
+exact = set(np.argsort(np.linalg.norm(data - query, axis=1))[:10].tolist())
+
+for ef in (10, 20, 50, 100, 200):
+    got = set(index.search(query, k=10, ef_search=ef))
+    print(f"ef_search={ef:4d}  recall@10 = {len(got &amp; exact) / 10:.2f}")
+
+<span class="cm"># ef_search=  10  recall@10 = 0.70</span>
+<span class="cm"># ef_search=  20  recall@10 = 0.90</span>
+<span class="cm"># ef_search=  50  recall@10 = 1.00</span>
+<span class="cm"># ef_search= 100  recall@10 = 1.00   diminishing returns past here</span></code></pre>
+</div>
+
+<div class="kv">
+  <div><dt>m</dt><dd>Edges per node. Higher = better recall, more memory. 16&ndash;64</dd></div>
+  <div><dt>ef_construction</dt><dd>Beam width while building. Higher = better graph, slower build. 100&ndash;200</dd></div>
+  <div><dt>ef_search</dt><dd><strong>The runtime dial.</strong> Higher = better recall, slower query. 40&ndash;400</dd></div>
+</div>
+
+<div class="note java">
+  <span class="tag">The one parameter to actually tune</span>
+  <p><code>m</code> and <code>ef_construction</code> are baked in at build time &mdash; changing them means rebuilding the whole index. <code>ef_search</code> is per query, so you can tune it live, set it per endpoint, or raise it for high-value queries and lower it under load. Plot recall against <code>ef_search</code> on your own data once, pick the knee, and set it explicitly rather than inheriting a default.</p>
+</div>
+
+<h2 id="quantisation"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>Product quantisation from scratch</h2>
+
+<p>HNSW is fast but memory-hungry: it stores full vectors plus a graph. At a billion vectors that is impractical. Product quantisation compresses each vector by roughly 32&ndash;64&times;.</p>
+
+<ol class="steps">
+  <li><strong>Split</strong> each <i>d</i>-dimensional vector into <i>M</i> sub-vectors. A 1536-dim vector into 96 sub-vectors of 16 dimensions each.</li>
+  <li><strong>Cluster each sub-space independently</strong> with k-means, using 256 centroids &mdash; because 256 fits in exactly one byte.</li>
+  <li><strong>Encode</strong> each sub-vector as the id of its nearest centroid. The vector becomes 96 bytes instead of 6,144.</li>
+  <li><strong>Search</strong> using a lookup table: precompute the distance from the query's sub-vector to all 256 centroids in each sub-space, then a full distance is 96 table lookups and adds &mdash; no multiplication at all.</li>
+</ol>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Product quantisation, implemented</span></div>
+<pre><code>import numpy as np
+from sklearn.cluster import KMeans
+
+class ProductQuantizer:
+    def __init__(self, n_subvectors=8, n_centroids=256, seed=0):
+        self.M = n_subvectors
+        self.K = n_centroids                       <span class="cm"># 256 -> one byte per code</span>
+        self.seed = seed
+        self.codebooks = None
+
+    def fit(self, X):
+        n, d = X.shape
+        assert d % self.M == 0, "dimension must divide evenly"
+        self.sub_dim = d // self.M
+        self.codebooks = np.zeros((self.M, self.K, self.sub_dim), dtype=np.float32)
+
+        for m in range(self.M):
+            sub = X[:, m * self.sub_dim:(m + 1) * self.sub_dim]
+            km = KMeans(self.K, n_init=4, random_state=self.seed).fit(sub)
+            self.codebooks[m] = km.cluster_centers_
+        return self
+
+    def encode(self, X):
+        codes = np.zeros((len(X), self.M), dtype=np.uint8)
+        for m in range(self.M):
+            sub = X[:, m * self.sub_dim:(m + 1) * self.sub_dim]
+            d2 = ((sub[:, None, :] - self.codebooks[m][None]) ** 2).sum(-1)
+            codes[:, m] = d2.argmin(1)
+        return codes
+
+    def search(self, query, codes, k=10):
+        <span class="cm"># ASYMMETRIC distance computation: the query stays in full</span>
+        <span class="cm"># precision, only the database is quantised. More accurate</span>
+        <span class="cm"># than quantising both, and costs nothing extra.</span>
+        tables = np.zeros((self.M, self.K), dtype=np.float32)
+        for m in range(self.M):
+            q_sub = query[m * self.sub_dim:(m + 1) * self.sub_dim]
+            tables[m] = ((self.codebooks[m] - q_sub) ** 2).sum(-1)
+
+        <span class="cm"># Distance for every stored vector: M lookups and adds. No multiplies.</span>
+        distances = tables[np.arange(self.M), codes].sum(axis=1)
+        return np.argsort(distances)[:k]
+
+
+rng = np.random.default_rng(0)
+X = rng.normal(size=(20_000, 128)).astype(np.float32)
+X /= np.linalg.norm(X, axis=1, keepdims=True)
+
+pq = ProductQuantizer(n_subvectors=16).fit(X)
+codes = pq.encode(X)
+
+original = X.nbytes / 1e6
+compressed = codes.nbytes / 1e6
+print(f"{original:.1f} MB -> {compressed:.1f} MB  ({original/compressed:.0f}x)")
+<span class="cm"># 10.2 MB -> 0.3 MB  (32x)</span>
+
+q = X[5]
+approx = set(pq.search(q, codes, k=10).tolist())
+exact  = set(np.argsort(-(X @ q))[:10].tolist())
+print(f"recall@10 = {len(approx &amp; exact) / 10:.2f}")     <span class="cm"># ~0.7</span>
+
+<span class="cm"># 0.7 looks poor -- but PQ is a FILTER, not a final answer.</span>
+<span class="cm"># Retrieve 100 candidates with PQ, then rescore those 100 against</span>
+<span class="cm"># the full vectors. Recall@10 returns to ~0.99 at a fraction of</span>
+<span class="cm"># the memory. Same coarse-then-exact pattern as everywhere else.</span></code></pre>
+</div>
+
+<h2 id="filtering"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>Filtered search &mdash; where indexes get hard</h2>
+
+<p>"Find similar documents <em>where tenant_id = 42 and status = published and updated_at &gt; 2025-01-01</em>". This is the query every real system needs, and it is genuinely difficult, because the ANN structure was built without knowledge of your filter.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Three strategies, three failure modes</caption>
+    <thead><tr><th>Strategy</th><th>How</th><th>Fails when</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Post-filter</strong></td><td>Search the index, then discard non-matching results</td><td>The filter is selective. Search top-100, 3 match, you asked for 10. Returns too few, or nothing</td></tr>
+      <tr><td><strong>Pre-filter</strong></td><td>Restrict to matching ids, then search among them</td><td>Naive implementation breaks graph connectivity &mdash; the walk cannot reach relevant regions and recall collapses silently</td></tr>
+      <tr><td><strong>Filtered search</strong></td><td>The index applies the predicate <em>during</em> traversal</td><td>Requires index support. Qdrant, Weaviate and Milvus do this well; check what yours actually does</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note trap">
+  <span class="tag">The multi-tenant recall cliff</span>
+  <p>You test with one tenant holding most of the data: recall is excellent. You go live; tenant 4,000 has 200 documents out of 50 million. Their queries traverse a graph built mostly of other tenants' vectors, and post-filtering discards nearly everything. <strong>Recall for small tenants collapses while your aggregate metrics look fine</strong>, because they are dominated by large tenants.</p>
+  <p>Mitigations: use a store with native filtered search and verify it; consider a separate index or partition per large tenant; over-fetch aggressively (<code>topK</code> of 200+) when filters are selective; and &mdash; the important one &mdash; <strong>measure recall per tenant size bucket, not in aggregate</strong>. This failure is invisible to an average.</p>
+</div>
+
+<h2 id="sizing"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Capacity planning</h2>
+
+<div class="math">
+  <span class="lbl">Memory for an HNSW index</span>
+  <span class="row">vectors &nbsp;=&nbsp; <i>n</i> &times; <i>d</i> &times; bytes_per_component</span>
+  <span class="row">graph &nbsp;&asymp;&nbsp; <i>n</i> &times; <i>m</i> &times; 2 &times; 4 bytes &nbsp;&nbsp;<span style="font-family:var(--f-body);font-size:.78em;color:var(--ink-2)">(bidirectional 4-byte ids)</span></span>
+  <span class="note">For 10M vectors at 1536 dims, float32, m=16: vectors = 61.4&nbsp;GB, graph &asymp; 1.3&nbsp;GB. The graph is not the problem &mdash; <strong>the vectors are</strong>. That is why quantisation and Matryoshka truncation matter far more than graph tuning.</span>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>10M chunks &times; 1536 dims, under different schemes</caption>
+    <thead><tr><th>Scheme</th><th>Per vector</th><th>Total</th><th>Typical recall@10</th></tr></thead>
+    <tbody>
+      <tr><td>float32, full</td><td class="nc">6,144 B</td><td class="nc">61 GB</td><td class="nc">baseline</td></tr>
+      <tr><td>float16</td><td class="nc">3,072 B</td><td class="nc">31 GB</td><td class="nc">~1.00</td></tr>
+      <tr><td>Matryoshka 512-d, float32</td><td class="nc">2,048 B</td><td class="nc">20 GB</td><td class="nc">~0.98</td></tr>
+      <tr><td>int8, full dims</td><td class="nc">1,536 B</td><td class="nc">15 GB</td><td class="nc">~0.99</td></tr>
+      <tr><td>Matryoshka 256-d + int8</td><td class="nc">256 B</td><td class="nc">2.6 GB</td><td class="nc">~0.95</td></tr>
+      <tr><td>PQ, 96 subvectors</td><td class="nc">96 B</td><td class="nc">1.0 GB</td><td class="nc">~0.70 alone, ~0.99 with rescoring</td></tr>
+      <tr><td>Binary + exact rescore</td><td class="nc">192 B</td><td class="nc">1.9 GB</td><td class="nc">~0.96</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly a weekend</div>
+  <ol>
+    <li>Implement the HNSW class and reproduce the recall-versus-<code>ef_search</code> table. Find the knee for your data and dimensionality.</li>
+    <li>Set <code>m=4</code> and rebuild. Watch recall drop even at high <code>ef_search</code> &mdash; a poorly connected graph cannot be rescued at query time.</li>
+    <li>Implement product quantisation. Measure recall with 8, 16 and 32 sub-vectors and plot recall against compression ratio.</li>
+    <li>Add rescoring: retrieve 100 with PQ, then re-rank against full vectors. Confirm recall@10 returns to ~0.99.</li>
+    <li>Build an IVF index using your k-means from Topic 2.3. Plot recall against <code>n_probe</code> and compare the shape to the HNSW curve.</li>
+    <li>Simulate the multi-tenant cliff: 100 tenants with wildly different corpus sizes, post-filtering. Measure recall per tenant-size bucket.</li>
+    <li>Compute the memory table for your own corpus size and dimension. Decide which row you can afford.</li>
+    <li>Benchmark pgvector HNSW against exact search on 1M vectors. Record QPS and recall at three <code>ef_search</code> values.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 08 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/1603.09320">Efficient and robust approximate nearest neighbor search using HNSW</a><span class="why">The original paper. Readable, and the layer-assignment and pruning heuristics are exactly what Section 03 implements.</span></span></li>
+    <li><span class="kind">Guide</span><span class="body"><a href="https://www.pinecone.io/learn/series/faiss/">Pinecone &mdash; Faiss and vector index series</a><span class="why">Vendor-neutral walkthroughs of Flat, IVF, PQ and HNSW with diagrams and code. The best free explanation of PQ anywhere.</span></span></li>
+    <li><span class="kind">Benchmark</span><span class="body"><a href="https://ann-benchmarks.com/">ANN-Benchmarks</a><span class="why">Recall-versus-QPS curves for every library on standard datasets. Use it to calibrate expectations, then measure your own data.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://github.com/facebookresearch/faiss/wiki">FAISS wiki</a><span class="why">"Guidelines to choose an index" is a decision tree worth reading even if you never use FAISS directly.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://ieeexplore.ieee.org/document/5432202">Product Quantization for Nearest Neighbor Search</a><span class="why">The original PQ paper. The asymmetric distance computation in Section 04 comes from here.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://qdrant.tech/articles/filtrable-hnsw/">Qdrant &mdash; Filtrable HNSW</a><span class="why">A clear explanation of why naive pre-filtering destroys graph connectivity, and one production solution.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://github.com/pgvector/pgvector#index-options">pgvector index tuning</a><span class="why">The parameters you will actually set, with guidance on build memory and parallel index creation.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 4.3 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

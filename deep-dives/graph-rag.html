@@ -1,0 +1,646 @@
+<title>Knowledge Graphs & GraphRAG</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 04 &middot; RAG &amp; Vectors</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">4.8</span>
+    <h1>Knowledge Graphs &amp; GraphRAG</h1>
+    <p class="lede">The questions vector search structurally cannot answer. This page explains why "how are these two people
+connected?" defeats similarity search, builds an entity-and-relation extraction pipeline, implements
+community detection for global summarisation, and is honest about GraphRAG's substantial ingestion cost.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#pipeline">Building the graph</a></li><li><a href="#communities">Communities and global questions</a></li><li><a href="#querying">Querying the graph</a></li><li><a href="#costs">The cost, stated honestly</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>Standard RAG from <a href="#deeper">Topics 4.1&ndash;4.6</a>. Graph terminology is introduced here; no prior graph-database experience is assumed.</p>
+</div>
+
+<p>Vector search finds passages that <em>resemble</em> your query. That is a genuinely powerful capability and it covers most questions. But an entire class of questions is invisible to it.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Where similarity search structurally fails</caption>
+    <thead><tr><th>Question</th><th>Why vector search cannot answer it</th></tr></thead>
+    <tbody>
+      <tr><td>"How is Dr. Okonkwo connected to the Meridian project?"</td><td>The connection may run through three documents that never mention both</td></tr>
+      <tr><td>"Which suppliers are affected if Vendor X fails?"</td><td>Requires traversing a dependency chain, not matching text</td></tr>
+      <tr><td>"What are the main themes across all 500 reports?"</td><td>A global question &mdash; no single passage contains the answer</td></tr>
+      <tr><td>"Who reported to someone who worked on Project Atlas?"</td><td>Two-hop relational query</td></tr>
+      <tr><td>"What changed between v2 and v5 of this policy?"</td><td>Requires knowing the version relationship</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">The structural limitation</span>
+  <p>Standard RAG retrieves <i>k</i> chunks that each individually resemble the query. If the answer requires <strong>combining information from chunks that do not resemble each other</strong>, it will never assemble them &mdash; each is individually a poor match, so none makes the top <i>k</i>.</p>
+  <p>GraphRAG solves this by extracting <em>entities</em> and <em>relationships</em> at ingestion time, building an explicit graph, and then traversing that graph at query time. Connections become first-class data rather than something the model must infer from co-occurrence.</p>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Entity</dt><dd>A thing: a person, company, product, system, concept. Becomes a node.</dd>
+    <dt>Relationship</dt><dd>A connection between two entities: "works for", "depends on", "supersedes". Becomes an edge.</dd>
+    <dt>Knowledge graph</dt><dd>The whole network of entities and relationships.</dd>
+    <dt>Triple</dt><dd>The atomic unit: (subject, predicate, object). "Okonkwo &mdash; leads &mdash; Meridian".</dd>
+    <dt>Hop</dt><dd>One step along an edge. Multi-hop questions need several.</dd>
+    <dt>Entity resolution</dt><dd>Deciding that "Dr. Okonkwo", "A. Okonkwo" and "Amara Okonkwo" are one person. The hard part.</dd>
+    <dt>Community</dt><dd>A densely connected cluster of entities, found algorithmically.</dd>
+    <dt>Cypher</dt><dd>Neo4j's query language. Reads like ASCII art of the pattern you want.</dd>
+  </dl>
+</div>
+
+<h2 id="pipeline"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>Building the graph</h2>
+
+<p>Ingestion gains three stages beyond standard RAG: extract, resolve, and detect communities.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Entity and relationship extraction</span></div>
+<pre><code>import json
+from collections import defaultdict
+
+EXTRACT_PROMPT = """Extract entities and relationships from the text.
+
+Allowed entity types: PERSON, ORGANISATION, PRODUCT, PROJECT, SYSTEM,
+CONCEPT, LOCATION, EVENT.
+
+For each entity give: name (as written), type, and a one-sentence
+description drawn ONLY from this text.
+
+For each relationship give: source, target, a short relationship type
+in UPPER_SNAKE_CASE, a description, and strength 1-10.
+
+Return JSON:
+{{"entities": [{{"name":..., "type":..., "description":...}}],
+  "relationships": [{{"source":..., "target":..., "type":...,
+                      "description":..., "strength":...}}]}}
+
+Text:
+{chunk}"""
+
+def extract_graph(chunks, chat_fn):
+    entities = defaultdict(lambda: {"descriptions": [], "chunks": [], "type": None})
+    relationships = []
+
+    for chunk_id, text in enumerate(chunks):
+        result = json.loads(chat_fn(EXTRACT_PROMPT.format(chunk=text)))
+
+        for e in result["entities"]:
+            key = e["name"].strip().lower()          <span class="cm"># crude first-pass resolution</span>
+            entities[key]["type"] = e["type"]
+            entities[key]["descriptions"].append(e["description"])
+            entities[key]["chunks"].append(chunk_id)
+
+        for r in result["relationships"]:
+            relationships.append({
+                "source": r["source"].strip().lower(),
+                "target": r["target"].strip().lower(),
+                "type": r["type"],
+                "description": r["description"],
+                "strength": r.get("strength", 5),
+                "chunk_id": chunk_id,        <span class="cm"># provenance: enables citation</span>
+            })
+    return entities, relationships
+
+
+def summarise_entities(entities, chat_fn):
+    """One entity mentioned in 40 chunks accumulates 40 descriptions.
+    Collapse them into one coherent description, or the node text is
+    a repetitive mess that embeds badly."""
+    for name, data in entities.items():
+        if len(data["descriptions"]) == 1:
+            data["summary"] = data["descriptions"][0]
+        else:
+            joined = "\n- ".join(data["descriptions"][:30])
+            data["summary"] = chat_fn(
+                f"Combine these descriptions of '{name}' into one "
+                f"coherent paragraph. Resolve contradictions by noting "
+                f"both.\n\n- {joined}")
+    return entities</code></pre>
+</div>
+
+<div class="note trap">
+  <span class="tag">Entity resolution is the part that decides whether this works</span>
+  <p>Lowercasing names gets you perhaps 60% of the way. The remainder is genuinely hard: "IBM" / "International Business Machines" / "Big Blue"; "Dr. Okonkwo" / "Amara Okonkwo" / "A. Okonkwo"; and the reverse problem, two different people who share a name.</p>
+  <p>Fail to merge and your graph fragments into disconnected duplicates, so traversal finds nothing. Over-merge and you fabricate connections that do not exist &mdash; which is worse, because the system then confidently asserts relationships between unrelated people.</p>
+  <p>A workable approach layers three signals: exact and normalised string matching, embedding similarity between entity descriptions above a threshold, and an LLM adjudicating the remaining ambiguous pairs. Keep an alias table, and make it reviewable by a human &mdash; for any high-stakes corpus, entity resolution needs an audit trail.</p>
+</div>
+
+<h2 id="communities"><span class="kicker">Section 03 <span class="lvl lvl-a">Advanced</span></span>Communities and global questions</h2>
+
+<p>"What are the main themes across all 500 documents?" cannot be answered by retrieving 5 chunks, and the corpus does not fit in a context window. Microsoft's GraphRAG answers it with a hierarchy of pre-computed summaries.</p>
+
+<ol class="steps">
+  <li><strong>Detect communities</strong> in the graph using the Leiden algorithm &mdash; it finds groups of nodes more densely connected to each other than to the rest, producing a hierarchy from fine-grained clusters up to broad themes.</li>
+  <li><strong>Summarise each community</strong> with an LLM at ingestion time, bottom-up: summarise small communities, then summarise those summaries for their parent community.</li>
+  <li><strong>Answer global questions</strong> by map-reduce over community summaries at an appropriate level, rather than over raw chunks.</li>
+  <li><strong>Answer local questions</strong> by finding the relevant entities and traversing outward from them.</li>
+</ol>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Community detection and hierarchical summarisation</span></div>
+<pre><code>import networkx as nx
+
+def build_networkx_graph(entities, relationships):
+    G = nx.Graph()
+    for name, data in entities.items():
+        G.add_node(name, type=data["type"], summary=data.get("summary", ""))
+    for r in relationships:
+        if G.has_edge(r["source"], r["target"]):
+            <span class="cm"># Repeated relationships strengthen the edge</span>
+            G[r["source"]][r["target"]]["weight"] += r["strength"]
+        else:
+            G.add_edge(r["source"], r["target"],
+                       weight=r["strength"], type=r["type"],
+                       description=r["description"])
+    return G
+
+def detect_communities(G, resolution=1.0):
+    """Louvain/Leiden maximise modularity: how much more densely
+    connected each group is than chance would predict."""
+    communities = nx.community.louvain_communities(
+        G, weight="weight", resolution=resolution, seed=42)
+    return [sorted(c) for c in communities]
+
+COMMUNITY_PROMPT = """These entities and relationships form a cluster
+in a knowledge graph. Write a report covering: the main theme, the key
+entities and their roles, and the most significant relationships.
+
+Entities:
+{entities}
+
+Relationships:
+{relationships}"""
+
+def summarise_communities(G, communities, chat_fn):
+    reports = []
+    for i, members in enumerate(communities):
+        subgraph = G.subgraph(members)
+        entity_text = "\n".join(
+            f"- {n} ({G.nodes[n]['type']}): {G.nodes[n]['summary'][:200]}"
+            for n in members[:50])
+        rel_text = "\n".join(
+            f"- {u} --[{d.get('type','RELATED')}]--&gt; {v}: {d.get('description','')}"
+            for u, v, d in subgraph.edges(data=True))
+        reports.append({
+            "id": i, "members": members,
+            "size": len(members),
+            "report": chat_fn(COMMUNITY_PROMPT.format(
+                entities=entity_text, relationships=rel_text)),
+        })
+    return reports
+
+def global_query(question, reports, chat_fn, top_n=15):
+    """Map-reduce over community reports. Each report answers
+    partially; a final pass combines them."""
+    partials = []
+    for r in sorted(reports, key=lambda x: -x["size"])[:top_n]:
+        answer = chat_fn(f"""Using only this report, answer the question.
+If the report is not relevant, reply exactly NOT_RELEVANT.
+
+Report:
+{r['report']}
+
+Question: {question}""")
+        if "NOT_RELEVANT" not in answer:
+            partials.append(answer)
+
+    return chat_fn(f"""Combine these partial answers into one coherent
+response. Note any disagreements.
+
+{chr(10).join(f'---{chr(10)}{p}' for p in partials)}
+
+Question: {question}""")</code></pre>
+</div>
+
+<h2 id="querying"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>Querying the graph</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Cypher</span><span>Neo4j queries for questions vector search cannot answer</span></div>
+<pre><code>// Multi-hop: how are two entities connected, and by what path?
+MATCH path = shortestPath(
+  (a:Entity {name: 'amara okonkwo'})-[*..4]-(b:Entity {name: 'meridian'}))
+RETURN [n IN nodes(path) | n.name]         AS chain,
+       [r IN relationships(path) | r.type] AS how,
+       length(path)                        AS hops;
+
+// Impact analysis: what transitively depends on a failing vendor?
+MATCH (v:Entity {name: 'vendor x'})&lt;-[:DEPENDS_ON*1..3]-(affected)
+RETURN DISTINCT affected.name, affected.type,
+       length(shortestPath((v)&lt;-[:DEPENDS_ON*]-(affected))) AS distance
+ORDER  BY distance;
+
+// Local neighbourhood: everything around an entity, for context
+MATCH (e:Entity {name: 'meridian'})-[r]-(neighbour)
+RETURN e.name, type(r), r.description, neighbour.name, neighbour.type
+ORDER  BY r.strength DESC
+LIMIT  25;
+
+// HYBRID: vector search to find entry points, then traverse.
+// This is the pattern that works best in practice -- semantic
+// search locates the starting nodes, the graph supplies structure.
+CALL db.index.vector.queryNodes('entity_embedding', 5, $queryVector)
+YIELD node AS seed, score
+MATCH (seed)-[r]-(neighbour)
+RETURN seed.name, score, collect(DISTINCT {
+         relation: type(r), to: neighbour.name, desc: r.description
+       })[..10] AS context
+ORDER BY score DESC;</code></pre>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Java</span><span>Neo4j from Spring, with a vector index</span></div>
+<pre><code>@Repository
+class KnowledgeGraphRepository {
+
+    private final Neo4jClient client;
+
+    List&lt;PathResult&gt; findConnection(String from, String to, int maxHops) {
+        return client.query("""
+                MATCH path = shortestPath(
+                  (a:Entity {name: $from})-[*..%d]-(b:Entity {name: $to}))
+                RETURN [n IN nodes(path) | n.name] AS chain,
+                       [r IN relationships(path) | r.type] AS relations
+                """.formatted(maxHops))
+            .bind(from).to("from").bind(to).to("to")
+            .fetchAs(PathResult.class)
+            .mappedBy((ts, record) -&gt; new PathResult(
+                    record.get("chain").asList(Value::asString),
+                    record.get("relations").asList(Value::asString)))
+            .all().stream().toList();
+    }
+
+    <span class="cm">// Hybrid: semantic entry, structural expansion</span>
+    List&lt;EntityContext&gt; seedAndExpand(float[] queryVector, int seeds) {
+        return client.query("""
+                CALL db.index.vector.queryNodes('entity_embedding', $seeds, $vec)
+                YIELD node, score
+                MATCH (node)-[r]-(n)
+                RETURN node.name AS entity, node.summary AS summary, score,
+                       collect(DISTINCT {rel: type(r), to: n.name})[..10] AS edges
+                ORDER BY score DESC
+                """)
+            .bind(queryVector).to("vec").bind(seeds).to("seeds")
+            .fetchAs(EntityContext.class).mappedBy(this::toContext)
+            .all().stream().toList();
+    }
+}</code></pre>
+</div>
+
+<h2 id="costs"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>The cost, stated honestly</h2>
+
+<p>GraphRAG is powerful and it is not free. The costs are concentrated in ingestion, which makes them easy to underestimate during a prototype on 50 documents.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Standard RAG versus GraphRAG, 10,000 documents</caption>
+    <thead><tr><th></th><th>Standard RAG</th><th>GraphRAG</th></tr></thead>
+    <tbody>
+      <tr><td>Ingestion LLM calls</td><td class="nc">0</td><td class="nc">1&ndash;3 per chunk, plus summarisation</td></tr>
+      <tr><td>Ingestion cost</td><td>Embeddings only</td><td><strong>Often 10&ndash;100&times; higher</strong></td></tr>
+      <tr><td>Ingestion time</td><td>Minutes to hours</td><td>Hours to days</td></tr>
+      <tr><td>Incremental updates</td><td>Trivial &mdash; re-chunk one document</td><td>Hard &mdash; a new entity can alter community structure</td></tr>
+      <tr><td>Query latency</td><td class="nc">50&ndash;300 ms</td><td class="nc">200 ms&ndash;several seconds</td></tr>
+      <tr><td>Infrastructure</td><td>One vector store</td><td>Vector store + graph database</td></tr>
+      <tr><td>Answers relationship questions</td><td>Poorly</td><td><strong>Well</strong></td></tr>
+      <tr><td>Answers global questions</td><td>No</td><td><strong>Yes</strong></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note trap">
+  <span class="tag">When GraphRAG is the wrong choice</span>
+  <ul>
+    <li><strong>Your questions are mostly lookups.</strong> "What is the refund policy?" needs no graph. Measure what proportion of real questions are relational before committing &mdash; it is usually smaller than expected.</li>
+    <li><strong>Your corpus changes constantly.</strong> Rebuilding communities is expensive, and incremental graph updates are a genuinely unsolved engineering problem.</li>
+    <li><strong>Your documents have few named entities.</strong> Extraction on abstract prose produces a sparse, low-value graph.</li>
+    <li><strong>You have not yet done hybrid search and re-ranking.</strong> Those are cheaper, faster to implement, and fix more problems. Do &sect;4.6 first.</li>
+  </ul>
+</div>
+
+<div class="note java">
+  <span class="tag">The pragmatic middle path</span>
+  <p>Full GraphRAG is not the only option. Three lighter-weight approaches capture much of the value:</p>
+  <ul>
+    <li><strong>Entity-linked chunks.</strong> Extract entities and store them as chunk metadata. Now you can filter retrieval by entity, and answer "everything about Vendor X" without any graph traversal. Cheap, and often enough.</li>
+    <li><strong>A graph over an existing schema.</strong> If your relational database already models the relationships &mdash; orders, customers, suppliers &mdash; expose <em>that</em> as a tool (&sect;5.1). You already have a knowledge graph; it is called your database.</li>
+    <li><strong>Hybrid entry.</strong> Vector search to find seed entities, then one or two hops of traversal. Most of the benefit for a fraction of the ingestion cost.</li>
+  </ul>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly a weekend</div>
+  <ol>
+    <li>Take 20 real user questions and classify each as lookup, relational, or global. The proportions tell you whether this page is relevant to your project.</li>
+    <li>Run entity extraction over 100 chunks. Count the duplicate entities that crude lowercasing failed to merge.</li>
+    <li>Implement three-stage entity resolution (string, embedding, LLM adjudication). Measure how many duplicates each stage catches.</li>
+    <li>Build the graph in NetworkX and run community detection. Inspect the largest communities by hand &mdash; do they correspond to themes you recognise?</li>
+    <li>Write a multi-hop question your standard RAG cannot answer. Confirm it fails, then answer it with a Cypher traversal.</li>
+    <li>Implement the hybrid pattern: vector search for seeds, then one hop of expansion. Compare against pure vector search on relational questions.</li>
+    <li>Measure the full ingestion cost for 1,000 documents both ways. Decide whether the relational questions justify it.</li>
+    <li>Implement the cheap alternative &mdash; entities as chunk metadata &mdash; and see how many of your relational questions it already handles.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2404.16130">From Local to Global: A GraphRAG Approach to Query-Focused Summarization</a><span class="why">The Microsoft Research paper. The community-detection and map-reduce approach in Section 03 comes from here.</span></span></li>
+    <li><span class="kind">Code</span><span class="body"><a href="https://github.com/microsoft/graphrag">Microsoft GraphRAG</a><span class="why">The reference implementation. Read the extraction prompts &mdash; they are the most transferable part.</span></span></li>
+    <li><span class="kind">Course</span><span class="body"><a href="https://www.deeplearning.ai/short-courses/knowledge-graphs-rag/">Knowledge Graphs for RAG</a><span class="why">Free short course with Neo4j. Hands-on Cypher and hybrid vector-plus-graph retrieval.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://neo4j.com/docs/cypher-manual/current/">Neo4j Cypher Manual</a><span class="why">Cypher is genuinely easy to pick up with SQL experience. The pattern-matching and path chapters are what you need.</span></span></li>
+    <li><span class="kind">Guide</span><span class="body"><a href="https://neo4j.com/developer/spring-data-neo4j/">Spring Data Neo4j</a><span class="why">Repository abstractions over Cypher, in the style you already use for JPA.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://networkx.org/documentation/stable/reference/algorithms/community.html">NetworkX community detection</a><span class="why">Louvain and modularity algorithms for prototyping before committing to a graph database.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://www.microsoft.com/en-us/research/blog/graphrag-unlocking-llm-discovery-on-narrative-private-data/">GraphRAG: Unlocking LLM discovery on narrative private data</a><span class="why">The accessible overview, with worked examples of the local-versus-global distinction.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 4.8 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

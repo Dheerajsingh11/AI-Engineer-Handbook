@@ -1,0 +1,587 @@
+<title>Neural Network Basics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 02 &middot; Python &amp; Data</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">2.4</span>
+    <h1>Neural Network Basics</h1>
+    <p class="lede">Why stacking linear layers with a non-linearity between them can approximate anything. This page builds a
+complete neural network in NumPy with hand-derived backpropagation, explains what each activation and loss
+is actually for, and shows why weight initialisation decides whether training works at all.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#anatomy">The anatomy of a layer</a></li><li><a href="#scratch">Build a network from scratch</a></li><li><a href="#training">Initialisation, normalisation and regularisation</a></li><li><a href="#universal">What networks can and cannot do</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>The chain rule and gradient descent from <a href="#deeper">Topic 1.4</a>, and matrix multiplication from Topic 1.1. If you have those, everything here follows.</p>
+</div>
+
+<p>A neural network is a stack of the logistic regression you built in Topic 2.3, with one crucial addition. That framing makes it much less mysterious than the brain metaphors usually applied to it.</p>
+
+<h3>The problem a single layer cannot solve</h3>
+
+<p>Logistic regression draws a straight line between two classes. Some problems have no such line. The standard example is XOR:</p>
+
+<div class="tbl">
+  <table>
+    <caption>XOR &mdash; no straight line separates the classes</caption>
+    <thead><tr><th class="nc">x&#8321;</th><th class="nc">x&#8322;</th><th class="nc">Output</th></tr></thead>
+    <tbody>
+      <tr><td class="nc">0</td><td class="nc">0</td><td class="nc">0</td></tr>
+      <tr><td class="nc">0</td><td class="nc">1</td><td class="nc">1</td></tr>
+      <tr><td class="nc">1</td><td class="nc">0</td><td class="nc">1</td></tr>
+      <tr><td class="nc">1</td><td class="nc">1</td><td class="nc">0</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<p>Plot those four points. The two 1s sit on one diagonal, the two 0s on the other. No straight line separates them &mdash; and this single observation nearly killed neural network research for fifteen years after Minsky and Papert pointed it out in 1969.</p>
+
+<p>The solution is a <strong>hidden layer</strong>: first transform the inputs into a new representation where the problem <em>is</em> linearly separable, then draw the line there. The network learns both the transformation and the line at the same time.</p>
+
+<div class="note key">
+  <span class="tag">Why the non-linearity is non-negotiable</span>
+  <p>Suppose you stack two linear layers with nothing between them: <i>y</i> = <i>W</i><sub>2</sub>(<i>W</i><sub>1</sub><i>x</i>). Matrix multiplication is associative, so this equals (<i>W</i><sub>2</sub><i>W</i><sub>1</sub>)<i>x</i> = <i>Wx</i> for a single matrix <i>W</i>. <strong>A hundred stacked linear layers collapse into one.</strong> The depth buys nothing whatsoever.</p>
+  <p>Insert a non-linear function between them and the collapse is impossible. That is the entire reason activation functions exist, and it is worth being able to state in one sentence at an interview.</p>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Neuron / unit</dt><dd>One weighted sum followed by an activation. That is all &mdash; the biological name is historical.</dd>
+    <dt>Layer</dt><dd>A group of neurons computed together, as one matrix multiply.</dd>
+    <dt>Hidden layer</dt><dd>Any layer between input and output. "Hidden" only because you do not directly observe its values.</dd>
+    <dt>Activation function</dt><dd>The non-linear function applied after each weighted sum.</dd>
+    <dt>Forward pass</dt><dd>Running data through the network to get a prediction.</dd>
+    <dt>Backward pass</dt><dd>Computing how every weight should change. Backpropagation.</dd>
+    <dt>Epoch</dt><dd>One complete pass over the training data.</dd>
+    <dt>Batch</dt><dd>The group of examples processed together before one weight update.</dd>
+  </dl>
+</div>
+
+<h2 id="anatomy"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>The anatomy of a layer</h2>
+
+<div class="math">
+  <span class="lbl">One layer</span>
+  <i>a</i><sup>[<i>l</i>]</sup> &nbsp;=&nbsp; <i>f</i><big>(</big> <i>W</i><sup>[<i>l</i>]</sup><i>a</i><sup>[<i>l</i>&minus;1]</sup> + <i>b</i><sup>[<i>l</i>]</sup> <big>)</big>
+  <span class="note">Multiply by a weight matrix, add a bias, apply a non-linear function. Repeat. The bias matters more than it looks &mdash; without it every layer's output is forced through the origin, which restricts what the network can represent.</span>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>Activation functions and when to use each</caption>
+    <thead><tr><th>Function</th><th>Formula</th><th>Range</th><th>Use for</th><th>Watch out for</th></tr></thead>
+    <tbody>
+      <tr><td><strong>ReLU</strong></td><td>max(0,<i>x</i>)</td><td>[0,&infin;)</td><td><strong>Hidden layers &mdash; the default</strong></td><td>Dead units: a neuron stuck negative never recovers</td></tr>
+      <tr><td>LeakyReLU</td><td>max(0.01<i>x</i>,<i>x</i>)</td><td>(&minus;&infin;,&infin;)</td><td>When ReLU units are dying</td><td>One more hyperparameter</td></tr>
+      <tr><td>GELU</td><td><i>x</i>&Phi;(<i>x</i>)</td><td>&asymp;(&minus;0.17,&infin;)</td><td>Transformers</td><td>Slightly costlier than ReLU</td></tr>
+      <tr><td>SwiGLU</td><td>Swish&times;linear gate</td><td>&mdash;</td><td>Modern LLM feed-forward blocks</td><td>Needs 3 matrices, not 2</td></tr>
+      <tr><td>Sigmoid</td><td>1/(1+<i>e</i><sup>&minus;<i>x</i></sup>)</td><td>(0,1)</td><td><em>Output</em> for binary classification</td><td><strong>Never</strong> in hidden layers &mdash; vanishing gradients</td></tr>
+      <tr><td>Tanh</td><td>(<i>e</i><sup><i>x</i></sup>&minus;<i>e</i><sup>&minus;<i>x</i></sup>)/(<i>e</i><sup><i>x</i></sup>+<i>e</i><sup>&minus;<i>x</i></sup>)</td><td>(&minus;1,1)</td><td>Zero-centred alternative to sigmoid</td><td>Still saturates</td></tr>
+      <tr><td>Softmax</td><td>Topic 1.2</td><td>Sums to 1</td><td><em>Output</em> for multi-class</td><td>Output layer only</td></tr>
+      <tr><td>None (linear)</td><td><i>x</i></td><td>&#8477;</td><td><em>Output</em> for regression</td><td>&mdash;</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>Loss functions &mdash; pair each with the right output activation</caption>
+    <thead><tr><th>Task</th><th>Output layer</th><th>Loss</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Regression</td><td>Linear, 1 unit</td><td>MSE</td><td>Punishes large errors hardest</td></tr>
+      <tr><td>Regression with outliers</td><td>Linear, 1 unit</td><td>MAE or Huber</td><td>Huber is quadratic near zero, linear far away</td></tr>
+      <tr><td>Binary classification</td><td>Sigmoid, 1 unit</td><td>Binary cross-entropy</td><td>Derived in Topic 2.3</td></tr>
+      <tr><td>Multi-class (one label)</td><td>Softmax, <i>k</i> units</td><td>Categorical cross-entropy</td><td>Same derivation, generalised</td></tr>
+      <tr><td>Multi-label</td><td>Sigmoid, <i>k</i> units</td><td>Binary CE per label</td><td>Labels are independent; softmax would force competition</td></tr>
+      <tr><td>Embeddings</td><td>Linear + normalise</td><td>Contrastive / triplet / InfoNCE</td><td>Pull similar pairs together, push others apart</td></tr>
+      <tr><td>Language modelling</td><td>Softmax over vocabulary</td><td>Cross-entropy</td><td>Next-token prediction is <i>k</i>-way classification</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="scratch"><span class="kicker">Section 03 <span class="lvl lvl-a">Advanced</span></span>Build a network from scratch</h2>
+
+<p>Backpropagation for a whole layer, derived by hand, then written in NumPy. Once this works, PyTorch stops being a black box.</p>
+
+<div class="derive">
+  <div class="derive-top">Backward pass through one layer</div>
+  <ol>
+    <li>Forward: <i>Z</i> = <i>XW</i> + <i>b</i>, &emsp; <i>A</i> = <i>f</i>(<i>Z</i>)
+      <span class="why"><i>X</i> is (batch, in), <i>W</i> is (in, out), so <i>Z</i> and <i>A</i> are (batch, out).</span></li>
+    <li>Given &part;<i>L</i>/&part;<i>A</i>, first go through the activation: &part;<i>L</i>/&part;<i>Z</i> = &part;<i>L</i>/&part;<i>A</i> &odot; <i>f</i>&prime;(<i>Z</i>)
+      <span class="why">Element-wise, since <i>f</i> is applied element-wise.</span></li>
+    <li>&part;<i>L</i>/&part;<i>W</i> = <i>X</i><sup>T</sup> &middot; &part;<i>L</i>/&part;<i>Z</i>
+      <span class="why">Shapes force this: (in,batch)&times;(batch,out) = (in,out), matching <i>W</i>. Checking shapes is the fastest way to get these right.</span></li>
+    <li>&part;<i>L</i>/&part;<i>b</i> = &Sigma;<sub>batch</sub> &part;<i>L</i>/&part;<i>Z</i>
+      <span class="why">The bias is added to every row, so its gradient is the sum over the batch.</span></li>
+    <li>&part;<i>L</i>/&part;<i>X</i> = &part;<i>L</i>/&part;<i>Z</i> &middot; <i>W</i><sup>T</sup>
+      <span class="why">This is what gets passed to the previous layer. The recursion that makes deep networks trainable. &nbsp;&#9632;</span></li>
+  </ol>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>A complete neural network, NumPy only</span></div>
+<pre><code>import numpy as np
+
+class Dense:
+    def __init__(self, n_in, n_out, activation="relu", rng=None):
+        rng = rng or np.random.default_rng(0)
+        <span class="cm"># He init for ReLU: var = 2/n_in keeps activation variance</span>
+        <span class="cm"># stable across layers. Xavier (1/n_in) suits tanh/sigmoid.</span>
+        scale = np.sqrt(2.0 / n_in) if activation == "relu" else np.sqrt(1.0 / n_in)
+        self.W = rng.normal(0, scale, (n_in, n_out))
+        self.b = np.zeros(n_out)
+        self.activation = activation
+
+    def forward(self, X):
+        self.X = X                                <span class="cm"># cached for the backward pass</span>
+        self.Z = X @ self.W + self.b
+        if   self.activation == "relu":    self.A = np.maximum(0, self.Z)
+        elif self.activation == "sigmoid": self.A = 1 / (1 + np.exp(-np.clip(self.Z, -500, 500)))
+        else:                              self.A = self.Z
+        return self.A
+
+    def backward(self, dA):
+        if   self.activation == "relu":    dZ = dA * (self.Z &gt; 0)
+        elif self.activation == "sigmoid": dZ = dA * self.A * (1 - self.A)
+        else:                              dZ = dA
+
+        n = len(self.X)
+        self.dW = self.X.T @ dZ / n               <span class="cm"># line (3)</span>
+        self.db = dZ.sum(axis=0) / n              <span class="cm"># line (4)</span>
+        return dZ @ self.W.T                      <span class="cm"># line (5)</span>
+
+    def step(self, lr):
+        self.W -= lr * self.dW
+        self.b -= lr * self.db
+
+
+class Network:
+    def __init__(self, layers):
+        self.layers = layers
+
+    def forward(self, X):
+        for layer in self.layers:
+            X = layer.forward(X)
+        return X
+
+    def backward(self, dA):
+        for layer in reversed(self.layers):       <span class="cm"># reverse order matters</span>
+            dA = layer.backward(dA)
+
+    def step(self, lr):
+        for layer in self.layers:
+            layer.step(lr)
+
+
+def bce_loss(y_true, y_pred, eps=1e-9):
+    y_pred = np.clip(y_pred, eps, 1 - eps)        <span class="cm"># never log(0)</span>
+    loss = -np.mean(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
+    <span class="cm"># Gradient of BCE w.r.t. the prediction</span>
+    grad = (y_pred - y_true) / (y_pred * (1 - y_pred)) / len(y_true)
+    return loss, grad
+
+
+<span class="cm"># --- solve XOR: the problem one layer cannot do -------------------</span>
+X = np.array([[0., 0.], [0., 1.], [1., 0.], [1., 1.]])
+y = np.array([[0.], [1.], [1.], [0.]])
+
+rng = np.random.default_rng(1)
+net = Network([Dense(2, 8, "relu", rng),
+               Dense(8, 1, "sigmoid", rng)])
+
+for epoch in range(5000):
+    pred = net.forward(X)
+    loss, grad = bce_loss(y, pred)
+    net.backward(grad)
+    net.step(lr=0.5)
+    if epoch % 1000 == 0:
+        print(f"epoch {epoch:5d}  loss {loss:.5f}")
+
+print(net.forward(X).round(3))
+<span class="cm"># [[0.008] [0.992] [0.991] [0.010]]  -- XOR solved</span>
+
+<span class="cm"># Remove the hidden layer and it cannot get below ~0.69 loss,</span>
+<span class="cm"># which is exactly the loss of always guessing 0.5. Try it.</span></code></pre>
+</div>
+
+<h2 id="training"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>Initialisation, normalisation and regularisation</h2>
+
+<h3>Why initialisation decides whether training works</h3>
+
+<p>Set all weights to zero and every neuron in a layer computes the identical thing, receives the identical gradient, and stays identical forever. The layer has one effective neuron regardless of its width. This is the <strong>symmetry problem</strong>, and it is why weights must start random.</p>
+
+<p>But the <em>scale</em> of that randomness matters just as much. Too large and activations grow layer by layer until they saturate or overflow; too small and the signal decays to nothing before reaching the output.</p>
+
+<div class="math">
+  <span class="lbl">Principled initialisation</span>
+  <span class="row">Xavier / Glorot:&emsp;Var(<i>W</i>) = <span class="frac"><span>2</span><span><i>n</i><sub>in</sub> + <i>n</i><sub>out</sub></span></span>&emsp;&emsp;He:&emsp;Var(<i>W</i>) = <span class="frac"><span>2</span><span><i>n</i><sub>in</sub></span></span></span>
+  <span class="note">Both are chosen so the variance of activations stays roughly constant from layer to layer. He initialisation has the extra factor of 2 because ReLU zeroes out half its inputs, halving the variance &mdash; so you compensate up front. Use He with ReLU-family activations, Xavier with tanh or sigmoid. Frameworks default sensibly; know this so you can diagnose a network that will not train.</span>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>Regularisation &mdash; every technique for fighting overfitting</caption>
+    <thead><tr><th>Technique</th><th>Mechanism</th><th>Typical setting</th></tr></thead>
+    <tbody>
+      <tr><td><strong>More data</strong></td><td>The only one with no downside</td><td>Always first</td></tr>
+      <tr><td>Early stopping</td><td>Halt when validation loss stops improving</td><td>Patience of 3&ndash;10 epochs</td></tr>
+      <tr><td>Weight decay (L2)</td><td>Penalise large weights</td><td>0.01&ndash;0.1 in AdamW</td></tr>
+      <tr><td>Dropout</td><td>Randomly zero units during training, forcing redundancy</td><td>0.1&ndash;0.5; <strong>disabled at inference</strong></td></tr>
+      <tr><td>Batch normalisation</td><td>Normalise across the batch</td><td>Common in vision; poor fit for variable-length text</td></tr>
+      <tr><td>Layer normalisation</td><td>Normalise across features, per example</td><td><strong>Standard in transformers</strong> &mdash; batch-size independent</td></tr>
+      <tr><td>Data augmentation</td><td>Synthetically vary the training inputs</td><td>Paraphrasing, back-translation for text</td></tr>
+      <tr><td>Label smoothing</td><td>Train toward 0.9 instead of 1.0</td><td>0.1 &mdash; reduces overconfidence</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note java">
+  <span class="tag">Why transformers use LayerNorm rather than BatchNorm</span>
+  <p>BatchNorm normalises each feature using statistics computed <em>across the batch</em>. That creates two problems for language: sequences have different lengths, so the batch statistics are computed over padding as much as content; and inference often runs with batch size 1, where batch statistics are meaningless and you must fall back to stored running averages. LayerNorm normalises across the features of <em>each token independently</em>, so it is identical whether the batch holds one example or a thousand. For sequence models this is decisive.</p>
+</div>
+
+<h2 id="universal"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>What networks can and cannot do</h2>
+
+<p>The <strong>universal approximation theorem</strong> says a network with one hidden layer can approximate any continuous function to arbitrary accuracy &mdash; given enough units. This is quoted often and misunderstood almost as often.</p>
+
+<div class="note trap">
+  <span class="tag">What the theorem does not say</span>
+  <ul>
+    <li>It says such a network <em>exists</em>. It says nothing about whether gradient descent can <em>find</em> it.</li>
+    <li>"Enough units" may mean exponentially many. Depth is far more parameter-efficient than width, which is why real networks are deep rather than wide.</li>
+    <li>It covers approximation on the training domain. It promises nothing at all about <strong>generalisation</strong> to new inputs &mdash; and generalisation is the only thing that matters.</li>
+  </ul>
+  <p>The practical reading: capacity is rarely your bottleneck. Data quality, the loss you chose, and your evaluation discipline are.</p>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>Architecture families and what they encode</caption>
+    <thead><tr><th>Architecture</th><th>Built-in assumption</th><th>Suited to</th></tr></thead>
+    <tbody>
+      <tr><td>MLP / fully connected</td><td>None &mdash; every input relates to every other</td><td>Tabular data; the feed-forward block inside a transformer</td></tr>
+      <tr><td>CNN</td><td>Locality and translation invariance</td><td>Images, audio spectrograms, some time series</td></tr>
+      <tr><td>RNN / LSTM</td><td>Sequential order, fixed-size state</td><td>Sequences &mdash; largely superseded by transformers</td></tr>
+      <tr><td><strong>Transformer</strong></td><td>Any token may relate to any other</td><td>Text, and now nearly everything else</td></tr>
+      <tr><td>GNN</td><td>Explicit graph structure</td><td>Molecules, social networks, knowledge graphs (&sect;4.8)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<p>The pattern worth noticing: each architecture bakes in an assumption about the data. The right assumption means you need far less data to learn. The transformer's assumption is unusually weak &mdash; "anything may relate to anything" &mdash; which is why it needs enormous data and why it generalises across so many domains once it has it.</p>
+
+<h2 id="exercises"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly one weekend</div>
+  <ol>
+    <li>Type in the <code>Dense</code> and <code>Network</code> classes and solve XOR. Then delete the hidden layer and confirm the loss stalls at ln 2 &asymp; 0.693.</li>
+    <li>Set all weights to zero instead of random. Watch the network fail completely, and confirm every hidden unit has identical weights afterwards.</li>
+    <li>Multiply the He initialisation scale by 50. Print activation magnitudes layer by layer and watch them explode.</li>
+    <li>Replace ReLU with sigmoid in a six-layer network. Print the gradient norm at each layer and watch it vanish toward the input.</li>
+    <li>Train on MNIST with your own code. A two-layer MLP should exceed 97% test accuracy; getting there yourself is a genuinely satisfying milestone.</li>
+    <li>Add dropout to your <code>Dense</code> class. Remember it must be active during training and disabled at inference &mdash; forgetting that is a classic bug.</li>
+    <li>Gradient-check every layer: perturb one weight by <i>h</i>, measure the loss change, compare against your analytic gradient. They should match to about six decimal places.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Video</span><span class="body"><a href="https://www.3blue1brown.com/topics/neural-networks">3Blue1Brown &mdash; Neural Networks</a><span class="why">Chapters 1&ndash;4. The visual explanation of what layers do and how backpropagation flows. Watch before writing any code.</span></span></li>
+    <li><span class="kind">Video</span><span class="body"><a href="https://www.youtube.com/watch?v=VMj-3S1tku0">Karpathy &mdash; Neural Networks: Zero to Hero</a><span class="why">The whole playlist. Episode 1 builds autograd; the later ones build up to a transformer.</span></span></li>
+    <li><span class="kind">Book</span><span class="body"><a href="http://neuralnetworksanddeeplearning.com/">Neural Networks and Deep Learning &mdash; Michael Nielsen</a><span class="why">Free online. Chapter 2 derives backpropagation more carefully than almost anywhere else, with the intuition intact.</span></span></li>
+    <li><span class="kind">Course</span><span class="body"><a href="https://course.fast.ai/">fast.ai &mdash; Practical Deep Learning for Coders</a><span class="why">Top-down: a working model in lesson one, theory later. Suits an engineer who learns by shipping.</span></span></li>
+    <li><span class="kind">Tool</span><span class="body"><a href="https://playground.tensorflow.org/">TensorFlow Playground</a><span class="why">Add layers and units in the browser and watch the decision boundary change. Ten minutes here builds real intuition about depth versus width.</span></span></li>
+    <li><span class="kind">Book</span><span class="body"><a href="https://www.deeplearningbook.org/">Deep Learning &mdash; Goodfellow, Bengio, Courville</a><span class="why">Free online. The reference text. Chapters 6&ndash;8 cover this page with full rigour.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://karpathy.github.io/2019/04/25/recipe/">A Recipe for Training Neural Networks</a><span class="why">Karpathy's practical checklist. Read it before your first real training run and again after your first failed one.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 2.4 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

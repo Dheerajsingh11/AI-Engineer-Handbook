@@ -1,0 +1,761 @@
+<title>Project 1 &mdash; The LLM Gateway</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 21 &middot; Interview &amp; Portfolio</span>
+    <span class="sep">/</span>
+    <span>Project 1</span>
+  </div>
+
+  <header class="head">
+    <span class="num">21.2</span>
+    <h1>Project 1 &mdash; The LLM Gateway</h1>
+    <p class="lede">A reverse proxy that every other project calls instead of hitting a provider directly: streaming passthrough, model routing, two kinds of caching, per-team budgets and cost attribution, retries and failover. Roughly 80&nbsp;% of it is backend engineering you already know &mdash; which is exactly why it is the first project.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">Build order &middot; two weeks</div>
+    <ol>
+      <li><span class="lvl lvl-b">Stage 1</span><b>Streaming passthrough</b><span class="who">A façade over the SDK that streams tokens and counts them.</span></li>
+      <li><span class="lvl lvl-i">Stage 2</span><b>Routing &amp; caching</b><span class="who">Cheap/default/hard tiers; prompt cache and semantic cache.</span></li>
+      <li><span class="lvl lvl-a">Stage 3</span><b>Governance</b><span class="who">Keys, rate limits, budgets, cost attribution.</span></li>
+      <li><span class="lvl lvl-p">Stage 4</span><b>Resilience</b><span class="who">Retries, circuit breaker, failover, tracing.</span></li>
+    </ol>
+  </div>
+
+  <div class="note key">
+    <span class="tag">Why this one first</span>
+    <p>&ldquo;Design an LLM gateway for forty teams&rdquo; is one of the three most common AI system-design prompts, and this project <em>is</em> that question with running code behind it. It also converts your existing backend skill into AI credibility in two weeks, before you have learned anything about models &mdash; which makes it the fastest possible route to a portfolio you can talk about.</p>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol>
+      <li><a href="#skills">What it teaches &amp; what you need</a></li>
+      <li><a href="#shape">The shape of the service</a></li>
+      <li><a href="#stream">Streaming passthrough</a></li>
+      <li><a href="#route">Model routing</a></li>
+      <li><a href="#cache">The two caches</a></li>
+      <li><a href="#budget">Budgets, limits, attribution</a></li>
+      <li><a href="#resilience">Retries, breakers, failover</a></li>
+      <li><a href="#measure">What to measure</a></li>
+    </ol>
+  </nav>
+
+<h2 id="skills"><span class="kicker">Step 01</span>What it teaches &amp; what you need</h2>
+
+<h4>Skills this builds</h4>
+
+<div class="tbl">
+<table>
+  <caption>Skill &rarr; where it is tested</caption>
+  <thead><tr><th>Skill</th><th>Interview payoff</th></tr></thead>
+  <tbody>
+    <tr><td>Server-sent events, streaming through a proxy</td><td>&ldquo;How do you keep p95 acceptable when generation takes 4 seconds?&rdquo; &mdash; the answer is streaming, and you will have implemented the awkward part.</td></tr>
+    <tr><td>Prompt caching vs. semantic caching</td><td>A direct fundamentals question. Most candidates conflate the two.</td></tr>
+    <tr><td>Token accounting and cost attribution</td><td>&ldquo;What does this cost at 100&times; traffic?&rdquo; and the entire cost-blowout debugging question.</td></tr>
+    <tr><td>Rate limiting, budgets, backpressure</td><td>Classic backend material, now with an AI-specific twist (two limit dimensions: requests and tokens).</td></tr>
+    <tr><td>Retries, circuit breaking, provider failover</td><td>The &ldquo;boring layers&rdquo; section of every system-design round &mdash; the part that wins it.</td></tr>
+    <tr><td>Model selection under a cost ceiling</td><td>&ldquo;Which model would you use and why?&rdquo; with a real answer instead of a preference.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h4>Toolchain</h4>
+
+<div class="tbl">
+<table>
+  <caption>Everything you need &mdash; all free except provider tokens</caption>
+  <thead><tr><th>Tool</th><th>Role</th><th>Note</th></tr></thead>
+  <tbody>
+    <tr><td><code>python 3.12</code> + <code>uv</code></td><td>Runtime and packaging</td><td><code>uv</code> is the current fast standard; <code>pip</code> works identically here.</td></tr>
+    <tr><td><code>fastapi</code>, <code>uvicorn</code></td><td>HTTP server</td><td>Async by default, which this project needs.</td></tr>
+    <tr><td><code>anthropic</code></td><td>Provider SDK</td><td>Use the official SDK, not raw HTTP &mdash; you want typed errors and streaming helpers.</td></tr>
+    <tr><td><code>pydantic</code> v2</td><td>Request/response validation</td><td>Also how you will do structured outputs later.</td></tr>
+    <tr><td><code>redis</code></td><td>Rate-limit counters, semantic cache</td><td>Docker one-liner. Any KV store works.</td></tr>
+    <tr><td><code>postgres</code></td><td>Usage ledger, per-team budgets</td><td>You will reuse this instance for pgvector in <a href="proj-rag.html">Project 2</a>.</td></tr>
+    <tr><td><code>opentelemetry-sdk</code> + Langfuse <em>or</em> Phoenix</td><td>Tracing</td><td>Both self-host free. Pick one and stay with it across all five projects.</td></tr>
+    <tr><td><code>pytest</code>, <code>pytest-asyncio</code></td><td>Tests</td><td>Test the gateway logic against a stub provider, not the live API.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="prereq">
+  <b>Prerequisites</b>
+  <p>Comfortable async Python (<a href="core-python.html">2.1</a>) and a provider API key. Nothing about models or embeddings is needed yet &mdash; that is the point. Budget roughly $5&ndash;10 of API spend for the whole project.</p>
+</div>
+
+<h2 id="shape"><span class="kicker">Step 02</span>The shape of the service</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Text</span><span>Repository layout</span></div>
+  <pre><code>llm-gateway/
+  app/
+    main.py           <span class="cm"># FastAPI app, routes</span>
+    schemas.py        <span class="cm"># Pydantic request/response models</span>
+    router.py         <span class="cm"># which model handles this request</span>
+    cache/
+      prompt.py       <span class="cm"># provider-side prefix caching helpers</span>
+      semantic.py     <span class="cm"># our own embed-and-match cache</span>
+    limits.py         <span class="cm"># token bucket, budget checks</span>
+    ledger.py         <span class="cm"># usage rows -&gt; postgres</span>
+    resilience.py     <span class="cm"># retry, circuit breaker, failover</span>
+    providers/
+      base.py         <span class="cm"># the Provider interface every backend implements</span>
+      anthropic_.py
+  tests/
+  FINDINGS.md         <span class="cm"># what did not work -- keep this from day one</span></code></pre>
+</div>
+
+<p>One design decision matters more than the rest: <strong>define a <code>Provider</code> interface first and write every backend against it.</strong> Failover, testing and the &ldquo;migrate to a self-hosted model&rdquo; question in <a href="proj-finetune.html">Project 4</a> all become trivial if this boundary exists, and all become a rewrite if it does not.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>app/providers/base.py</span></div>
+  <pre><code>from dataclasses import dataclass
+from typing import AsyncIterator, Protocol
+
+@dataclass
+class Usage:
+    input_tokens: int = 0
+    output_tokens: int = 0
+    cache_read_tokens: int = 0        <span class="cm"># billed at roughly 0.1x</span>
+    cache_write_tokens: int = 0       <span class="cm"># billed at roughly 1.25x</span>
+
+@dataclass
+class Chunk:
+    text: str = ""
+    usage: Usage | None = None        <span class="cm"># set only on the final chunk</span>
+
+class Provider(Protocol):
+    name: str
+    async def stream(self, *, model: str, system: str,
+                     messages: list[dict], max_tokens: int) -&gt; AsyncIterator[Chunk]:
+        ...</code></pre>
+</div>
+
+<h2 id="stream"><span class="kicker">Step 03</span>Streaming passthrough</h2>
+
+<p>This is the deceptively hard part and the reason to do it first. You must stream tokens to the client as they arrive <em>and</em> still capture the final usage numbers, <em>and</em> handle the client hanging up mid-stream without leaking the upstream connection.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>app/providers/anthropic_.py</span></div>
+  <pre><code>import anthropic
+from .base import Provider, Chunk, Usage
+
+class AnthropicProvider:
+    name = "anthropic"
+
+    def __init__(self) -&gt; None:
+        <span class="cm"># Zero-arg constructor resolves credentials from the environment.</span>
+        <span class="cm"># max_retries=0: we own retry policy at the gateway layer, so the</span>
+        <span class="cm"># SDK retrying underneath would double-count and hide failures.</span>
+        self.client = anthropic.AsyncAnthropic(max_retries=0)
+
+    async def stream(self, *, model, system, messages, max_tokens=4096):
+        async with self.client.messages.stream(
+            model=model,
+            max_tokens=max_tokens,
+            <span class="cm"># Cache the stable system prefix. Prefix match: one byte of drift</span>
+            <span class="cm"># anywhere before this point invalidates everything after it.</span>
+            system=[{"type": "text", "text": system,
+                     "cache_control": {"type": "ephemeral"}}],
+            messages=messages,
+        ) as stream:
+            async for text in stream.text_stream:
+                yield Chunk(text=text)
+
+            <span class="cm"># The accumulated message carries the authoritative usage totals.</span>
+            final = await stream.get_final_message()
+            u = final.usage
+            yield Chunk(usage=Usage(
+                input_tokens=u.input_tokens,
+                output_tokens=u.output_tokens,
+                <span class="cm"># These two fields are the whole cost story. Log them or you</span>
+                <span class="cm"># will never notice the day your cache hit rate goes to zero.</span>
+                cache_read_tokens=getattr(u, "cache_read_input_tokens", 0) or 0,
+                cache_write_tokens=getattr(u, "cache_creation_input_tokens", 0) or 0,
+            ))</code></pre>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>app/main.py &mdash; the SSE endpoint</span></div>
+  <pre><code>import json
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import StreamingResponse
+
+app = FastAPI()
+
+@app.post("/v1/chat")
+async def chat(req: ChatRequest, request: Request, team = Depends(auth)):
+    if not await limits.allow(team, estimated_tokens=req.estimate()):
+        raise HTTPException(429, "rate limit or budget exceeded")
+
+    model = router.choose(req)
+    provider = providers.primary()
+
+    async def events():
+        usage = Usage()
+        try:
+            async for chunk in provider.stream(model=model, system=req.system,
+                                               messages=req.messages,
+                                               max_tokens=req.max_tokens):
+                <span class="cm"># Client gone? Stop pulling from upstream immediately --</span>
+                <span class="cm"># otherwise you keep paying for tokens nobody will read.</span>
+                if await request.is_disconnected():
+                    break
+                if chunk.usage:
+                    usage = chunk.usage
+                else:
+                    yield f"data: {json.dumps({'delta': chunk.text})}\n\n"
+        finally:
+            <span class="cm"># finally, not after the loop: a disconnect or an upstream error</span>
+            <span class="cm"># must still be billed and recorded. Partial generations cost money.</span>
+            await ledger.record(team=team, model=model, usage=usage)
+        yield "data: [DONE]\n\n"
+
+    return StreamingResponse(events(), media_type="text/event-stream")</code></pre>
+</div>
+
+<div class="note trap">
+  <span class="tag">The three bugs everyone writes here</span>
+  <ol>
+    <li><strong>Recording usage outside a <code>finally</code>.</strong> Disconnects and upstream errors then vanish from your cost data, and your reported spend drifts below the invoice.</li>
+    <li><strong>Not checking <code>is_disconnected()</code>.</strong> A user who closes the tab keeps generating tokens you pay for.</li>
+    <li><strong>Buffering.</strong> A proxy, a compression middleware or a reverse proxy in front will happily buffer your SSE into one response. Test through the <em>whole</em> chain, not just against uvicorn.</li>
+  </ol>
+</div>
+
+<h2 id="route"><span class="kicker">Step 04</span>Model routing</h2>
+
+<p>Route on the shape of the work, not on a regex over the prompt. Three tiers is the right starting point, and the cost spread between them is what makes routing worth building at all.</p>
+
+<div class="tbl">
+<table>
+  <caption>Published list prices, per million tokens &mdash; the spread is the whole argument for routing</caption>
+  <thead><tr><th>Tier</th><th>Model</th><th>Input</th><th>Output</th><th>Send it</th></tr></thead>
+  <tbody>
+    <tr><td>Cheap</td><td><code>claude-haiku-4-5</code></td><td class="nc">$1.00</td><td class="nc">$5.00</td><td>Classification, extraction, routing decisions, short rewrites.</td></tr>
+    <tr><td>Default</td><td><code>claude-sonnet-5</code></td><td class="nc">$2.00</td><td class="nc">$10.00</td><td>High-volume production work; most RAG answering.</td></tr>
+    <tr><td>Hard</td><td><code>claude-opus-5</code></td><td class="nc">$5.00</td><td class="nc">$25.00</td><td>Multi-step reasoning, agent loops, anything correctness-critical.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>app/router.py</span></div>
+  <pre><code>CHEAP, DEFAULT, HARD = "claude-haiku-4-5", "claude-sonnet-5", "claude-opus-5"
+
+def choose(req) -&gt; str:
+    <span class="cm"># 1. An explicit caller request always wins -- teams need an override.</span>
+    if req.model:
+        return req.model
+
+    <span class="cm"># 2. Declared task type beats any inference we could do.</span>
+    if req.task in {"classify", "extract", "route", "summarize_short"}:
+        return CHEAP
+    if req.task in {"agent", "plan", "code"}:
+        return HARD
+
+    <span class="cm"># 3. Fall back to a cheap signal. Long inputs are usually synthesis;</span>
+    <span class="cm"># tool definitions mean an agent loop, which needs the strong model.</span>
+    if req.tools or req.estimated_input_tokens &gt; 20_000:
+        return HARD
+    return DEFAULT</code></pre>
+</div>
+
+<div class="note java">
+  <span class="tag">The upgrade that makes this interview-grade</span>
+  <p>Replace rule 3 with a <em>learned</em> router: send a sample of traffic to both the cheap and the strong model, score both answers with the eval harness from <a href="proj-evalops.html">Project 5</a>, and label which requests the cheap model handled acceptably. Now you can state a real trade-off &mdash; <em>&ldquo;routing 60&nbsp;% of traffic to the small model cost 1.8 points of quality and saved 55&nbsp;% of spend&rdquo;</em> &mdash; which is precisely the sentence that wins a design round. Before building a cascade, though, measure the simpler option first: the stronger model at a lower <code>effort</code> setting often beats a weaker model outright, and one model means one cache namespace.</p>
+</div>
+
+<h2 id="cache"><span class="kicker">Step 05</span>The two caches</h2>
+
+<p>These are different mechanisms solving different problems, and conflating them is a common interview stumble. Implement both, and be able to say in one sentence when each applies.</p>
+
+<div class="tbl">
+<table>
+  <caption>Two caches, two jobs</caption>
+  <thead><tr><th></th><th>Prompt cache (provider-side)</th><th>Semantic cache (yours)</th></tr></thead>
+  <tbody>
+    <tr><td>Matches on</td><td>An exact <em>prefix</em> of the request, byte for byte</td><td>Meaning of the whole request, via embedding similarity</td></tr>
+    <tr><td>Saves</td><td>Re-processing a long stable prefix &mdash; reads bill around 0.1&times;</td><td>The entire call, including all output tokens</td></tr>
+    <tr><td>Use for</td><td>Long system prompts, tool definitions, a fixed document</td><td>Repeated or near-duplicate user questions</td></tr>
+    <tr><td>Risk</td><td>Silent invalidation from one changed byte</td><td>Returning a subtly wrong answer for a similar-but-different question</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>app/cache/prompt.py &mdash; ordering is the whole technique</span></div>
+  <pre><code><span class="cm"># Render order is tools -&gt; system -&gt; messages, and caching is a PREFIX match.</span>
+<span class="cm"># So: everything stable goes first, everything volatile goes last.</span>
+
+def build_request(system_text, tools, history, question):
+    return dict(
+        <span class="cm"># Sort tools by name. An unordered dict iteration reorders them</span>
+        <span class="cm"># between processes and silently destroys the cache hit rate.</span>
+        tools=sorted(tools, key=lambda t: t["name"]),
+        system=[{"type": "text", "text": system_text,
+                 "cache_control": {"type": "ephemeral"}}],
+        <span class="cm"># The volatile part -- the actual question -- comes after the</span>
+        <span class="cm"># breakpoint, so it never invalidates the cached prefix.</span>
+        messages=[*history, {"role": "user", "content": question}],
+    )
+
+<span class="cm"># Verification, not faith: if this stays 0 across repeated calls with the</span>
+<span class="cm"># same prefix, something is invalidating it. Alert on it in production.</span>
+def cache_hit_rate(usage):
+    total = usage.cache_read_tokens + usage.input_tokens
+    return usage.cache_read_tokens / total if total else 0.0</code></pre>
+</div>
+
+<div class="note trap">
+  <span class="tag">Silent cache invalidators &mdash; audit for these</span>
+  <p>A timestamp or a request ID in the system prompt. <code>json.dumps()</code> over an unsorted dict. A tool list built from a set. A per-user greeting placed <em>before</em> the cached block instead of after. Every one of them produces a cache hit rate of exactly zero while the code looks correct &mdash; and each is a genuine war story to bring to an interview.</p>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>app/cache/semantic.py</span></div>
+  <pre><code>import numpy as np
+
+class SemanticCache:
+    """Return a stored answer when a new question means the same thing.
+    The threshold is a product decision, not a technical one: too low and
+    you confidently answer a question nobody asked."""
+
+    def __init__(self, redis, embedder, threshold: float = 0.95, ttl: int = 3600):
+        self.redis, self.embed = redis, embedder
+        self.threshold, self.ttl = threshold, ttl
+
+    async def get(self, namespace: str, question: str) -&gt; str | None:
+        <span class="cm"># Namespace by tenant AND by prompt version. Without the prompt</span>
+        <span class="cm"># version, deploying a new prompt keeps serving answers generated</span>
+        <span class="cm"># by the old one -- an genuinely nasty bug to track down.</span>
+        q = self.embed(question)
+        q = q / (np.linalg.norm(q) + 1e-10)
+
+        best, best_score = None, -1.0
+        for key, vec, answer in await self._candidates(namespace):
+            score = float(np.dot(q, vec))
+            if score &gt; best_score:
+                best, best_score = answer, score
+
+        return best if best_score &gt;= self.threshold else None</code></pre>
+</div>
+
+<p>For a portfolio project, scanning candidates within a namespace is fine and honest. The upgrade &mdash; and the right answer when asked &ldquo;how does this scale?&rdquo; &mdash; is to store cache entries in the same vector index you build in <a href="proj-rag.html">Project 2</a> and do an approximate nearest-neighbour lookup instead.</p>
+
+<h2 id="budget"><span class="kicker">Step 06</span>Budgets, limits, attribution</h2>
+
+<p>The AI-specific twist on familiar backend work: providers limit you on <em>two</em> dimensions at once &mdash; requests per minute and tokens per minute &mdash; and you cannot know the output token count until after you have paid for it.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>app/limits.py</span></div>
+  <pre><code>class Limiter:
+    """Two buckets per team, because providers enforce two limits.
+    Reserve on the estimate, reconcile on the actual."""
+
+    async def allow(self, team: str, estimated_tokens: int) -&gt; bool:
+        return (await self.rpm[team].take(1)
+                and await self.tpm[team].take(estimated_tokens))
+
+    async def reconcile(self, team: str, estimated: int, actual: int) -&gt; None:
+        <span class="cm"># Output length is unknown up front, so we reserve an estimate and</span>
+        <span class="cm"># settle afterwards. Refund an over-estimate; let an under-estimate</span>
+        <span class="cm"># push the bucket negative so the next caller waits it off.</span>
+        await self.tpm[team].adjust(estimated - actual)
+
+
+<span class="cm"># Estimating before the call: count_tokens is exact for input, and the</span>
+<span class="cm"># output estimate is a policy choice -- max_tokens is the safe ceiling.</span>
+async def estimate(client, model, system, messages, max_tokens) -&gt; int:
+    counted = await client.messages.count_tokens(
+        model=model, system=system, messages=messages)
+    return counted.input_tokens + max_tokens</code></pre>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">SQL</span><span>The usage ledger &mdash; one row per request, and the source of every cost answer</span></div>
+  <pre><code>CREATE TABLE usage (
+  id              bigserial PRIMARY KEY,
+  ts              timestamptz NOT NULL DEFAULT now(),
+  team            text        NOT NULL,
+  route           text        NOT NULL,   -- which product feature
+  model           text        NOT NULL,
+  input_tokens    int         NOT NULL,
+  output_tokens   int         NOT NULL,
+  cache_read      int         NOT NULL,   -- the two columns that explain
+  cache_write     int         NOT NULL,   -- every cost regression
+  latency_ms      int         NOT NULL,
+  ttft_ms         int,                    -- time to first token
+  status          text        NOT NULL,   -- ok | error | disconnected
+  cost_usd        numeric(12,6) NOT NULL
+);
+
+CREATE INDEX ON usage (team, ts DESC);
+CREATE INDEX ON usage (route, ts DESC);
+
+-- The query you will actually run, and the one that answers
+-- "why did costs go up 6x last month" in about four seconds.
+SELECT route, model,
+       sum(cost_usd)                                   AS spend,
+       sum(cache_read)::float
+         / NULLIF(sum(cache_read + input_tokens), 0)   AS cache_hit_rate,
+       count(*)                                        AS calls
+FROM usage
+WHERE ts &gt; now() - interval '7 days'
+GROUP BY route, model
+ORDER BY spend DESC;</code></pre>
+</div>
+
+<div class="note key">
+  <span class="tag">Cost is computed at write time, not read time</span>
+  <p>Store <code>cost_usd</code> on the row using the price that applied when the call happened. Prices change and models get added; recomputing historical spend from a current price table produces numbers that quietly disagree with the invoice. This is ordinary financial-data discipline, and stating it in an interview signals that you have run something with a budget attached.</p>
+</div>
+
+<h2 id="resilience"><span class="kicker">Step 07</span>Retries, breakers, failover</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>app/resilience.py</span></div>
+  <pre><code>import asyncio, random, anthropic
+
+RETRYABLE = (anthropic.RateLimitError, anthropic.APIConnectionError,
+             anthropic.APITimeoutError)
+
+async def with_retry(fn, *, attempts=4, base=0.5, cap=20.0):
+    for i in range(attempts):
+        try:
+            return await fn()
+        except anthropic.RateLimitError as e:
+            <span class="cm"># Honour the server's own guidance before falling back to backoff.</span>
+            wait = float(e.response.headers.get("retry-after", 0)) or None
+        except RETRYABLE:
+            wait = None
+        except anthropic.APIStatusError as e:
+            if e.status_code &lt; 500:
+                raise                       <span class="cm"># 400s are our bug -- retrying just burns budget</span>
+            wait = None
+
+        if i == attempts - 1:
+            raise
+        <span class="cm"># Full jitter. Without the random term, every client that failed</span>
+        <span class="cm"># together retries together and you rebuild the thundering herd.</span>
+        await asyncio.sleep(wait or random.uniform(0, min(cap, base * 2 ** i)))</code></pre>
+</div>
+
+<p>Wrap that in a circuit breaker per provider &mdash; after N consecutive failures, stop calling for a cool-off window and fail fast or route to the secondary. Then implement failover across the <code>Provider</code> interface, and note the honest caveat in your write-up: <strong>failing over changes model behaviour</strong>. Prompts tuned for one model can degrade on another, which is why <a href="proj-evalops.html">Project 5</a> runs the eval suite against every provider you are willing to fail over to.</p>
+
+<h4>Streaming and degradation</h4>
+<ul>
+  <li>A failure <em>before</em> the first token can be retried transparently. A failure <em>mid-stream</em> cannot &mdash; the user has already seen partial output. Decide the policy explicitly (restart with a marker, or fail forward) and say which you chose and why.</li>
+  <li>When the primary is down and the secondary is saturated, degrade rather than error: serve from the semantic cache with a staleness marker, or queue and return a job ID.</li>
+</ul>
+
+<h2 id="measure"><span class="kicker">Step 08</span>What to measure</h2>
+
+<p>These are the numbers that turn the project into interview material. Capture them in the README, with the method next to each.</p>
+
+<div class="tbl">
+<table>
+  <caption>Portfolio metrics</caption>
+  <thead><tr><th>Metric</th><th>How</th><th>The question it answers</th></tr></thead>
+  <tbody>
+    <tr><td>Added latency, p50 / p95</td><td>Gateway span minus provider span, from traces</td><td>&ldquo;What does the proxy cost you?&rdquo;</td></tr>
+    <tr><td>Time to first token</td><td><code>ttft_ms</code> column</td><td>The number users actually feel</td></tr>
+    <tr><td>Prompt-cache hit rate</td><td>The SQL above</td><td>&ldquo;How do you know caching works?&rdquo;</td></tr>
+    <tr><td>Semantic-cache hit rate <em>and</em> false-hit rate</td><td>Sample hits and grade them by hand</td><td>The follow-up nobody prepares for</td></tr>
+    <tr><td>Spend per 1000 requests, by route</td><td>Ledger</td><td>Cost questions, with evidence</td></tr>
+    <tr><td>Savings from routing</td><td>Actual spend vs. all-traffic-to-the-strong-model</td><td>The single most quotable number in the project</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="ex">
+  <div class="ex-top">Exercises &mdash; do these before calling it done</div>
+  <ol>
+    <li>Put <code>datetime.now()</code> into the system prompt. Watch the cache hit rate go to zero. Remove it. Write both numbers in <code>FINDINGS.md</code> &mdash; this is a real interview answer.</li>
+    <li>Kill Redis while streaming. The gateway should degrade, not 500.</li>
+    <li>Drive the semantic-cache threshold from 0.99 down to 0.85 and hand-grade fifty hits at each setting. Plot false-hit rate against hit rate; pick a threshold and justify it.</li>
+    <li>Load-test with 200 concurrent streams. Find where it falls over and say why.</li>
+    <li>Add a second provider behind the same interface and fail over mid-stream. Document what the user sees.</li>
+  </ol>
+</div>
+
+<div class="note java">
+  <span class="tag">Topics used here</span>
+  <p><a href="llm-apis.html">7.1 LLM APIs</a> &middot; <a href="serving.html">6.3 Serving</a> &middot; <a href="decoding-sampling.html">6.2 Decoding &amp; Sampling</a> &middot; <a href="structured-generation.html">5.7 Structured Generation</a> &middot; <a href="llmops.html">5.5 LLMOps</a> &middot; <a href="security.html">5.6 Security</a> &middot; <a href="efficiency-engineering.html">19.3 Cost &amp; Efficiency</a> &middot; <a href="inference-optimization.html">6.6 Inference Optimisation</a> &middot; <a href="core-python.html">2.1 Core Python</a></p>
+</div>
+
+<div class="res">
+  <div class="res-top">Reference</div>
+  <ul>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching">Prompt caching</a><span class="why">Breakpoint placement, TTL, and the usage fields that prove it is working.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.anthropic.com/en/docs/build-with-claude/streaming">Streaming Messages</a><span class="why">Event types you must handle in a passthrough proxy.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://fastapi.tiangolo.com/advanced/custom-response/#streamingresponse">FastAPI StreamingResponse</a><span class="why">Including the disconnect-detection pattern used above.</span></span></li>
+    <li><span class="kind">Reading</span><span class="body"><a href="https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/">Timeouts, retries and backoff with jitter</a><span class="why">The canonical treatment. Directly quotable in a design round.</span></span></li>
+    <li><span class="kind">Tool</span><span class="body"><a href="https://langfuse.com/">Langfuse</a><span class="why">Self-hostable LLM tracing; wire it once and reuse it in all five projects.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Phase 21.2 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

@@ -1,0 +1,445 @@
+<title>Explainability (XAI)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 16 &middot; Safety, Ethics &amp; XAI</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">16.3</span>
+    <h1>Explainability (XAI)</h1>
+    <p class="lede">Opening the black box. This page covers explainable AI &mdash; why understanding a model's decisions matters,
+the methods for tabular models (feature importance, SHAP, LIME) and for LLMs (attention, citations,
+chain-of-thought), the crucial caveat that a model's stated reasoning may not be its real reasoning, and how to
+build systems whose decisions you can actually defend.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#tabular">Explaining tabular models</a></li><li><a href="#llms">Explaining LLMs, and a crucial caveat</a></li><li><a href="#building">Building explainable systems</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>Classical ML (Topic 2.3), how LLMs work (Topic 1.3), and responsible AI (Topic 16.1). Explainability serves fairness, debugging and trust.</p>
+</div>
+
+<p>Machine-learning models, especially deep ones, are often <strong>black boxes</strong>: they produce accurate predictions but do not tell you <em>why</em>. <strong>Explainable AI (XAI)</strong> is the set of techniques for understanding and communicating a model's decisions. It matters for four concrete reasons, not abstract virtue.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Why explainability matters</caption>
+    <thead><tr><th>Reason</th><th>Concretely</th></tr></thead>
+    <tbody>
+      <tr><td>Trust</td><td>People act on decisions they understand; reject ones they cannot</td></tr>
+      <tr><td>Debugging</td><td>You cannot fix a wrong prediction you cannot explain</td></tr>
+      <tr><td>Fairness</td><td>Explanations reveal bias &mdash; is it using a proxy? (Topic 16.1)</td></tr>
+      <tr><td>Compliance</td><td>Some decisions legally require an explanation (Topic 6.4)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">The accuracy-interpretability trade-off</span>
+  <p>There is often a tension: the most accurate models (deep networks, large ensembles) are the least interpretable, and the most interpretable (linear models, small decision trees) are sometimes less accurate. XAI tries to get the best of both &mdash; keep the accurate model, add tools that explain it. But note the deeper point: <strong>for high-stakes decisions, a slightly less accurate model you can fully explain may be the better <em>engineering</em> choice than a black box you cannot.</strong> A loan-denial you cannot justify is a legal and ethical liability regardless of its accuracy. Interpretability is a feature, sometimes worth trading a little accuracy for.</p>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Interpretable</dt><dd>You can understand how the model decides, by its nature.</dd>
+    <dt>Explainable</dt><dd>You can produce an explanation for a decision, even from a black box.</dd>
+    <dt>Feature importance</dt><dd>Which inputs mattered most to the model overall.</dd>
+    <dt>Attribution</dt><dd>How much each input contributed to <em>this specific</em> prediction.</dd>
+    <dt>SHAP / LIME</dt><dd>Popular methods for per-prediction attribution.</dd>
+    <dt>Faithfulness</dt><dd>Whether an explanation reflects what the model actually did.</dd>
+  </dl>
+</div>
+
+<h2 id="tabular"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>Explaining tabular models</h2>
+
+<div class="tbl">
+  <table>
+    <caption>XAI methods for classic ML</caption>
+    <thead><tr><th>Method</th><th>Answers</th><th>Scope</th></tr></thead>
+    <tbody>
+      <tr><td>Coefficients (linear models)</td><td>Each feature's direction and weight</td><td>Global, built-in</td></tr>
+      <tr><td>Feature importance (trees)</td><td>Which features the model relies on</td><td>Global</td></tr>
+      <tr><td><strong>SHAP</strong></td><td>Each feature's contribution to <em>this</em> prediction</td><td>Local + global; theoretically grounded</td></tr>
+      <tr><td>LIME</td><td>A simple local model approximating this prediction</td><td>Local</td></tr>
+      <tr><td>Partial dependence</td><td>How a feature affects predictions on average</td><td>Global</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Explaining a prediction with SHAP</span></div>
+<pre><code>import shap
+
+<span class="cm"># SHAP attributes a prediction to its features, with a solid</span>
+<span class="cm"># theoretical basis (from game theory -- fair credit assignment).</span>
+explainer = shap.TreeExplainer(model)          <span class="cm"># works great with gradient boosting</span>
+shap_values = explainer.shap_values(X)
+
+<span class="cm"># For ONE prediction: why did the model decide this?</span>
+shap.plots.waterfall(shap_values[0])
+<span class="cm"># e.g. "denied because: high debt-ratio (+0.3), short history (+0.2),</span>
+<span class="cm">#       offset by: high income (-0.15)". A defensible explanation.</span>
+
+<span class="cm"># Across all predictions: what drives the model overall?</span>
+shap.plots.beeswarm(shap_values)
+
+<span class="cm"># This is also how you CATCH bias (Topic 16.1): if a proxy for a</span>
+<span class="cm"># protected attribute shows high SHAP importance, investigate.</span></code></pre>
+</div>
+
+<div class="note">
+  <p><strong>SHAP is the practical workhorse.</strong> It gives both per-prediction explanations ("why was <em>this</em> loan denied?") and global insight ("what drives the model in general?"), it is grounded in a fair-attribution principle from game theory, and it doubles as a bias-detection and debugging tool (Topic 16.1). For tabular models &mdash; the ones where explanation is most often legally and operationally required &mdash; SHAP on a gradient-boosting model (Topic 14.2) is a strong, defensible default.</p>
+</div>
+
+<h2 id="llms"><span class="kicker">Section 03 <span class="lvl lvl-a">Advanced</span></span>Explaining LLMs, and a crucial caveat</h2>
+
+<p>LLMs are far harder to explain &mdash; billions of parameters, no clean feature attributions. The practical "explanations" you have are different in kind.</p>
+
+<div class="tbl">
+  <table>
+    <caption>How LLM decisions are made legible</caption>
+    <thead><tr><th>Method</th><th>Gives you</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Citations (RAG)</strong></td><td>Which sources the answer drew on &mdash; the most practical "explanation" (Phase 4)</td></tr>
+      <tr><td>Chain-of-thought</td><td>The model's stated reasoning steps (Topic 3.1)</td></tr>
+      <tr><td>Attention visualisation</td><td>Which input tokens the model attended to (Topic 1.3)</td></tr>
+      <tr><td>Token log-probs / entropy</td><td>How confident the model was (Topic 1.2)</td></tr>
+      <tr><td>Mechanistic interpretability</td><td>Reverse-engineering internal circuits &mdash; research frontier</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note trap">
+  <span class="tag">A model's stated reasoning may not be its real reasoning</span>
+  <p>This is the most important caveat in the whole topic. When an LLM produces a chain-of-thought (Topic 3.1) or "explains" its answer, <strong>that explanation is generated text, not a faithful readout of the computation that produced the answer.</strong> Models can reach the right answer with faulty stated reasoning, or the wrong answer with plausible-sounding reasoning; the explanation is a post-hoc story, not a mechanism trace. The same caution applies to attention weights &mdash; "the model attended to X" does not reliably mean "X caused the output." So do <em>not</em> treat an LLM's self-explanation as an audit trail you can present to a regulator or fully trust for debugging. For genuine accountability, rely on things that are actually verifiable: the retrieved sources (citations), the inputs, the tool calls, and external checks &mdash; not the model's narration of itself.</p>
+</div>
+
+<h2 id="building"><span class="kicker">Section 04 <span class="lvl lvl-p">Professional</span></span>Building explainable systems</h2>
+
+<div class="note key">
+  <span class="tag">Design for explainability, don't bolt it on</span>
+  <p>The most defensible explanations often come from <em>system design</em>, not from prying open a model. Prefer architectures that are transparent by construction: <strong>RAG with mandatory citations</strong> (Phase 4) means every claim points to a source you can check &mdash; a far stronger "explanation" than any attention plot. <strong>Routing and tools</strong> (Topics 8.2, 8.4) create an auditable trace of what happened. <strong>Structured decision records</strong> (Topic 6.4) capture the inputs, model version, retrieved context and any human review. <strong>An interpretable model where the stakes demand it</strong> (Section 01) may beat a black box. The pattern: build systems whose decisions are <em>inherently</em> traceable, rather than deploying an opaque model and hoping post-hoc XAI can reconstruct what it did. Verifiable structure beats plausible narration every time.</p>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>Explainability by system type</caption>
+    <thead><tr><th>System</th><th>Explanation strategy</th></tr></thead>
+    <tbody>
+      <tr><td>Tabular decision (loan, risk)</td><td>Interpretable model or SHAP on gradient boosting</td></tr>
+      <tr><td>RAG Q&amp;A</td><td>Mandatory citations to sources (Phase 4)</td></tr>
+      <tr><td>Agent action</td><td>The trajectory trace: reasoning, tools, results (Topic 8.10)</td></tr>
+      <tr><td>High-stakes, regulated</td><td>Decision records + human review + interpretable where possible (Topic 6.4)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly a weekend</div>
+  <ol>
+    <li>Train a gradient-boosting model and use SHAP to explain individual predictions. Produce a plain-language reason for one decision.</li>
+    <li>Use SHAP global importance to check whether a proxy for a protected attribute is driving the model (Topic 16.1).</li>
+    <li>Compare an interpretable model (logistic regression) and a black box on the same task. Weigh the accuracy-explainability trade-off (Section 01).</li>
+    <li>Build a RAG system with mandatory citations. Argue why this is a stronger "explanation" than an attention plot.</li>
+    <li>Get an LLM to give a confident answer with faulty stated reasoning &mdash; demonstrate the Section 03 caveat.</li>
+    <li>Design a decision record for a high-stakes AI decision that would satisfy an auditor (Topic 6.4).</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Book</span><span class="body"><a href="https://christophm.github.io/interpretable-ml-book/">Interpretable Machine Learning &mdash; Christoph Molnar</a><span class="why">The free, definitive book on XAI. Authoritative on every method in Section 02.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://shap.readthedocs.io/">SHAP documentation</a><span class="why">The workhorse attribution method, with examples for the Section 02 exercises.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2307.13702">Question Decomposition Improves Faithfulness of Reasoning</a><span class="why">On the faithfulness caveat of Section 03 &mdash; when stated reasoning does and does not reflect the real computation.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://transformer-circuits.pub/">Transformer Circuits &mdash; Anthropic</a><span class="why">The mechanistic-interpretability research frontier from Section 03.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://github.com/marcotcr/lime">LIME</a><span class="why">Local explanations for any classifier &mdash; the other main method from Section 02.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 16.3 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

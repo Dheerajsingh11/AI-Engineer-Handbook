@@ -1,0 +1,484 @@
+<title>Containerised Deployment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 10 &middot; Cloud, Deploy &amp; MLOps</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">10.2</span>
+    <h1>Containerised Deployment</h1>
+    <p class="lede">Getting an AI application into production. This page covers packaging an AI service &mdash; a FastAPI app,
+containerised with Docker, deployed on Kubernetes &mdash; and the concerns AI adds on top of ordinary web
+deployment: long requests, streaming, GPU scheduling, autoscaling on the right signal, and cost as a
+first-class operational metric.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#service">A container-ready AI service</a></li><li><a href="#kubernetes">Kubernetes, with the AI twists</a></li><li><a href="#architecture">Tiering the deployment</a></li><li><a href="#production">Production checklist</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>Basic web services and, ideally, containers. Serving mechanics (Topic 6.1) and event-driven patterns (Topic 5.4) are the AI-specific background.</p>
+</div>
+
+<p>An AI feature is not done until it is a running service someone can call. For a lot of it, this is ordinary web deployment &mdash; an HTTP API in a container, orchestrated by Kubernetes. What AI adds is a handful of twists: requests take seconds not milliseconds, responses stream, some workloads need GPUs, and cost is per-request rather than fixed. This page is the standard deployment stack plus those twists.</p>
+
+<div class="tbl">
+  <table>
+    <caption>The deployment stack</caption>
+    <thead><tr><th>Layer</th><th>Tool</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td>The service</td><td>FastAPI (Python) / Spring Boot (Java)</td><td>Your HTTP API</td></tr>
+      <tr><td>Package</td><td>Docker</td><td>One reproducible image</td></tr>
+      <tr><td>Run &amp; scale</td><td>Kubernetes</td><td>Scheduling, scaling, self-healing</td></tr>
+      <tr><td>Expose</td><td>Ingress / load balancer</td><td>Traffic in, TLS</td></tr>
+      <tr><td>Observe</td><td>OTel + Prometheus/Grafana</td><td>Metrics, traces (Topic 5.5)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note java">
+  <span class="tag">Python or Java here?</span>
+  <p>For the <em>application</em> service, use what your team knows &mdash; Spring Boot is a perfectly good AI API host, and you already know how to deploy it. FastAPI is the Python default and worth knowing because so much AI code and so many examples assume it. The deployment concerns below (containers, K8s, streaming, autoscaling, cost) are identical for both. Where Python is genuinely required is the <em>model-serving</em> tier (Topic 6.1) &mdash; keep that as a separate service and your application layer stays on whatever stack you prefer.</p>
+</div>
+
+<h2 id="service"><span class="kicker">Section 02 <span class="lvl lvl-b">Beginner</span></span>A container-ready AI service</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>A FastAPI service with streaming and health</span></div>
+<pre><code>from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
+
+app = FastAPI()
+
+class Query(BaseModel):
+    question: str
+
+@app.get("/health")                 <span class="cm"># K8s liveness/readiness probe target</span>
+def health():
+    return {"status": "ok"}
+
+@app.post("/ask")
+async def ask(q: Query):
+    return {"answer": await run_rag(q.question)}
+
+@app.post("/stream")                <span class="cm"># streaming: perceived latency (Topic 1.3)</span>
+async def stream(q: Query):
+    async def gen():
+        async for token in stream_rag(q.question):
+            yield token
+    return StreamingResponse(gen(), media_type="text/event-stream")</code></pre>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Dockerfile</span><span>Packaging it reproducibly</span></div>
+<pre><code>FROM python:3.12-slim
+WORKDIR /app
+
+<span class="cm"># Install deps first so this layer caches across code changes.</span>
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+<span class="cm"># uvicorn workers; keep 1 worker per GPU if this holds a local model.</span>
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+<span class="cm"># Pin versions in requirements.txt. Do NOT bake API keys into the</span>
+<span class="cm"># image -- inject them as env/secrets at runtime.</span></code></pre>
+</div>
+
+<h2 id="kubernetes"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>Kubernetes, with the AI twists</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">YAML</span><span>Deployment with the settings AI needs</span></div>
+<pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata: {name: rag-service}
+spec:
+  replicas: 3
+  template:
+    spec:
+      containers:
+      - name: rag
+        image: registry/rag-service:1.4.0     <span class="cm"># pinned tag, never :latest</span>
+        ports: [{containerPort: 8000}]
+        env:
+        - name: ANTHROPIC_API_KEY
+          valueFrom: {secretKeyRef: {name: ai-secrets, key: anthropic}}
+        readinessProbe: {httpGet: {path: /health, port: 8000}}
+        livenessProbe:  {httpGet: {path: /health, port: 8000}}
+        resources:
+          requests: {cpu: "500m", memory: "1Gi"}
+          limits:   {cpu: "2",    memory: "2Gi"}
+          <span class="cm"># For a GPU workload (self-hosted model, Topic 6.1):</span>
+          <span class="cm"># limits: {nvidia.com/gpu: 1}</span>
+      terminationGracePeriodSeconds: 120   <span class="cm"># let in-flight LLM calls finish</span></code></pre>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>What AI changes about ordinary deployment</caption>
+    <thead><tr><th>Concern</th><th>Ordinary web</th><th>AI service</th></tr></thead>
+    <tbody>
+      <tr><td>Request duration</td><td>Milliseconds</td><td>Seconds to minutes &mdash; long timeouts, graceful shutdown</td></tr>
+      <tr><td>Response</td><td>One payload</td><td>Often streamed (SSE)</td></tr>
+      <tr><td>Compute</td><td>CPU</td><td>Sometimes GPU &mdash; node pools, scheduling, taints</td></tr>
+      <tr><td>Autoscale signal</td><td>CPU %</td><td><strong>Queue depth / concurrency</strong>, not CPU (Topic 5.4)</td></tr>
+      <tr><td>Cost</td><td>Roughly fixed per instance</td><td>Per request &mdash; a first-class metric</td></tr>
+      <tr><td>Cold start</td><td>Seconds</td><td>Minutes for a GPU model &mdash; keep a warm floor</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note trap">
+  <span class="tag">Do not autoscale AI services on CPU</span>
+  <p>A model-calling service spends most of each request <em>waiting</em> on the model, using little CPU. Scale it on CPU and it will look idle while requests pile up and time out. Scale on the signal that reflects real load: <strong>in-flight request concurrency or queue depth</strong> (Topic 5.4). For a self-hosted model tier, scale on GPU utilisation and KV-cache pressure (Topic 6.1). Getting the autoscaling signal wrong is the most common way AI deployments fall over under load while the dashboards say everything is fine.</p>
+</div>
+
+<h2 id="architecture"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>Tiering the deployment</h2>
+
+<p>A robust AI system is usually not one service but a few, each scaled on its own terms.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Typical tiers</caption>
+    <thead><tr><th>Tier</th><th>Runs</th><th>Scales on</th><th>Hardware</th></tr></thead>
+    <tbody>
+      <tr><td>API / application</td><td>Your FastAPI or Spring Boot service</td><td>Request concurrency</td><td>CPU</td></tr>
+      <tr><td>Async workers</td><td>Ingestion, long agent jobs (Topic 5.4)</td><td>Queue depth</td><td>CPU</td></tr>
+      <tr><td>Model serving</td><td>Self-hosted models via vLLM (Topic 6.1)</td><td>GPU util, KV cache</td><td>GPU</td></tr>
+      <tr><td>Vector store</td><td>pgvector / Qdrant (Topic 4.4)</td><td>Query load; often managed</td><td>Memory-heavy</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note">
+  <p><strong>Why separate them:</strong> they have completely different scaling and hardware needs. The API tier is cheap CPU that scales with users; the GPU model tier is expensive and scales slowly; async workers absorb bursts. Bundling them into one deployment means scaling the expensive GPU tier every time user traffic rises, which is wasteful, and it couples failure domains. Keep them as separate deployments talking over HTTP or a queue &mdash; the same reasoning as any microservice split, sharpened by the cost of GPUs.</p>
+</div>
+
+<h2 id="production"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>Production checklist</h2>
+
+<div class="kv">
+  <div><dt>Images</dt><dd>Pinned tags; no <code>:latest</code>; scanned</dd></div>
+  <div><dt>Secrets</dt><dd>K8s secrets / a vault, never in the image</dd></div>
+  <div><dt>Probes</dt><dd>Health endpoint for readiness + liveness</dd></div>
+  <div><dt>Shutdown</dt><dd>Long grace period; drain in-flight calls</dd></div>
+  <div><dt>Autoscale</dt><dd>On concurrency/queue, not CPU</dd></div>
+  <div><dt>Rollout</dt><dd>Canary or blue-green; easy rollback</dd></div>
+  <div><dt>Observability</dt><dd>OTel traces + cost/latency/error metrics (Topic 5.5)</dd></div>
+  <div><dt>Cost guards</dt><dd>Budgets and alerts as an operational SLO</dd></div>
+</div>
+
+<div class="note java">
+  <span class="tag">Most of this you already do</span>
+  <p>Containers, Kubernetes, health probes, secrets, canary rollouts, autoscaling, observability &mdash; this is standard cloud-native operations, and if you have deployed a Spring Boot service you have done nearly all of it. The genuinely new parts are small and specific: scale on concurrency not CPU, allow long timeouts and graceful drain, treat cost as an SLO, and add a GPU tier only if you self-host models. Your existing platform skills are most of what makes AI deployment work &mdash; which is exactly why a backend engineer moving into AI is valuable here.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly a weekend</div>
+  <ol>
+    <li>Build the FastAPI service with health and streaming endpoints. Containerise it with the Dockerfile shown.</li>
+    <li>Deploy it to a local Kubernetes (kind/minikube) with readiness/liveness probes and secret injection.</li>
+    <li>Add a Horizontal Pod Autoscaler on request concurrency (a custom metric), not CPU. Load-test and watch it scale correctly.</li>
+    <li>Deliberately configure the HPA on CPU instead and reproduce the "looks idle while overloaded" failure.</li>
+    <li>Set a long termination grace period and confirm in-flight LLM calls complete during a rolling update.</li>
+    <li>Split into two deployments (API tier + async worker consuming a queue, Topic 5.4). Scale each independently.</li>
+    <li>Add OTel tracing and a Grafana panel for p95 latency, cost per request and error rate.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://fastapi.tiangolo.com/">FastAPI documentation</a><span class="why">The Python AI-service default. The "Bigger Applications" and streaming guides are what you need.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://kubernetes.io/docs/concepts/">Kubernetes concepts</a><span class="why">Deployments, probes, HPA and resources &mdash; the Section 03 building blocks.</span></span></li>
+    <li><span class="kind">Guide</span><span class="body"><a href="https://12factor.net/">The Twelve-Factor App</a><span class="why">The config-and-secrets discipline that keeps deployments sane. Timeless.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://keda.sh/">KEDA</a><span class="why">Event-driven autoscaling &mdash; scale on queue depth, the right signal for AI (Section 03).</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.spring.io/spring-boot/reference/actuator/index.html">Spring Boot Actuator</a><span class="why">Health, metrics and probes for a Java AI service.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 10.2 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

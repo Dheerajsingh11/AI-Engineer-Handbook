@@ -1,0 +1,401 @@
+<title>Guardrails & Content Moderation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 16 &middot; Safety, Ethics &amp; XAI</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">16.6</span>
+    <h1>Guardrails &amp; Content Moderation</h1>
+    <p class="lede">The safety layer around the model. This page covers programmatic guardrails and content moderation &mdash; the input
+and output checks that sit between your users and the LLM &mdash; the frameworks that implement them (Llama Guard,
+NeMo Guardrails, validators), and how to defend against prompt injection and jailbreaks at the proxy layer.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#taxonomy">Input &amp; output guardrails</a></li><li><a href="#frameworks">The frameworks</a></li><li><a href="#injection">Prompt injection &amp; jailbreak defence</a></li><li><a href="#production">Guardrails as a gateway</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>LLM security (Topic 5.6), AI safety (Topic 16.2) and structured generation (Topic 5.7). This page is the <em>applied</em> layer: the code you put around the model in production.</p>
+</div>
+
+<p>Alignment (Topic 9.7, 16.2) makes the model <em>itself</em> safer, but it is never a hard boundary &mdash; a determined user can still coax it, and it can still hallucinate or emit something it shouldn't. <strong>Guardrails</strong> are the programmatic checks you build <em>around</em> the model &mdash; validating what goes in and what comes out &mdash; so safety does not depend on the model alone. They are to an LLM what input validation and a WAF are to a web app.</p>
+
+<div class="note key">
+  <span class="tag">The model is not the security boundary</span>
+  <p>The core mindset: <strong>never trust the model to police itself.</strong> A prompt can be adversarial; retrieved documents can carry hidden instructions; the output can leak data or say something harmful. So you wrap the model in a <strong>guardrail loop</strong> &mdash; check the input, run the model, check the output, and only then return it (or block/retry). This is defence in depth: alignment reduces how often the model misbehaves; guardrails catch it when it does. Both matter, and in production the guardrails are the part <em>you</em> own.</p>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Input guardrail</dt><dd>A check on the user's request before it reaches the model (injection, off-topic, PII).</dd>
+    <dt>Output guardrail</dt><dd>A check on the model's answer before it reaches the user (moderation, grounding, format).</dd>
+    <dt>Moderation model</dt><dd>A classifier (e.g. Llama Guard) that labels text as safe/unsafe by category.</dd>
+    <dt>Semantic routing</dt><dd>Deciding what to do by how close a request is (in embedding space) to known cases.</dd>
+    <dt>Validation loop</dt><dd>Generate &rarr; check &rarr; if it fails, block or regenerate.</dd>
+  </dl>
+</div>
+
+<h2 id="taxonomy"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>Input &amp; output guardrails</h2>
+
+<p>Guardrails come in two positions &mdash; before the model and after &mdash; and each catches a different class of problem.</p>
+
+<div class="tbl">
+  <table>
+    <caption>What to check, and where</caption>
+    <thead><tr><th>Position</th><th>Checks</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Input</strong> (before the model)</td><td>Prompt-injection detection; off-topic / out-of-scope; disallowed topics; PII in the request; rate/abuse limits</td></tr>
+      <tr><td><strong>Output</strong> (after the model)</td><td>Toxicity / unsafe content moderation; hallucination &amp; grounding checks (is it supported by the context?); PII leakage; format/schema validity (Topic 5.7); competitor/brand rules</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note">
+  <p>Each check can be implemented three ways, in rising cost and capability: <strong>rules/regex</strong> (fast, cheap, brittle &mdash; good for PII patterns and banned terms), <strong>a small classifier or moderation model</strong> (a purpose-built model that labels the text), or <strong>an LLM-as-judge</strong> (ask a model &ldquo;is this answer grounded / safe?&rdquo;, Topic 19.1 &mdash; flexible but slower and costlier). Real systems layer them: cheap rules first, a moderation model next, an LLM judge only for the hard calls.</p>
+</div>
+
+<h2 id="frameworks"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>The frameworks</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Tools that implement guardrails</caption>
+    <thead><tr><th>Tool</th><th>What it is</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Llama Guard</strong></td><td>An open <em>classifier model</em> that labels a prompt or response as safe/unsafe across a taxonomy of harm categories &mdash; drop it in as an input/output filter</td></tr>
+      <tr><td><strong>NeMo Guardrails</strong></td><td>NVIDIA's framework; you declare conversational &ldquo;rails&rdquo; (allowed topics, flows, fact-checking) in a config language</td></tr>
+      <tr><td><strong>Guardrails AI</strong></td><td>A library of composable <em>validators</em> (PII, toxicity, JSON schema, competitor mentions) with a generate-and-fix loop</td></tr>
+      <tr><td><strong>Moderation APIs</strong></td><td>Hosted classifiers (e.g. OpenAI moderation) for unsafe-content categories</td></tr>
+      <tr><td><strong>Semantic routing</strong></td><td>Embed the request and compare it to sets of known-good / known-bad examples to route, allow, or block (Topic 4.2)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note java">
+  <span class="tag">Semantic routing &mdash; guardrails by similarity</span>
+  <p>A neat, fast pattern worth knowing: instead of asking an LLM &ldquo;is this a jailbreak?&rdquo;, <strong>embed the incoming request</strong> (Topic 4.2) and measure its cosine similarity to a curated set of known attack prompts and to your allowed use-cases. Too close to a known jailbreak &rarr; block; closest to a supported flow &rarr; route there. It runs in milliseconds with no LLM call, catches variants of known attacks, and is trivial to update &mdash; add the new attack to the set. It pairs well with the heavier checks: semantic routing filters the obvious cases cheaply, the moderation model and judge handle the rest.</p>
+</div>
+
+<h2 id="injection"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>Prompt injection &amp; jailbreak defence</h2>
+
+<p>The signature LLM attacks (Topic 5.6): a <strong>jailbreak</strong> tricks the model into ignoring its instructions; a <strong>prompt injection</strong> smuggles instructions in through data the model reads &mdash; a retrieved document, a web page, a tool result &mdash; saying &ldquo;ignore your rules and do X.&rdquo; No single check fully stops them, so you defend in layers.</p>
+
+<div class="note trap">
+  <span class="tag">Why injection is uniquely hard &mdash; and the layered defence</span>
+  <p>The reason prompt injection is not &ldquo;just fixed&rdquo;: to the model, the trusted system prompt and the untrusted retrieved text are <em>the same kind of thing</em> &mdash; tokens in a context window. So the defence is architectural, not a magic filter. Layer it: <strong>(1) trust boundaries</strong> &mdash; treat all retrieved/user content as <em>data, never instructions</em>, and keep the model's authority and tools coming only from the trusted system layer (Topic 20.11); <strong>(2) input guardrails</strong> &mdash; injection/jailbreak detection (semantic routing, Llama Guard) at the proxy; <strong>(3) least privilege</strong> &mdash; the model's tools are read-only or gated on human approval, so a successful injection can't do much (Topic 8.4); <strong>(4) output guardrails</strong> &mdash; sanitise responses, block data exfiltration and unsafe content before they leave; and <strong>(5) the validation loop</strong> &mdash; check the answer, and regenerate or refuse on failure. Each layer is imperfect; together they make a successful, harmful attack much harder.</p>
+</div>
+
+<h2 id="production"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>Guardrails as a gateway</h2>
+
+<div class="note">
+  <p>In a real Java/Python stack, guardrails live best as a <strong>gateway (proxy) in front of the LLM</strong> &mdash; every request and response passes through one place that runs the input checks, calls the model, runs the output checks, logs everything, and enforces rate limits. Centralising it means one consistent policy, one audit trail, and one place to update when a new attack appears (it fits the hooks/middleware pattern of Topic 8.6, and the serving layer of Topic 20.8/20.11). Two engineering realities to respect: guardrails add <strong>latency and cost</strong> (every extra classifier or judge call is more time and money), so tier them &mdash; cheap checks first, expensive ones only when needed; and <strong>test them adversarially</strong> &mdash; red-team your own system with known jailbreaks and injection payloads (tools like a prompt-injection game, or a fixed attack suite) so you find the holes before an attacker does. Perfect safety is unattainable; the goal is layered, measured, defensible risk reduction &mdash; and for an engineer with a security background, this is exactly where that experience is worth the most (Topic 17.4).</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; build the wrapper</div>
+  <ol>
+    <li>Add Llama Guard (or a moderation API) as an output filter to a chat app. Feed it safe and unsafe generations; check the labels.</li>
+    <li>Build a semantic-routing input guard: embed a set of known jailbreaks, and block requests too close to them. Measure false positives/negatives.</li>
+    <li>Add an output <em>grounding</em> check for a RAG app: an LLM-judge that verifies every claim is supported by the retrieved context; regenerate on failure.</li>
+    <li>Implement the validation loop: generate &rarr; validate (schema + safety) &rarr; retry once &rarr; else refuse. Measure the added latency.</li>
+    <li>Red-team your own system with a list of prompt-injection payloads hidden in &ldquo;documents&rdquo;. Find one that gets through, then add a layer that stops it.</li>
+    <li>Put all the checks behind one gateway function. Confirm a single policy now covers every endpoint.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Model</span><span class="body"><a href="https://huggingface.co/meta-llama/Llama-Guard-3-8B">Llama Guard</a><span class="why">The open input/output safety classifier of Section 03.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.nvidia.com/nemo/guardrails/">NeMo Guardrails</a><span class="why">Declarative conversational rails &mdash; Section 03.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://www.guardrailsai.com/docs">Guardrails AI</a><span class="why">Composable validators + the generate-and-fix loop of Section 02/04.</span></span></li>
+    <li><span class="kind">Guide</span><span class="body"><a href="https://genai.owasp.org/llm-top-10/">OWASP Top 10 for LLM Applications</a><span class="why">The authoritative risk list &mdash; injection, output handling, and mitigations.</span></span></li>
+    <li><span class="kind">Practice</span><span class="body"><a href="https://gandalf.lakera.ai/">Gandalf by Lakera</a><span class="why">A prompt-injection game &mdash; red-team practice for Section 04.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 16.6 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

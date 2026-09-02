@@ -1,0 +1,462 @@
+<title>Classic NLP Tasks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 13 &middot; Natural Language Processing</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">13.2</span>
+    <h1>Classic NLP Tasks</h1>
+    <p class="lede">The classic language tasks, and how to choose your approach for each. This page surveys text classification,
+sentiment, named-entity extraction, translation, summarisation and question answering &mdash; and gives the
+decision that recurs in every one: classic model, fine-tuned model, or prompted LLM, driven by volume, cost
+and how much labelled data you have.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#classification">Classification &amp; sentiment: three ways</a></li><li><a href="#generation-tasks">Translation, summarisation, QA</a></li><li><a href="#extraction">Extraction: where classic tools still shine</a></li><li><a href="#evaluation">Evaluating language tasks</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>NLP fundamentals (Topic 13.1), classical ML (Topic 2.3), and prompting (Topic 3.1). This page is about applying them to concrete language tasks.</p>
+</div>
+
+<p>Most language work reduces to a handful of recurring task types. Recognising which type you have &mdash; and knowing the three ways to tackle each &mdash; is more useful than any single technique. This page is a catalogue plus a decision framework.</p>
+
+<div class="tbl">
+  <table>
+    <caption>The classic NLP tasks</caption>
+    <thead><tr><th>Task</th><th>Input &rarr; output</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td>Text classification</td><td>Text &rarr; a label</td><td>Route a support ticket; detect spam</td></tr>
+      <tr><td>Sentiment analysis</td><td>Text &rarr; positive/negative/mixed</td><td>Analyse reviews</td></tr>
+      <tr><td>Named-entity extraction</td><td>Text &rarr; labelled spans</td><td>Pull names, dates, amounts from a contract</td></tr>
+      <tr><td>Translation</td><td>Text &rarr; text in another language</td><td>English &rarr; Spanish</td></tr>
+      <tr><td>Summarisation</td><td>Long text &rarr; short text</td><td>Condense a report</td></tr>
+      <tr><td>Question answering</td><td>Question (+context) &rarr; answer</td><td>The core of RAG (Phase 4)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">The decision that recurs in every task</span>
+  <p>For each task you have three options, and the right one is an engineering trade-off, not a fashion:</p>
+  <ol>
+    <li><strong>Classic ML</strong> &mdash; TF-IDF features + a classifier (Topic 2.3). Cheap, fast, deterministic, needs labelled data.</li>
+    <li><strong>Fine-tuned model</strong> &mdash; a small transformer fine-tuned on your data (Topic 3.5). Strong quality, moderate cost, needs some labelled data.</li>
+    <li><strong>Prompted LLM</strong> &mdash; describe the task to a large model (Topic 3.1). No training, flexible, most expensive per call.</li>
+  </ol>
+  <p>The choice is driven by <strong>volume, cost tolerance, and how much labelled data you have</strong> &mdash; the same routing logic as Topic 9.1.</p>
+</div>
+
+<h2 id="classification"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>Classification &amp; sentiment: three ways</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>The same task, three approaches</span></div>
+<pre><code><span class="cm"># --- 1. CLASSIC: TF-IDF + logistic regression (Topic 2.3) --------</span>
+<span class="cm"># Cheap, instant, deterministic. Needs a few hundred+ labels.</span>
+from sklearn.pipeline import make_pipeline
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+
+clf = make_pipeline(TfidfVectorizer(), LogisticRegression())
+clf.fit(train_texts, train_labels)
+clf.predict(["My order never arrived"])          <span class="cm"># -&gt; "shipping"</span>
+
+<span class="cm"># --- 2. FINE-TUNED transformer (Topics 3.5, 9.3) -----------------</span>
+<span class="cm"># Best quality at high volume; needs labelled data + a training run.</span>
+from transformers import pipeline
+classifier = pipeline("text-classification", model="./my-finetuned-model")
+
+<span class="cm"># --- 3. PROMPTED LLM (Topic 3.1) ---------------------------------</span>
+<span class="cm"># Zero training, most flexible, most expensive per call.</span>
+llm(f"""Classify into shipping|billing|technical|other:\n{text}""")
+
+<span class="cm"># Rule of thumb:</span>
+<span class="cm">#  - millions of calls, have labels    -> classic or fine-tuned</span>
+<span class="cm">#  - few calls, no labels, need nuance -> prompted LLM</span>
+<span class="cm">#  - somewhere between                 -> fine-tune a small model</span></code></pre>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>Choosing an approach for classification</caption>
+    <thead><tr><th>If you have&hellip;</th><th>Use</th></tr></thead>
+    <tbody>
+      <tr><td>Lots of labelled data + high volume</td><td>Classic ML or fine-tuned &mdash; cheapest at scale</td></tr>
+      <tr><td>Some labelled data + quality matters</td><td>Fine-tune a small transformer</td></tr>
+      <tr><td>No labelled data or fuzzy categories</td><td>Prompt an LLM (few-shot)</td></tr>
+      <tr><td>Categories that change often</td><td>Prompt an LLM &mdash; no retraining</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="generation-tasks"><span class="kicker">Section 03 <span class="lvl lvl-i">Intermediate</span></span>Translation, summarisation, QA</h2>
+
+<p>These are <em>generation</em> tasks &mdash; text out, not a label &mdash; and here LLMs have decisively won over the classic sequence-to-sequence approaches.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Generation tasks now</caption>
+    <thead><tr><th>Task</th><th>Then (pre-LLM)</th><th>Now</th></tr></thead>
+    <tbody>
+      <tr><td>Translation</td><td>Dedicated seq2seq models per language pair</td><td>One LLM handles many languages; specialised models still win on some pairs</td></tr>
+      <tr><td>Summarisation</td><td>Extractive (pick sentences) or seq2seq</td><td>LLM, abstractive &mdash; genuinely rewrites</td></tr>
+      <tr><td>Question answering</td><td>Retrieve a span from a passage</td><td>RAG: retrieve + generate (Phase 4)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note">
+  <p><strong>Two flavours of summarisation worth knowing.</strong> <em>Extractive</em> summarisation picks the most important existing sentences &mdash; safe, never hallucinates, but stilted. <em>Abstractive</em> summarisation rewrites in new words &mdash; fluent, but can introduce errors or claims not in the source (a faithfulness problem, Topic 4.7). LLMs do abstractive summarisation, which is why you must evaluate their summaries for faithfulness, not just fluency. For high-stakes summarisation (medical, legal), the hallucination risk is real and the same grounding and evaluation discipline from Phase 4 applies.</p>
+</div>
+
+<h2 id="extraction"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>Extraction: where classic tools still shine</h2>
+
+<p>Pulling structured data out of text &mdash; entities, relationships, fields &mdash; is one of the most common real tasks, and one where the choice genuinely matters.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Extraction approaches</caption>
+    <thead><tr><th>Approach</th><th>Strength</th><th>Weakness</th></tr></thead>
+    <tbody>
+      <tr><td>Rule / regex</td><td>Perfect for structured patterns (emails, IDs)</td><td>Brittle on natural language</td></tr>
+      <tr><td>Classic NER (spaCy)</td><td>Fast, cheap, scalable (Topic 13.1)</td><td>Fixed entity types; needs training for custom ones</td></tr>
+      <tr><td>Fine-tuned token classifier</td><td>Custom entities, high accuracy at scale</td><td>Needs labelled data</td></tr>
+      <tr><td>LLM with structured output</td><td>Flexible, handles nuance and new fields (Topic 3.1)</td><td>Cost per call; validate the output</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note java">
+  <span class="tag">A hybrid that works well in practice</span>
+  <p>Real extraction pipelines often combine approaches: <strong>regex for the structured bits</strong> (dates, amounts, IDs &mdash; where rules are perfect and free), <strong>a fast NER model for common entities at scale</strong>, and <strong>an LLM with structured output only for the hard, ambiguous cases</strong> a cheaper method flags. This tiering &mdash; cheap deterministic methods first, the expensive flexible one only where needed &mdash; is the same cost-routing pattern that runs through this whole handbook (Topics 9.1, 9.4). It gets you LLM-quality on the difficult cases without paying LLM prices on the easy 90%.</p>
+</div>
+
+<h2 id="evaluation"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>Evaluating language tasks</h2>
+
+<div class="tbl">
+  <table>
+    <caption>How to measure each task type</caption>
+    <thead><tr><th>Task</th><th>Metric</th></tr></thead>
+    <tbody>
+      <tr><td>Classification / sentiment</td><td>Precision, recall, F1 (Topic 1.2) &mdash; not accuracy on imbalanced data</td></tr>
+      <tr><td>NER / extraction</td><td>F1 over spans; exact vs partial match</td></tr>
+      <tr><td>Translation</td><td>BLEU / COMET, plus human review</td></tr>
+      <tr><td>Summarisation</td><td>ROUGE + faithfulness (Topic 4.7); human review</td></tr>
+      <tr><td>Question answering</td><td>Exact match / F1; for RAG, the Topic 4.7 suite</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note trap">
+  <span class="tag">Reference-based metrics for generation are weak</span>
+  <p>BLEU and ROUGE compare generated text to a reference by word overlap &mdash; and penalise perfectly good outputs that use different words than the reference. A great summary phrased differently from the "gold" one scores poorly. They are useful as cheap, consistent signals for tracking regressions, but never as the final word on quality. For generation tasks, pair them with the LLM-as-judge and human review from Topic 4.7 &mdash; and always evaluate faithfulness, because fluent-but-wrong is the dangerous failure. As everywhere in this handbook: measure, but choose the metric that reflects what you actually care about.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly a weekend</div>
+  <ol>
+    <li>Build a text classifier three ways (TF-IDF, fine-tuned, prompted LLM) on the same dataset. Compare accuracy, cost per 1,000, and latency.</li>
+    <li>For a realistic volume and budget, decide which of the three you would actually ship, and justify it with the Section 02 table.</li>
+    <li>Summarise the same document extractively and abstractively. Check the abstractive one for any claim not in the source (Topic 4.7).</li>
+    <li>Build a tiered extraction pipeline: regex + NER + LLM-for-hard-cases. Measure how few calls reach the LLM.</li>
+    <li>Evaluate a summariser with ROUGE, then have a human rate the same summaries. Note where the metric and the human disagree.</li>
+    <li>Take three language tasks from your own work and assign each an approach using this page's framework.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Course</span><span class="body"><a href="https://huggingface.co/learn/nlp-course">Hugging Face NLP Course</a><span class="why">Free and hands-on across all these tasks &mdash; classification, NER, translation, summarisation.</span></span></li>
+    <li><span class="kind">Book</span><span class="body"><a href="https://web.stanford.edu/~jurafsky/slp3/">Speech and Language Processing</a><span class="why">Authoritative chapters on each task and its evaluation.</span></span></li>
+    <li><span class="kind">Reference</span><span class="body"><a href="https://scikit-learn.org/stable/auto_examples/text/plot_document_classification_20newsgroups.html">scikit-learn &mdash; Working with text data</a><span class="why">The classic TF-IDF + classifier approach of Section 02, end to end.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://spacy.io/usage/training">spaCy &mdash; Training custom models</a><span class="why">Fine-tuning a fast NER/classifier for the scale-and-cost path.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://huggingface.co/blog/how-to-generate">Hugging Face &mdash; How to generate text</a><span class="why">Decoding strategies for the generation tasks in Section 03 (also Topic 1.2).</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 13.2 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

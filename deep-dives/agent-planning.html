@@ -1,0 +1,447 @@
+<title>Planning & Reasoning for Agents</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 08 &middot; Agent Engineering</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">8.7</span>
+    <h1>Planning &amp; Reasoning for Agents</h1>
+    <p class="lede">How an agent decides well. This page covers the reasoning strategies that make an agent effective rather than
+merely busy &mdash; ReAct, plan-and-execute, reflection, self-consistency, tree search &mdash; with when each is
+worth its cost, and the honest limits of LLM planning you must design around.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#strategies">The strategies, and when each pays</a></li><li><a href="#reflection">Reflection and self-consistency</a></li><li><a href="#limits">The honest limits of LLM planning</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>The agent loop (Topic 8.1) and chain-of-thought prompting (Topic 3.1). This page is about the <em>plan</em> beat of perceive-plan-act-observe &mdash; how the model chooses its next move.</p>
+</div>
+
+<p>An agent that acts without thinking flails: it calls the wrong tools, repeats itself, declares success too early. The quality of an agent is largely the quality of its <strong>planning</strong> &mdash; how it decides what to do next, and how it recovers when a step fails.</p>
+
+<p>The good news from Topic 3.1: reasoning is compute. A model given room to think before it commits produces better plans, because each intermediate step conditions the next. Planning strategies are structured ways of spending that thinking.</p>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Planning</dt><dd>Deciding the sequence of actions to reach a goal.</dd>
+    <dt>Reasoning</dt><dd>Thinking through a problem before answering &mdash; the model's internal working.</dd>
+    <dt>ReAct</dt><dd>Reason + Act: interleave a thought and an action each step.</dd>
+    <dt>Reflection</dt><dd>The agent critiques its own work and revises.</dd>
+    <dt>Self-consistency</dt><dd>Sample several attempts and take the majority.</dd>
+    <dt>Decomposition</dt><dd>Breaking a hard goal into simpler sub-goals.</dd>
+  </dl>
+</div>
+
+<h2 id="strategies"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>The strategies, and when each pays</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Planning strategies by cost and fit</caption>
+    <thead><tr><th>Strategy</th><th>How it works</th><th>Use when</th><th>Cost</th></tr></thead>
+    <tbody>
+      <tr><td><strong>ReAct</strong></td><td>Thought &rarr; Action &rarr; Observation, repeated</td><td>Default; adapts after each observation</td><td>Low</td></tr>
+      <tr><td>Plan-and-Execute</td><td>Plan the whole sequence first, then run it</td><td>Steps are fairly predictable; want fewer model calls</td><td>Low&ndash;medium</td></tr>
+      <tr><td>Decomposition</td><td>Break the goal into sub-goals, solve each</td><td>Complex, compositional tasks</td><td>Medium</td></tr>
+      <tr><td>Reflection</td><td>Attempt, self-critique, revise</td><td>Clear quality criteria and room to iterate</td><td>2&ndash;3&times;</td></tr>
+      <tr><td>Self-consistency</td><td>Sample <i>n</i> attempts, take the majority</td><td>High-stakes single answers</td><td><i>n</i>&times;</td></tr>
+      <tr><td>Tree search (ToT)</td><td>Explore and score multiple branches</td><td>Search/planning problems with a scorable state</td><td>Very high</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">ReAct vs Plan-and-Execute &mdash; the core trade-off</span>
+  <p><strong>ReAct</strong> decides one step at a time, re-planning after every observation. It adapts beautifully to surprises but has no global view and can wander. <strong>Plan-and-Execute</strong> commits to a full plan up front, then executes &mdash; fewer model calls, a clear audit trail, but brittle if the plan was wrong. The strong hybrid: plan first, execute, and <em>re-plan when a step fails</em>. That keeps the global structure of a plan with the adaptivity of ReAct.</p>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Plan-and-execute with re-planning</span></div>
+<pre><code>def plan_and_execute(goal, max_steps=10):
+    plan = llm_json(f"Create a numbered plan of tool-executable "
+                    f"steps for:\n{goal}")["steps"]
+    done = []
+
+    for _ in range(max_steps):
+        if not plan:
+            break
+        step = plan.pop(0)
+        result = execute(step)
+        done.append((step, result))
+
+        if result.failed:
+            <span class="cm"># RE-PLAN from where we are. A plan made before seeing the</span>
+            <span class="cm"># data is often wrong; the ability to revise is the point.</span>
+            plan = llm_json(f"""Goal: {goal}
+                Completed: {done}
+                Step failed: {step} -> {result.error}
+                Produce a revised plan for the remaining work.""")["steps"]
+
+    return synthesise(goal, done)</code></pre>
+</div>
+
+<h2 id="reflection"><span class="kicker">Section 03 <span class="lvl lvl-a">Advanced</span></span>Reflection and self-consistency</h2>
+
+<p>Two ways to trade tokens for quality when correctness matters more than latency.</p>
+
+<div class="code">
+  <div class="code-top"><span class="lang">Python</span><span>Reflection: generate, critique, revise</span></div>
+<pre><code>def reflect(task, max_rounds=3):
+    answer = llm(f"Complete this task:\n{task}")
+
+    for _ in range(max_rounds):
+        critique = llm_json(f"""Assess this against the requirements.
+            Score 1-10 and list specific, actionable problems.
+            Task: {task}
+            Answer: {answer}""")
+        if critique["score"] &gt;= 8 or not critique["problems"]:
+            return answer                          <span class="cm"># good enough; stop</span>
+        answer = llm(f"""Revise, addressing these problems:
+            {critique['problems']}\n\n{answer}""")
+    return answer</code></pre>
+</div>
+
+<div class="note trap">
+  <span class="tag">Reflection only works if the critique is real</span>
+  <p>Self-critique helps <em>only when the model can actually tell good from bad on this task</em>. On tasks where it cannot judge quality &mdash; often the same tasks it cannot do &mdash; reflection burns tokens and changes nothing, or worse, "revises" a correct answer into a wrong one. Reflection shines when there is an <strong>external</strong> signal: test results, a compiler, a validator, a retrieval check. Prefer grounding the critique in something objective over asking the model to grade itself.</p>
+</div>
+
+<p><strong>Self-consistency</strong> is simpler and robust for problems with a single answer: sample <i>n</i> times at temperature &gt; 0 and take the majority. It works because independent reasoning paths tend to agree on the right answer and scatter on wrong ones &mdash; the correct answer is the mode. Cost is linear in <i>n</i>; reserve it for high-stakes decisions.</p>
+
+<h2 id="limits"><span class="kicker">Section 04 <span class="lvl lvl-p">Professional</span></span>The honest limits of LLM planning</h2>
+
+<p>Design around these rather than pretending they are solved.</p>
+
+<div class="tbl">
+  <table>
+    <caption>Where LLM planning is weak, and the mitigation</caption>
+    <thead><tr><th>Limit</th><th>Symptom</th><th>Mitigation</th></tr></thead>
+    <tbody>
+      <tr><td>Long-horizon planning</td><td>Loses coherence over many steps</td><td>Decompose; checkpoint sub-goals; keep the goal in context</td></tr>
+      <tr><td>No true backtracking</td><td>Commits to a bad path, cannot cleanly undo</td><td>Re-planning on failure; explicit state you can reset</td></tr>
+      <tr><td>Overconfidence</td><td>Declares success without verifying</td><td>Verification tools; a "did I meet the goal?" check</td></tr>
+      <tr><td>Arithmetic / precise logic</td><td>Plausible but wrong calculations</td><td>Give it a calculator/code tool (Topic 8.4)</td></tr>
+      <tr><td>Unstated assumptions</td><td>Plans around facts it invented</td><td>Force it to gather information (retrieval) before planning</td></tr>
+      <tr><td>Stated reasoning &ne; real reasoning</td><td>The plan it writes is not why it acted</td><td>Do not treat the chain-of-thought as an audit record</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">Reasoning models change the calculus</span>
+  <p>A newer class of <strong>reasoning models</strong> (o1/o3-style, DeepSeek-R1) does extended internal thinking before answering, and is markedly better at multi-step planning and self-correction &mdash; you get much of the benefit of reflection and tree-search built into a single call. They cost more per call and add latency, so the trade is: use a reasoning model for the hard planning step, a cheaper model for routine tool-execution steps. This is covered in its own right in the LLM module (Reasoning Models &amp; Test-Time Compute), and it is increasingly how capable agents are built &mdash; a strong planner directing cheap executors.</p>
+</div>
+
+<div class="note">
+  <p><strong>The most reliable single improvement</strong> to an agent's planning is usually not a cleverer strategy &mdash; it is giving it the <em>right tools and the right information</em>. An agent that can retrieve the facts it needs and verify its own work with a real check will out-plan a cleverer agent working blind. Spend your effort on tools and grounding (Topics 8.4, 4.6) before elaborate planning schemes.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly an evening</div>
+  <ol>
+    <li>Implement plan-and-execute with re-planning. Make a step fail deliberately and watch it recover.</li>
+    <li>Add reflection to a writing task with clear criteria. Measure quality vs a single-shot attempt &mdash; and find a task where reflection does <em>not</em> help.</li>
+    <li>Implement self-consistency on an arithmetic-word-problem set. Plot accuracy against <i>n</i>.</li>
+    <li>Ground a reflection loop in an external check (unit tests or a validator) instead of self-critique. Compare reliability.</li>
+    <li>Give a planning agent a calculator tool and re-run a task it previously failed on arithmetic. Confirm the tool fixes it.</li>
+    <li>Run the same hard planning task with a reasoning model vs a standard model. Compare quality, latency and cost.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2210.03629">ReAct: Synergizing Reasoning and Acting</a><span class="why">The foundational interleaved reason-act loop. Short and readable.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2303.11366">Reflexion: Language Agents with Verbal Reinforcement Learning</a><span class="why">Self-critique and retry, with measured gains and costs (Section 03).</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2203.11171">Self-Consistency Improves Chain of Thought Reasoning</a><span class="why">The sample-and-vote method, quantified.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2305.10601">Tree of Thoughts</a><span class="why">Branch-and-score search over reasoning paths &mdash; the expensive end of Section 02.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://lilianweng.github.io/posts/2023-06-23-agent/">LLM Powered Autonomous Agents &mdash; Planning</a><span class="why">A survey of planning and self-reflection components.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 8.7 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

@@ -1,0 +1,412 @@
+<title>Reinforcement Learning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 14 &middot; Classical ML, Extended</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">14.4</span>
+    <h1>Reinforcement Learning</h1>
+    <p class="lede">Learning by trial and reward. This page explains the reinforcement-learning loop &mdash; an agent taking
+actions in an environment to maximise reward &mdash; the core concepts (state, action, policy, value), the main
+approaches, and the reason it matters most to you: RLHF, the technique that turned raw language models into
+helpful assistants.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#approaches">The main approaches</a></li><li><a href="#rlhf">RLHF: the RL that matters to you</a></li><li><a href="#reality">The honest reality of RL</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>The learning paradigms (Topic 2.3) and how LLMs are trained (Topic 1.3). RL is the third paradigm, and the one behind alignment.</p>
+</div>
+
+<p>Supervised learning learns from labelled answers; unsupervised learning finds structure. <strong>Reinforcement learning</strong> is different from both: an <em>agent</em> learns by <strong>doing</strong> &mdash; taking actions in an environment, receiving rewards or penalties, and adjusting to earn more reward over time. It is how you learn to ride a bike: not from labelled examples, but from trying, falling, and gradually finding what works.</p>
+
+<div class="note key">
+  <span class="tag">The reinforcement-learning loop</span>
+  <p>An <strong>agent</strong> observes the <strong>state</strong> of an <strong>environment</strong>, takes an <strong>action</strong>, and receives a <strong>reward</strong> plus a new state. It repeats, learning a <strong>policy</strong> &mdash; a strategy for choosing actions &mdash; that maximises total reward over time. The hard part is that rewards can be delayed: a move in chess might only pay off twenty moves later, so the agent must learn to credit actions for consequences that come much later. That "credit assignment over time" is what makes RL both powerful and difficult.</p>
+</div>
+
+<div class="gloss">
+  <div class="gloss-top">The words, in plain English</div>
+  <dl>
+    <dt>Agent</dt><dd>The learner and decision-maker.</dd>
+    <dt>Environment</dt><dd>The world the agent acts in.</dd>
+    <dt>State</dt><dd>The current situation the agent observes.</dd>
+    <dt>Action</dt><dd>A choice the agent can make.</dd>
+    <dt>Reward</dt><dd>The feedback signal &mdash; higher is better.</dd>
+    <dt>Policy</dt><dd>The agent's strategy: which action to take in each state.</dd>
+    <dt>Value</dt><dd>How good a state (or action) is, counting future rewards.</dd>
+  </dl>
+</div>
+
+<h2 id="approaches"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>The main approaches</h2>
+
+<div class="tbl">
+  <table>
+    <caption>How RL agents learn</caption>
+    <thead><tr><th>Approach</th><th>Idea</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td>Value-based</td><td>Learn how good each action is; pick the best</td><td>Q-learning, DQN</td></tr>
+      <tr><td>Policy-based</td><td>Learn the action strategy directly</td><td>Policy gradients, REINFORCE</td></tr>
+      <tr><td>Actor-critic</td><td>Combine both &mdash; a policy (actor) and a value estimate (critic)</td><td>A2C, <strong>PPO</strong></td></tr>
+      <tr><td>Model-based</td><td>Learn a model of the environment and plan with it</td><td>MuZero</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note">
+  <p><strong>The exploration-exploitation dilemma</strong> is at the heart of RL. Should the agent <em>exploit</em> what it knows works, or <em>explore</em> new actions that might work better? Too much exploitation and it gets stuck in a mediocre habit; too much exploration and it never settles. Every RL method balances these. The same tension appears in product decisions (A/B testing) and even in LLM sampling temperature (Topic 1.2) &mdash; explore-vs-exploit is a general principle, not just an RL curiosity.</p>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>Where RL has shone</caption>
+    <thead><tr><th>Domain</th><th>Achievement</th></tr></thead>
+    <tbody>
+      <tr><td>Games</td><td>AlphaGo, Atari, StarCraft, chess &mdash; superhuman play</td></tr>
+      <tr><td>Robotics</td><td>Learning locomotion and manipulation</td></tr>
+      <tr><td>Control &amp; operations</td><td>Data-centre cooling, resource scheduling</td></tr>
+      <tr><td><strong>LLM alignment</strong></td><td><strong>RLHF &mdash; the reason ChatGPT is helpful</strong></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="rlhf"><span class="kicker">Section 03 <span class="lvl lvl-a">Advanced</span></span>RLHF: the RL that matters to you</h2>
+
+<p>You may never train a game-playing agent, but you use the product of reinforcement learning every day. <strong>RLHF &mdash; Reinforcement Learning from Human Feedback &mdash; is what turned raw language models into helpful, aligned assistants</strong> (Topic 1.3).</p>
+
+<div class="note key">
+  <span class="tag">How RLHF works</span>
+  <p>A pre-trained language model can continue text but is not reliably helpful, honest or safe. RLHF fixes this using RL, with a clever twist on "reward":</p>
+  <ol class="steps">
+    <li><strong>Collect human preferences.</strong> Show people pairs of model responses; they pick the better one.</li>
+    <li><strong>Train a reward model.</strong> A model learns to predict which responses humans prefer &mdash; turning fuzzy "helpfulness" into a numeric reward signal.</li>
+    <li><strong>Optimise the LLM with RL.</strong> Using PPO (the actor-critic method from Section 02), adjust the language model to produce responses the reward model scores highly &mdash; while a penalty keeps it from drifting too far from the original model (Topic 1.2, KL divergence).</li>
+  </ol>
+  <p>The result is a model tuned toward what humans actually want. The reward is human preference; the optimiser is reinforcement learning.</p>
+</div>
+
+<div class="note">
+  <p><strong>The frontier: alternatives to full RLHF.</strong> RLHF is powerful but complex &mdash; training a separate reward model and running PPO is finicky. <strong>DPO (Direct Preference Optimization)</strong> reaches a similar result by optimising directly on the preference pairs, skipping the reward model and the RL loop entirely &mdash; simpler and now widely used (Topic 3.5). <strong>Constitutional AI</strong> uses a written set of principles and model-generated critiques to reduce the human-labelling burden. And <strong>reinforcement learning on verifiable rewards</strong> &mdash; rewarding correct answers to maths and code &mdash; is how reasoning models are trained (Topic 9.4). RL, in various forms, is central to how modern models are aligned and made to reason.</p>
+</div>
+
+<h2 id="reality"><span class="kicker">Section 04 <span class="lvl lvl-p">Professional</span></span>The honest reality of RL</h2>
+
+<div class="note trap">
+  <span class="tag">RL is powerful and notoriously hard</span>
+  <p>Reinforcement learning has a deserved reputation for being difficult and finicky. It is <strong>sample-inefficient</strong> (needs enormous amounts of trial and error), <strong>unstable</strong> (small changes can break training), and <strong>reward-hacking-prone</strong> (agents find loopholes that maximise the reward without doing what you intended &mdash; a boat-racing agent that spins in circles collecting points instead of finishing the race). Reward design is genuinely hard: the agent optimises exactly what you reward, not what you meant. For most business problems, supervised learning or a simpler method is the right tool; RL earns its complexity in sequential-decision problems where trial-and-error learning is truly needed &mdash; games, control, and alignment.</p>
+</div>
+
+<div class="note java">
+  <span class="tag">What to actually know</span>
+  <p>Unless you specialise in it, you do not need to implement PPO. What you <em>do</em> need: understand the RL loop (state-action-reward-policy) well enough to reason about agents and alignment; understand RLHF and its alternatives (DPO, Constitutional AI) so you can read model documentation and understand why models behave as they do; and recognise reward hacking as a failure mode. This conceptual fluency is what makes the training and alignment sections of any model's documentation legible to you &mdash; and it connects directly to how the LLMs you build with were made helpful (Topic 1.3) and how reasoning models are trained (Topic 9.4).</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly a weekend</div>
+  <ol>
+    <li>Implement tabular Q-learning for a simple grid-world. Watch the agent learn a path to the goal through trial and error.</li>
+    <li>Adjust the exploration rate. Show that too little exploration traps the agent in a suboptimal path.</li>
+    <li>Use Gymnasium to train a simple agent (CartPole) with a library PPO implementation. Watch the reward curve climb.</li>
+    <li>Design a reward function badly on purpose and observe reward hacking &mdash; the agent gaming your metric.</li>
+    <li>Read the InstructGPT paper's RLHF section. Explain the three steps of Section 03 in your own words.</li>
+    <li>Compare RLHF and DPO conceptually. Why is DPO simpler, and what does it give up?</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Book</span><span class="body"><a href="http://incompleteideas.net/book/the-book-2nd.html">Reinforcement Learning: An Introduction &mdash; Sutton &amp; Barto</a><span class="why">The free, definitive RL textbook. The Section 01&ndash;02 concepts, done properly.</span></span></li>
+    <li><span class="kind">Course</span><span class="body"><a href="https://spinningup.openai.com/">OpenAI Spinning Up in Deep RL</a><span class="why">A practical, code-first intro to policy gradients and PPO.</span></span></li>
+    <li><span class="kind">Paper</span><span class="body"><a href="https://arxiv.org/abs/2203.02155">Training language models to follow instructions (InstructGPT)</a><span class="why">The RLHF pipeline of Section 03, from the source.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://huggingface.co/blog/rlhf">Illustrating Reinforcement Learning from Human Feedback</a><span class="why">A clear, visual walk through RLHF for LLMs.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://gymnasium.farama.org/">Gymnasium</a><span class="why">The standard RL environments for the Section 05 exercises.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 14.4 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>

@@ -1,0 +1,587 @@
+<title>Vector Databases</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF7; --surface-2:#E7E9E2; --sunk:#E4E7DF;
+  --ink:#121614; --ink-2:#4E5852; --ink-3:#7A857E;
+  --accent:#0E5A50; --accent-soft:#D8E7E3; --accent-line:#9FC4BC;
+  --clay:#A94C27; --clay-soft:#F2E2D8;
+  --rule:#D2D7CC; --rule-soft:#E3E7DE;
+  --ok:#2F6B3A; --warn:#8A6A12; --bad:#9B3226;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --measure:72ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+    --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+    --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+    --clay:#E5936A; --clay-soft:#2E1F17;
+    --rule:#2A322D; --rule-soft:#212823;
+    --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1210; --surface:#161B18; --surface-2:#1E2521; --sunk:#111614;
+  --ink:#E5E9E3; --ink-2:#A0ABA4; --ink-3:#7C8880;
+  --accent:#63CBB6; --accent-soft:#16302B; --accent-line:#2E5A52;
+  --clay:#E5936A; --clay-soft:#2E1F17;
+  --rule:#2A322D; --rule-soft:#212823;
+  --ok:#6FBF7E; --warn:#D6AE4E; --bad:#E0786A;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+     font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+.shell{max-width:1180px; margin:0 auto; padding:0 24px 120px}
+@media (min-width:900px){ .shell{padding:0 48px 140px} }
+.wrap{max-width:var(--measure)}
+
+/* masthead */
+.top{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:baseline;
+     padding:22px 0 0; font-family:var(--f-mono); font-size:11px;
+     letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.top a{border:0; color:var(--accent)}
+.top a:hover{text-decoration:underline}
+.top .sep{color:var(--rule)}
+
+.head{padding:34px 0 30px; border-bottom:2px solid var(--ink); margin-bottom:6px}
+.head .num{font-family:var(--f-mono); font-size:12px; letter-spacing:.16em;
+           color:var(--clay); font-weight:600; display:block; margin-bottom:14px}
+.head h1{font-family:var(--f-display); font-weight:500; font-size:clamp(2.1rem,5vw,3.5rem);
+         line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; text-wrap:balance}
+.head .lede{font-size:1.1rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* contents */
+.toc{margin:30px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.toc-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--ink-3)}
+.toc ol{list-style:none; margin:0; padding:10px 16px 14px; counter-reset:toc;
+        display:grid; gap:2px; grid-template-columns:1fr}
+@media (min-width:720px){ .toc ol{grid-template-columns:1fr 1fr; gap:2px 28px} }
+.toc li{counter-increment:toc; margin:0; font-size:14.5px; display:flex; gap:9px}
+.toc li::before{content:counter(toc,decimal-leading-zero); font-family:var(--f-mono);
+                font-size:10.5px; color:var(--ink-3); padding-top:4px; flex:none}
+.toc a{border:0; color:var(--ink-2)}
+.toc a:hover{color:var(--accent); text-decoration:underline}
+
+/* structure */
+h2{font-family:var(--f-display); font-weight:600; font-size:clamp(1.55rem,3.2vw,2.1rem);
+   line-height:1.16; letter-spacing:-.015em; margin:66px 0 4px; text-wrap:balance;
+   scroll-margin-top:16px; padding-top:20px; border-top:1px solid var(--rule)}
+h2 .kicker{display:block; font-family:var(--f-mono); font-size:10.5px; font-weight:500;
+           letter-spacing:.15em; text-transform:uppercase; color:var(--clay); margin-bottom:11px}
+h3{font-family:var(--f-display); font-weight:600; font-size:1.32rem; line-height:1.24;
+   margin:42px 0 6px; letter-spacing:-.01em; text-wrap:balance}
+h4{font-family:var(--f-body); font-weight:600; font-size:1.01rem; margin:28px 0 6px}
+h5{font-family:var(--f-mono); font-weight:500; font-size:11px; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--ink-3); margin:26px 0 8px}
+p{margin:0 0 15px; max-width:var(--measure)}
+ul,ol{margin:0 0 15px; padding-left:1.2em; max-width:var(--measure)}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+code{font-family:var(--f-mono); font-size:.87em; background:var(--surface-2);
+     padding:1.5px 5px; border-radius:3px; word-break:break-word}
+strong{font-weight:600}
+em{font-style:italic}
+
+/* numbered algorithm steps -- order is real information here */
+.steps{counter-reset:step; list-style:none; padding:0; margin:22px 0; max-width:var(--measure)}
+.steps > li{counter-increment:step; position:relative; padding:0 0 0 46px; margin-bottom:20px}
+.steps > li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:30px; height:30px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); border:1px solid var(--accent-line);
+  font-family:var(--f-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center}
+.steps > li > strong:first-child{display:block; margin-bottom:3px}
+
+/* math */
+.math{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--clay);
+      border-radius:0 4px 4px 0; padding:18px 22px; margin:20px 0; overflow-x:auto;
+      font-family:var(--f-display); font-size:1.1rem; line-height:2.1; text-align:center; color:var(--ink)}
+.math .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); text-align:left; margin-bottom:10px; line-height:1.5}
+.math .note{display:block; font-family:var(--f-body); font-size:13.5px; color:var(--ink-2);
+            text-align:left; margin-top:12px; line-height:1.65; max-width:none}
+.math i{font-style:italic}
+.math .row{display:block; text-align:left; padding-left:6px}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+      margin:0 .3em; line-height:1.35}
+.frac > span:first-child{padding:0 .45em; border-bottom:1.5px solid currentColor}
+.frac > span:last-child{padding:0 .45em}
+
+/* derivation: numbered algebraic lines */
+.derive{margin:20px 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.derive-top{padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+            text-transform:uppercase; color:var(--ink-3)}
+.derive ol{list-style:none; margin:0; padding:6px 0; counter-reset:d; max-width:none}
+.derive li{counter-increment:d; margin:0; padding:9px 16px 9px 52px; position:relative;
+           border-bottom:1px solid var(--rule-soft); font-family:var(--f-display); font-size:1.02rem;
+           overflow-x:auto}
+.derive li:last-child{border-bottom:0}
+.derive li::before{content:"(" counter(d) ")"; position:absolute; left:14px; top:11px;
+                   font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3)}
+.derive li .why{display:block; font-family:var(--f-body); font-size:13px; color:var(--ink-2); margin-top:4px}
+
+/* code */
+.code{margin:20px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--sunk)}
+.code-top{display:flex; justify-content:space-between; align-items:center; gap:12px;
+          padding:7px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:10.5px; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--ink-3)}
+.code-top .lang{color:var(--accent); font-weight:600}
+.code pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--f-mono);
+          font-size:12.8px; line-height:1.72; color:var(--ink)}
+.code pre code{background:none; padding:0; font-size:inherit}
+.cm{color:var(--ink-3); font-style:italic}
+
+/* tables */
+.tbl{margin:22px 0; overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{caption-side:top; text-align:left; padding:12px 16px 10px; font-family:var(--f-mono);
+        font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+        border-bottom:1px solid var(--rule)}
+th{text-align:left; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-2); font-weight:500; padding:10px 16px;
+   border-bottom:1px solid var(--rule); background:var(--surface-2); vertical-align:bottom}
+td{padding:11px 16px; border-bottom:1px solid var(--rule-soft); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+td code{font-size:.85em}
+.nc{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* callouts */
+.note{margin:22px 0; padding:15px 18px; border:1px solid var(--rule); border-radius:4px;
+      background:var(--surface); font-size:14.5px; color:var(--ink-2); max-width:80ch}
+.note strong{color:var(--ink)}
+.note p{margin:0; max-width:none}
+.note p + p{margin-top:9px}
+.note ul,.note ol{margin:9px 0 0; max-width:none}
+.note li{margin-bottom:5px}
+.note.java{border-left:3px solid var(--accent)}
+.note.trap{border-left:3px solid var(--bad)}
+.note.key{border-left:3px solid var(--clay)}
+.note .tag{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em;
+           text-transform:uppercase; margin-bottom:7px; color:var(--accent)}
+.note.trap .tag{color:var(--bad)}
+.note.key .tag{color:var(--clay)}
+
+/* exercises */
+.ex{margin:24px 0; border:1px solid var(--accent-line); border-radius:4px; overflow:hidden}
+.ex-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+        font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--accent); font-weight:600}
+.ex ol{margin:0; padding:14px 16px 14px 34px; background:var(--surface); max-width:none}
+.ex li{font-size:14.5px}
+
+/* resources */
+.res{margin:26px 0 8px; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.res-top{padding:9px 16px; background:var(--accent-soft); border-bottom:1px solid var(--rule);
+         font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+         text-transform:uppercase; color:var(--accent); font-weight:600}
+.res ul{list-style:none; margin:0; padding:0; max-width:none}
+.res li{display:grid; grid-template-columns:1fr; gap:2px; margin:0; padding:12px 16px;
+        border-bottom:1px solid var(--rule-soft); background:var(--surface)}
+@media (min-width:620px){ .res li{grid-template-columns:92px 1fr; gap:16px; align-items:baseline} }
+.res li:last-child{border-bottom:0}
+.res .kind{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--ink-3)}
+.res .body{font-size:14.5px; line-height:1.55}
+.res .body .why{display:block; color:var(--ink-2); font-size:13.5px; margin-top:2px}
+
+.kv{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:4px; overflow:hidden; margin:22px 0; grid-template-columns:1fr}
+@media (min-width:560px){ .kv{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))} }
+.kv > div{background:var(--surface); padding:13px 16px}
+.kv dt{font-family:var(--f-mono); font-size:10px; letter-spacing:.13em;
+       text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
+.kv dd{margin:0; font-size:14.5px; font-weight:500}
+
+/* level ladder -- the beginner-to-professional progression is real information */
+.lvl{display:inline-block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.13em;
+     text-transform:uppercase; padding:2.5px 7px; border-radius:2px; font-weight:500;
+     vertical-align:middle; white-space:nowrap}
+.lvl-b{color:var(--accent); border:1px solid var(--accent-line)}
+.lvl-i{color:var(--paper); background:var(--accent); border:1px solid var(--accent)}
+.lvl-a{color:var(--clay); background:var(--clay-soft); border:1px solid var(--clay)}
+.lvl-p{color:var(--paper); background:var(--clay); border:1px solid var(--clay)}
+h2 .kicker{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+h2 .kicker .lvl{letter-spacing:.11em}
+
+.ladder{margin:22px 0 0; border:1px solid var(--rule); border-radius:4px; background:var(--surface); overflow:hidden}
+.ladder-top{padding:9px 16px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+            font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--ink-3)}
+.ladder ol{list-style:none; margin:0; padding:0; max-width:none; display:grid; grid-template-columns:1fr}
+@media (min-width:760px){ .ladder ol{grid-template-columns:repeat(4,1fr)} }
+.ladder li{margin:0; padding:13px 16px; border-bottom:1px solid var(--rule-soft); font-size:13.5px; line-height:1.5}
+@media (min-width:760px){ .ladder li{border-bottom:0; border-right:1px solid var(--rule-soft)}
+                          .ladder li:last-child{border-right:0} }
+.ladder li b{display:block; margin:7px 0 3px; font-weight:600; color:var(--ink); font-size:14px}
+.ladder li span.who{color:var(--ink-2); font-size:13px}
+
+.prereq{margin:20px 0; padding:13px 16px; border:1px dashed var(--rule); border-radius:4px;
+        background:var(--surface); font-size:14px; color:var(--ink-2); max-width:80ch}
+.prereq b{color:var(--ink); font-family:var(--f-mono); font-size:10.5px; letter-spacing:.13em;
+          text-transform:uppercase; display:block; margin-bottom:6px}
+.prereq p{margin:0; max-width:none}
+
+/* plain-language glossary for absolute beginners */
+.gloss{margin:22px 0; border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.gloss-top{padding:9px 16px; background:var(--clay-soft); border-bottom:1px solid var(--rule);
+           font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--clay); font-weight:600}
+.gloss dl{margin:0; padding:0; background:var(--surface)}
+.gloss dt{font-weight:600; padding:12px 16px 0; font-size:14.5px}
+.gloss dd{margin:0; padding:2px 16px 12px; color:var(--ink-2); font-size:14px;
+          border-bottom:1px solid var(--rule-soft); line-height:1.6}
+.gloss dd:last-child{border-bottom:0}
+
+.foot{margin-top:80px; padding-top:24px; border-top:2px solid var(--ink);
+      font-size:14px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:12px 24px;
+      align-items:baseline; justify-content:space-between}
+.foot .back{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <a href="../index.html">&larr; From JVM to LLM</a>
+    <span class="sep">/</span>
+    <span>Phase 04 &middot; RAG &amp; Vectors</span>
+    <span class="sep">/</span>
+    <span>Deep dive</span>
+  </div>
+
+  <header class="head">
+    <span class="num">4.4</span>
+    <h1>Vector Databases</h1>
+    <p class="lede">Choosing and running the store. This page argues the case for Postgres, gives the complete pgvector schema
+with the operational details that matter, compares every serious alternative on the axes that actually
+differ, and covers the migration, backup and scaling problems nobody mentions until you have them.</p>
+  </header>
+
+  <div class="ladder">
+    <div class="ladder-top">How this page is levelled</div>
+    <ol>
+      <li><span class="lvl lvl-b">Beginner</span><b>Start from zero</b><span class="who">No prior knowledge assumed. Plain language, no notation.</span></li>
+      <li><span class="lvl lvl-i">Intermediate</span><b>How it works</b><span class="who">The mechanism and the mathematics, derived rather than stated.</span></li>
+      <li><span class="lvl lvl-a">Advanced</span><b>Build it from scratch</b><span class="who">Implement it yourself, then the variants and the trade-offs.</span></li>
+      <li><span class="lvl lvl-p">Professional</span><b>In production</b><span class="who">Scale, failure modes, and the decisions you must defend.</span></li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-top">On this page</div>
+    <ol><li><a href="#zero">Start from zero</a></li><li><a href="#landscape">The landscape</a></li><li><a href="#pgvector">pgvector in production</a></li><li><a href="#operations">Operating it</a></li><li><a href="#scale">When to leave Postgres</a></li><li><a href="#exercises">Exercises</a></li><li><a href="#deeper">Go deeper</a></li></ol>
+  </nav>
+
+<h2 id="zero"><span class="kicker">Section 01 <span class="lvl lvl-b">Beginner</span></span>Start from zero</h2>
+
+<div class="prereq">
+  <b>Assumed knowledge</b>
+  <p>Index types from <a href="#deeper">Topic 4.3</a> &mdash; particularly HNSW parameters. SQL and general database operations.</p>
+</div>
+
+<p>A vector database stores embeddings and finds similar ones quickly. That is one job, and it is the job an ANN index does. So what does a <em>database</em> add beyond the index?</p>
+
+<div class="tbl">
+  <table>
+    <caption>What separates a library from a database</caption>
+    <thead><tr><th>Capability</th><th>Why you need it</th></tr></thead>
+    <tbody>
+      <tr><td>Persistence and durability</td><td>An in-memory index disappears on restart</td></tr>
+      <tr><td>Insert, update, delete</td><td>Documents change. Rebuilding a whole index nightly is not an update strategy</td></tr>
+      <tr><td>Metadata and filtering</td><td>Multi-tenancy, permissions, freshness &mdash; all require predicates</td></tr>
+      <tr><td>Transactions</td><td>Vector and its source row must not diverge</td></tr>
+      <tr><td>Concurrency</td><td>Many readers while writers ingest</td></tr>
+      <tr><td>Backup and restore</td><td>Re-embedding 10M chunks after data loss costs real money</td></tr>
+      <tr><td>Observability</td><td>Slow-query logs, index statistics, connection metrics</td></tr>
+      <tr><td>Access control</td><td>Row-level security, roles, audit</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note key">
+  <span class="tag">The observation that should shape your decision</span>
+  <p>Look at that list again. <strong>Every row is something Postgres has done well for thirty years</strong>, and every row is something a young purpose-built vector database has had to build from scratch. The vector index is the <em>only</em> genuinely new capability.</p>
+  <p>That is the argument for pgvector: you add one extension and inherit all the rest, along with your team's existing operational knowledge, your backup tooling, your monitoring, and your ability to join vectors against business data in a single query.</p>
+</div>
+
+<h2 id="landscape"><span class="kicker">Section 02 <span class="lvl lvl-i">Intermediate</span></span>The landscape</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Serious options, compared on what actually differs</caption>
+    <thead><tr><th>Store</th><th>Shape</th><th>Strengths</th><th>Weaknesses</th><th>Choose when</th></tr></thead>
+    <tbody>
+      <tr><td><strong>pgvector</strong></td><td>Postgres extension</td><td>Transactions, joins, existing ops, one system</td><td>Slower than specialists at extreme scale</td><td><strong>Default. Comfortable to tens of millions of vectors</strong></td></tr>
+      <tr><td>Qdrant</td><td>Purpose-built, Rust</td><td>Excellent filtered search, quantisation, clean API</td><td>Another system to operate</td><td>Heavy metadata filtering; multi-tenant</td></tr>
+      <tr><td>Milvus</td><td>Distributed, cloud-native</td><td>Billions of vectors, many index types, GPU</td><td>Complex &mdash; several components to run</td><td>Very large scale with a platform team</td></tr>
+      <tr><td>Weaviate</td><td>Purpose-built, GraphQL</td><td>Hybrid search built in, module ecosystem</td><td>Opinionated data model</td><td>You want hybrid without assembling it</td></tr>
+      <tr><td>Elasticsearch / OpenSearch</td><td>Search engine + kNN</td><td>Mature BM25 <em>and</em> vectors in one query</td><td>Heavy; JVM tuning</td><td><strong>You already run it</strong> &mdash; then hybrid is nearly free</td></tr>
+      <tr><td>Redis</td><td>In-memory + vector</td><td>Lowest latency; doubles as your cache</td><td>RAM-bound; persistence is a choice</td><td>Latency-critical, moderate corpus</td></tr>
+      <tr><td>Pinecone</td><td>Managed SaaS</td><td>No operations at all</td><td>Cost at scale; data leaves your VPC</td><td>You want to skip infrastructure entirely</td></tr>
+      <tr><td>Chroma</td><td>Embedded / local</td><td>Trivial to start</td><td>Not built for large production</td><td>Prototypes and notebooks</td></tr>
+      <tr><td>LanceDB</td><td>Embedded, columnar on object storage</td><td>Serverless-friendly, versioned</td><td>Younger ecosystem</td><td>Analytical workloads on S3</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note java">
+  <span class="tag">The recommendation, and how to keep your options open</span>
+  <p><strong>Start with pgvector.</strong> Your operational knowledge of Postgres is worth more than a marginal recall improvement, and one fewer system to run is a real and permanent saving.</p>
+  <p>Keep the option open by coding against Spring AI's <code>VectorStore</code> or LangChain4j's <code>EmbeddingStore</code> rather than raw SQL in your service layer. Moving to Qdrant later becomes a configuration change and a re-index, not a rewrite. Prove you need a specialist store &mdash; with a measurement, at your real scale, with your real filters &mdash; before adopting one.</p>
+</div>
+
+<h2 id="pgvector"><span class="kicker">Section 03 <span class="lvl lvl-a">Advanced</span></span>pgvector in production</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">SQL</span><span>The complete schema</span></div>
+<pre><code>CREATE EXTENSION IF NOT EXISTS vector;
+
+CREATE TABLE doc_chunk (
+    id           bigserial PRIMARY KEY,
+    tenant_id    bigint       NOT NULL,
+    document_id  text         NOT NULL,
+    chunk_index  int          NOT NULL,
+    content      text         NOT NULL,
+    metadata     jsonb        NOT NULL DEFAULT '{}',
+
+    -- Which model produced this vector. NOT optional: mixing vectors
+    -- from two models silently corrupts retrieval (Topic 4.2).
+    model_id     text         NOT NULL,
+    embedding    vector(1536) NOT NULL,
+
+    -- For hybrid search in 4.6. Generated, so it can never drift
+    -- out of sync with the content.
+    content_tsv  tsvector GENERATED ALWAYS AS
+                     (to_tsvector('english', content)) STORED,
+
+    created_at   timestamptz  NOT NULL DEFAULT now(),
+    updated_at   timestamptz  NOT NULL DEFAULT now(),
+
+    UNIQUE (tenant_id, document_id, chunk_index)
+);
+
+-- Vector index. The operator class MUST match the metric you query
+-- with, or Postgres silently ignores the index and does a seq scan.
+--   vector_cosine_ops  <=>   cosine distance
+--   vector_l2_ops      <->   euclidean
+--   vector_ip_ops      <#>   negative inner product
+CREATE INDEX doc_chunk_embedding_hnsw
+    ON doc_chunk USING hnsw (embedding vector_cosine_ops)
+    WITH (m = 16, ef_construction = 128);
+
+-- Supporting indexes for filters and full-text
+CREATE INDEX doc_chunk_tenant     ON doc_chunk (tenant_id, document_id);
+CREATE INDEX doc_chunk_metadata   ON doc_chunk USING gin (metadata);
+CREATE INDEX doc_chunk_tsv        ON doc_chunk USING gin (content_tsv);
+
+-- Defence in depth for multi-tenancy: even a bug that omits the
+-- WHERE clause cannot cross tenants.
+ALTER TABLE doc_chunk ENABLE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation ON doc_chunk
+    USING (tenant_id = current_setting('app.tenant_id')::bigint);</code></pre>
+</div>
+
+<div class="code">
+  <div class="code-top"><span class="lang">SQL</span><span>Querying, and the traps</span></div>
+<pre><code>-- ef_search is a SESSION setting, and it is the recall dial.
+SET hnsw.ef_search = 100;
+
+-- CORRECT: ORDER BY the distance operator directly, ASC.
+-- This is the only form the HNSW index can serve.
+SELECT id, content, 1 - (embedding &lt;=&gt; :query) AS similarity
+FROM   doc_chunk
+WHERE  tenant_id = :tenant
+  AND  model_id  = 'text-embedding-3-small'
+ORDER  BY embedding &lt;=&gt; :query
+LIMIT  50;
+
+-- WRONG: the index cannot serve this. Sequential scan, no warning.
+-- SELECT ... ORDER BY 1 - (embedding <=> :query) DESC LIMIT 50;
+
+-- WRONG: a WHERE on the distance also defeats the index.
+-- SELECT ... WHERE embedding <=> :query < 0.3 ORDER BY ...;
+-- Instead: over-fetch with LIMIT, then filter in application code
+-- or in an outer query.
+
+-- Filter first, then rank, when the filter is highly selective:
+WITH candidates AS (
+    SELECT id, content, embedding
+    FROM   doc_chunk
+    WHERE  tenant_id = :tenant
+      AND  metadata-&gt;&gt;'status' = 'published'
+      AND  updated_at &gt; now() - interval '90 days'
+)
+SELECT id, content, 1 - (embedding &lt;=&gt; :query) AS similarity
+FROM   candidates
+ORDER  BY embedding &lt;=&gt; :query
+LIMIT  50;
+
+-- ALWAYS verify the plan. "Index Scan using doc_chunk_embedding_hnsw"
+-- is what you want; "Seq Scan" means you are scanning the table.
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT id FROM doc_chunk WHERE tenant_id = 42
+ORDER BY embedding &lt;=&gt; :query LIMIT 10;</code></pre>
+</div>
+
+<div class="note trap">
+  <span class="tag">The silent sequential scan</span>
+  <p>pgvector will happily run your query without the index and return correct results, just slowly. Three ways to trigger it, none of which produce a warning: using an operator that does not match the index's operator class; ordering <code>DESC</code> by similarity instead of <code>ASC</code> by distance; or putting the distance expression in a <code>WHERE</code> clause.</p>
+  <p>On 10,000 rows in development this is imperceptible. On 10 million rows in production it is a 30-second query. <strong>Run <code>EXPLAIN</code> on your retrieval query as part of your test suite</strong> and assert that an index scan appears in the plan.</p>
+</div>
+
+<h2 id="operations"><span class="kicker">Section 04 <span class="lvl lvl-a">Advanced</span></span>Operating it</h2>
+
+<div class="code">
+  <div class="code-top"><span class="lang">SQL</span><span>Index builds, updates and maintenance</span></div>
+<pre><code>-- HNSW index builds are slow and memory-hungry. Give them room:
+-- if the graph does not fit in maintenance_work_mem, the build
+-- spills to disk and takes many times longer.
+SET maintenance_work_mem = '8GB';
+SET max_parallel_maintenance_workers = 7;
+
+-- Build AFTER bulk loading, not before -- an order of magnitude faster.
+-- CONCURRENTLY avoids taking a write lock on a live table.
+CREATE INDEX CONCURRENTLY doc_chunk_embedding_hnsw
+    ON doc_chunk USING hnsw (embedding vector_cosine_ops)
+    WITH (m = 16, ef_construction = 128);
+
+-- Re-ingestion MUST delete first. Without this, old and new chunks
+-- coexist and stale content competes with fresh content in results.
+BEGIN;
+DELETE FROM doc_chunk WHERE tenant_id = :t AND document_id = :d;
+INSERT INTO doc_chunk (tenant_id, document_id, chunk_index, content,
+                       metadata, model_id, embedding)
+SELECT :t, :d, i, c, m, :model, e FROM unnest(...) ;
+COMMIT;
+
+-- Deletes leave dead tuples in the HNSW graph. Autovacuum handles
+-- normal churn, but a large deletion warrants an explicit pass.
+VACUUM ANALYZE doc_chunk;
+
+-- Watch index bloat over time:
+SELECT relname,
+       pg_size_pretty(pg_relation_size(oid))       AS index_size,
+       pg_size_pretty(pg_total_relation_size(oid)) AS total
+FROM   pg_class
+WHERE  relname LIKE 'doc_chunk%';</code></pre>
+</div>
+
+<h3>Migrating to a new embedding model</h3>
+
+<p>You will do this &mdash; a better model appears, or you fine-tune your own. Never migrate in place; a partially re-embedded index returns nonsense for the mixed period.</p>
+
+<ol class="steps">
+  <li><strong>Add a column or a table</strong> for the new vectors, keeping the old ones live and serving traffic.</li>
+  <li><strong>Backfill in batches</strong>, writing to the new column. This may take hours or days; that is fine because nothing depends on it yet.</li>
+  <li><strong>Build the new index</strong> concurrently.</li>
+  <li><strong>Evaluate</strong> both on the golden set from &sect;4.7. Compare recall@k, not intuition.</li>
+  <li><strong>Switch atomically</strong> &mdash; one configuration change, or a view swap in a transaction.</li>
+  <li><strong>Keep the old column</strong> for a rollback window, then drop it.</li>
+</ol>
+
+<div class="code">
+  <div class="code-top"><span class="lang">SQL</span><span>The migration pattern</span></div>
+<pre><code>ALTER TABLE doc_chunk ADD COLUMN embedding_v2 vector(1024);
+ALTER TABLE doc_chunk ADD COLUMN model_id_v2  text;
+
+-- Backfill in bounded batches so you never hold a long transaction.
+UPDATE doc_chunk SET embedding_v2 = :new_vec, model_id_v2 = :new_model
+WHERE  id IN (SELECT id FROM doc_chunk
+              WHERE embedding_v2 IS NULL
+              ORDER BY id LIMIT 1000);
+
+CREATE INDEX CONCURRENTLY doc_chunk_embedding_v2_hnsw
+    ON doc_chunk USING hnsw (embedding_v2 vector_cosine_ops)
+    WITH (m = 16, ef_construction = 128);
+
+-- Only after the golden set confirms the new model is better.</code></pre>
+</div>
+
+<div class="tbl">
+  <table>
+    <caption>Operational checklist</caption>
+    <thead><tr><th>Concern</th><th>Practice</th></tr></thead>
+    <tbody>
+      <tr><td>Sizing</td><td>Vectors should fit in RAM for good latency. <i>n</i>&times;<i>d</i>&times;4 bytes, plus the graph, plus Postgres overhead</td></tr>
+      <tr><td>Connection pooling</td><td>HikariCP as usual; vector queries hold connections longer than OLTP, so size accordingly</td></tr>
+      <tr><td>Backups</td><td>Standard <code>pg_dump</code> or WAL archiving. Test a restore &mdash; re-embedding 10M chunks is expensive</td></tr>
+      <tr><td>Read replicas</td><td>Retrieval is read-heavy; replicas scale it cleanly</td></tr>
+      <tr><td>Partitioning</td><td>Partition by tenant when a few tenants dominate. Fixes the small-tenant recall cliff from &sect;4.3</td></tr>
+      <tr><td>Monitoring</td><td>p95 query time, index-scan ratio, dead tuple count, cache hit rate</td></tr>
+      <tr><td>Schema migrations</td><td>Flyway or Liquibase, as with any Postgres schema. Do not use <code>initialize-schema: true</code> in production</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="scale"><span class="kicker">Section 05 <span class="lvl lvl-p">Professional</span></span>When to leave Postgres</h2>
+
+<div class="tbl">
+  <table>
+    <caption>Signals that you have outgrown it</caption>
+    <thead><tr><th>Signal</th><th>What it means</th><th>Consider</th></tr></thead>
+    <tbody>
+      <tr><td>Vectors no longer fit in RAM</td><td>Queries hit disk; p95 degrades sharply</td><td>Quantisation first; then a store with native disk-based indexes</td></tr>
+      <tr><td>Filtered recall is poor for small tenants</td><td>Post-filtering with a selective predicate</td><td>Qdrant or Weaviate for native filtered search; or partition</td></tr>
+      <tr><td>Index build takes days</td><td>Corpus too large for single-node builds</td><td>Milvus for distributed builds</td></tr>
+      <tr><td>You need hybrid search and BM25 is weak</td><td>Postgres full-text is decent, not best-in-class</td><td>Elasticsearch/OpenSearch, or a dedicated BM25 index</td></tr>
+      <tr><td>Sub-millisecond p99 required</td><td>Postgres adds connection and planner overhead</td><td>Redis or an in-process index</td></tr>
+      <tr><td>Beyond ~100M vectors</td><td>Single-node limits</td><td>Milvus, Vespa, or sharding</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note">
+  <p><strong>Try these before migrating</strong>, in order &mdash; most teams that "outgrow pgvector" have not done them: reduce dimensions with Matryoshka truncation; quantise to int8 or binary with rescoring; add read replicas; partition by tenant; raise <code>maintenance_work_mem</code> and rebuild with better parameters; and confirm with <code>EXPLAIN</code> that you were actually using the index. Any one of these can buy an order of magnitude, and none requires a new system in your architecture diagram.</p>
+</div>
+
+<h2 id="exercises"><span class="kicker">Section 06 <span class="lvl lvl-p">Professional</span></span>Exercises</h2>
+
+<div class="ex">
+  <div class="ex-top">Do these &mdash; roughly a weekend</div>
+  <ol>
+    <li>Stand up Postgres with pgvector in Docker and create the full schema from Section 03.</li>
+    <li>Load 1M random vectors. Time the index build with <code>maintenance_work_mem</code> at 64&nbsp;MB and at 4&nbsp;GB. Note the difference.</li>
+    <li>Run the correct query and confirm "Index Scan" in <code>EXPLAIN</code>. Then reverse the <code>ORDER BY</code> to <code>DESC</code> and watch it become a sequential scan with no warning.</li>
+    <li>Write a test that asserts <code>EXPLAIN</code> output contains an index scan. Add it to CI.</li>
+    <li>Enable row-level security. Write an integration test that ingests for two tenants and proves tenant A cannot retrieve tenant B's chunks &mdash; then delete the <code>WHERE</code> clause and confirm RLS still saves you.</li>
+    <li>Measure p95 latency at <code>hnsw.ef_search</code> of 40, 100 and 400, alongside recall. Choose your operating point deliberately.</li>
+    <li>Perform a full model migration on a copy: add column, backfill, index, evaluate, switch. Time each phase.</li>
+    <li>Delete 30% of rows, measure query latency, then <code>VACUUM ANALYZE</code> and measure again.</li>
+  </ol>
+</div>
+
+<h2 id="deeper"><span class="kicker">Section 07 <span class="lvl lvl-p">Professional</span></span>Go deeper</h2>
+
+<div class="res">
+  <div class="res-top">Free resources</div>
+  <ul>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://github.com/pgvector/pgvector">pgvector README</a><span class="why">The complete reference: operators, index options, tuning, and the performance notes. Short and authoritative.</span></span></li>
+    <li><span class="kind">Guide</span><span class="body"><a href="https://supabase.com/docs/guides/ai">Supabase &mdash; AI &amp; Vectors</a><span class="why">The clearest practical pgvector material available, including index choice, filtering and scaling guidance.</span></span></li>
+    <li><span class="kind">Article</span><span class="body"><a href="https://www.crunchydata.com/blog/hnsw-indexes-with-postgres-and-pgvector">Crunchy Data &mdash; HNSW indexes with Postgres</a><span class="why">Build-time tuning, memory settings and realistic benchmark numbers from Postgres specialists.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://qdrant.tech/documentation/">Qdrant documentation</a><span class="why">Worth reading even if you use pgvector &mdash; the filtering and quantisation sections explain the problems clearly.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://milvus.io/docs">Milvus documentation</a><span class="why">The index-selection guide is a good reference for the distributed end of the spectrum.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://docs.spring.io/spring-ai/reference/api/vectordbs.html">Spring AI &mdash; Vector Databases</a><span class="why">The portable <code>VectorStore</code> interface and every supported implementation. This is what keeps migration cheap.</span></span></li>
+    <li><span class="kind">Docs</span><span class="body"><a href="https://www.postgresql.org/docs/current/routine-vacuuming.html">Postgres &mdash; Routine Vacuuming</a><span class="why">Vector tables with heavy churn need vacuum tuning like any other. Standard knowledge that applies directly.</span></span></li>
+  </ul>
+</div>
+
+  <div class="foot">
+    <span>Deep dive 4.4 &middot; part of the <em>From JVM to LLM</em> handbook.</span>
+    <a class="back" href="../index.html">&larr; All topics</a>
+  </div>
+  <p style="max-width:74ch;margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-3)">Educational material I put together with AI assistance while learning &mdash; it is for learning purposes and may not be 100% accurate. If you spot a mistake, a missing topic, or anything unusual, please let me know so I can fix it.</p>
+</div>
