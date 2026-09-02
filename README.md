@@ -78,6 +78,26 @@ The last phase turns the knowledge into a job. It has two halves:
 - **Locally:** just open `index.html`.
 - **As a website:** this folder is self-contained (relative links only), so it can be hosted on any static host (e.g. GitHub Pages) as-is. The `.nojekyll` file is included so GitHub Pages serves it without extra processing.
 
+## Licence
+
+This handbook — its text, code samples and structure — is licensed under
+[Creative Commons Attribution 4.0 International (CC BY 4.0)](LICENSE).
+
+You are free to **share and adapt** it, including commercially, as long as you
+give appropriate credit. Suggested attribution:
+
+> *The AI Engineer Handbook — From JVM to LLM*, https://github.com/Dheerajsingh11/AI-Engineer-Handbook — CC BY 4.0
+
+Two things worth stating plainly:
+
+- **Third-party resources linked from these pages** — papers, courses, videos,
+  documentation — remain under their own terms. This licence covers only the
+  handbook's own content, not anything it points at.
+- The content was **written with AI assistance**, so parts of it may not attract
+  copyright at all. Where that is so, the licence simply has no effect and you
+  may treat that material as freely usable. Consider this a statement of intent
+  rather than an assertion of rights.
+
 ---
 
 *Built as a personal learning roadmap. Shared in the hope it helps — and in the expectation that it can be improved. Corrections welcome.*
